@@ -29,7 +29,7 @@ ENV CXX=/usr/bin/g++
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
 # Set the working directory
-WORKDIR /usr/src/app
+WORKDIR /usr/src/shark
 
 # Copy the source code
 COPY . .
@@ -41,4 +41,4 @@ RUN meson test -C builddir
 RUN meson install -C builddir
 
 # Set the entrypoint
-ENTRYPOINT ["/usr/local/bin/app"]
+ENTRYPOINT ["/usr/local/bin/shark"]
