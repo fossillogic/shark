@@ -54,89 +54,89 @@ void handle_name(void) {
 }
 
 void handle_move(const char *source, const char *destination) {
-    fossil_io_printf("Executing 'move' command from %s to %s...\n", source, destination);
+    fossil_io_printf("Moving from '%s' to '%s'...\n", source, destination);
 }
 
 void handle_copy(const char *source, const char *destination) {
-    fossil_io_printf("Executing 'copy' command from %s to %s...\n", source, destination);
+    fossil_io_printf("Copying from '%s' to '%s'...\n", source, destination);
 }
 
 void handle_delete(const char *target) {
-    fossil_io_printf("Executing 'delete' command on %s...\n", target);
+    fossil_io_printf("Deleting '%s'...\n", target);
 }
 
 void handle_list(const char *directory) {
-    fossil_io_printf("Executing 'list' command in directory %s...\n", directory);
+    fossil_io_printf("Listing contents of directory '%s'...\n", directory);
 }
 
 void handle_show(const char *file) {
-    fossil_io_printf("Executing 'show' command on file %s...\n", file);
+    fossil_io_printf("Showing contents of file '%s'...\n", file);
 }
 
 void handle_meta(const char *target) {
-    fossil_io_printf("Executing 'meta' command on %s...\n", target);
+    fossil_io_printf("Displaying metadata for '%s'...\n", target);
 }
 
 void handle_compress(const char *source, const char *archive) {
-    fossil_io_printf("Executing 'compress' command on %s into %s...\n", source, archive);
+    fossil_io_printf("Compressing '%s' into archive '%s'...\n", source, archive);
 }
 
 void handle_extract(const char *archive, const char *destination) {
-    fossil_io_printf("Executing 'extract' command from %s to %s...\n", archive, destination);
+    fossil_io_printf("Extracting archive '%s' to '%s'...\n", archive, destination);
 }
 
 void handle_chmod(const char *target, const char *permissions) {
-    fossil_io_printf("Executing 'chmod' command on %s with permissions %s...\n", target, permissions);
+    fossil_io_printf("Changing permissions of '%s' to '%s'...\n", target, permissions);
 }
 
 void handle_ownership(const char *target, const char *owner) {
-    fossil_io_printf("Executing 'ownership' command on %s to set owner %s...\n", target, owner);
+    fossil_io_printf("Changing ownership of '%s' to user '%s'...\n", target, owner);
 }
 
 void handle_find(const char *directory, const char *pattern) {
-    fossil_io_printf("Executing 'find' command in %s for pattern %s...\n", directory, pattern);
+    fossil_io_printf("Finding entries in '%s' matching pattern '%s'...\n", directory, pattern);
 }
 
 void handle_search(const char *file, const char *pattern) {
-    fossil_io_printf("Executing 'search' command in file %s for pattern %s...\n", file, pattern);
+    fossil_io_printf("Searching file '%s' for pattern '%s'...\n", file, pattern);
 }
 
 void handle_size(const char *target) {
-    fossil_io_printf("Executing 'size' command on %s...\n", target);
+    fossil_io_printf("Calculating size of '%s'...\n", target);
 }
 
 void handle_disk(const char *path) {
-    fossil_io_printf("Executing 'disk' command on path %s...\n", path);
+    fossil_io_printf("Displaying disk usage for path '%s'...\n", path);
 }
 
 void handle_tree(const char *directory) {
-    fossil_io_printf("Executing 'tree' command in directory %s...\n", directory);
+    fossil_io_printf("Displaying directory tree for '%s'...\n", directory);
 }
 
 void handle_compare(const char *path1, const char *path2) {
-    fossil_io_printf("Executing 'compare' command between %s and %s...\n", path1, path2);
+    fossil_io_printf("Comparing '%s' with '%s'...\n", path1, path2);
 }
 
 void handle_sync(const char *source, const char *destination) {
-    fossil_io_printf("Executing 'sync' command from %s to %s...\n", source, destination);
+    fossil_io_printf("Synchronizing from '%s' to '%s'...\n", source, destination);
 }
 
 void handle_update(const char *target) {
-    fossil_io_printf("Executing 'update' command on %s...\n", target);
+    fossil_io_printf("Updating '%s'...\n", target);
 }
 
 void handle_open(const char *file) {
-    fossil_io_printf("Executing 'open' command on file %s...\n", file);
+    fossil_io_printf("Opening file '%s'...\n", file);
 }
 
 void handle_edit(const char *file) {
-    fossil_io_printf("Executing 'edit' command on file %s...\n", file);
+    fossil_io_printf("Editing file '%s'...\n", file);
 }
 
 void handle_push(const char *source, const char *remote) {
-    fossil_io_printf("Executing 'push' command from %s to remote %s...\n", source, remote);
+    fossil_io_printf("Pushing from '%s' to remote '%s'...\n", source, remote);
 }
 
 void handle_pull(const char *remote, const char *destination) {
-    fossil_io_printf("Executing 'pull' command from remote %s to %s...\n", remote, destination);
+    fossil_io_printf("Pulling from remote '%s' to '%s'...\n", remote, destination);
 }
