@@ -25,6 +25,11 @@ extern "C" {
 #endif
 
 /**
+ * Displays the general help message for available commands.
+ */
+void handle_help(void);
+
+/**
  * Prints the application version.
  */
 void handle_version(void);
@@ -35,7 +40,7 @@ void handle_version(void);
 void handle_name(void);
 
 /**
- * Executes the 'move' command to move a file or directory from source to destination.
+ * Moves a file or directory from source to destination.
  *
  * @param source The source path.
  * @param destination The destination path.
@@ -43,7 +48,7 @@ void handle_name(void);
 void handle_move(const char *source, const char *destination);
 
 /**
- * Executes the 'copy' command to copy a file or directory from source to destination.
+ * Copies a file or directory from source to destination.
  *
  * @param source The source path.
  * @param destination The destination path.
@@ -51,35 +56,35 @@ void handle_move(const char *source, const char *destination);
 void handle_copy(const char *source, const char *destination);
 
 /**
- * Executes the 'delete' command to delete a file or directory.
+ * Deletes a file or directory.
  *
  * @param target The target path to delete.
  */
 void handle_delete(const char *target);
 
 /**
- * Executes the 'list' command to list contents of a directory.
+ * Lists the contents of a directory.
  *
  * @param directory The directory path to list.
  */
 void handle_list(const char *directory);
 
 /**
- * Executes the 'show' command to display the contents of a file.
+ * Displays the contents of a file.
  *
  * @param file The file path to display.
  */
 void handle_show(const char *file);
 
 /**
- * Executes the 'meta' command to display metadata of a file or directory.
+ * Displays metadata for a file or directory.
  *
  * @param target The target path to retrieve metadata for.
  */
 void handle_meta(const char *target);
 
 /**
- * Executes the 'compress' command to compress a file or directory into an archive.
+ * Compresses a file or directory into an archive.
  *
  * @param source The source path to compress.
  * @param archive The archive file path to create.
@@ -87,116 +92,116 @@ void handle_meta(const char *target);
 void handle_compress(const char *source, const char *archive);
 
 /**
- * Executes the 'extract' command to extract an archive into a destination.
+ * Extracts an archive to a specified destination.
  *
- * @param archive The archive file path to extract.
+ * @param archive The archive file to extract.
  * @param destination The destination path to extract to.
  */
 void handle_extract(const char *archive, const char *destination);
 
 /**
- * Executes the 'chmod' command to change permissions of a file or directory.
+ * Changes permissions of a file or directory.
  *
- * @param target The target path to change permissions for.
- * @param permissions The permissions to set.
+ * @param target The target path.
+ * @param permissions The permissions string (e.g., "755").
  */
 void handle_chmod(const char *target, const char *permissions);
 
 /**
- * Executes the 'ownership' command to change the owner of a file or directory.
+ * Changes the owner of a file or directory.
  *
- * @param target The target path to change ownership for.
- * @param owner The new owner to set.
+ * @param target The target path.
+ * @param owner The new owner to assign.
  */
 void handle_ownership(const char *target, const char *owner);
 
 /**
- * Executes the 'find' command to search for files or directories matching a pattern.
+ * Searches a directory for entries matching a pattern.
  *
- * @param directory The directory path to search in.
- * @param pattern The pattern to search for.
+ * @param directory The directory to search.
+ * @param pattern The pattern to match.
  */
 void handle_find(const char *directory, const char *pattern);
 
 /**
- * Executes the 'search' command to search for a pattern within a file.
+ * Searches a file for lines matching a pattern.
  *
- * @param file The file path to search in.
+ * @param file The file to search.
  * @param pattern The pattern to search for.
  */
 void handle_search(const char *file, const char *pattern);
 
 /**
- * Executes the 'size' command to display the size of a file or directory.
+ * Displays the size of a file or directory.
  *
- * @param target The target path to retrieve size for.
+ * @param target The target path.
  */
 void handle_size(const char *target);
 
 /**
- * Executes the 'disk' command to display disk usage information for a path.
+ * Displays disk usage statistics for a given path.
  *
- * @param path The path to retrieve disk usage information for.
+ * @param path The path to analyze.
  */
 void handle_disk(const char *path);
 
 /**
- * Executes the 'tree' command to display the directory structure as a tree.
+ * Displays the directory tree structure of a given directory.
  *
- * @param directory The directory path to display as a tree.
+ * @param directory The directory to walk recursively.
  */
 void handle_tree(const char *directory);
 
 /**
- * Executes the 'compare' command to compare two files or directories.
+ * Compares two files or directories.
  *
- * @param path1 The first path to compare.
- * @param path2 The second path to compare.
+ * @param path1 The first path.
+ * @param path2 The second path.
  */
 void handle_compare(const char *path1, const char *path2);
 
 /**
- * Executes the 'sync' command to synchronize files or directories between source and destination.
+ * Synchronizes contents from source to destination.
  *
- * @param source The source path to synchronize from.
- * @param destination The destination path to synchronize to.
+ * @param source The source path.
+ * @param destination The destination path.
  */
 void handle_sync(const char *source, const char *destination);
 
 /**
- * Executes the 'update' command to update a file or directory.
+ * Updates a file or directory with the latest version.
  *
- * @param target The target path to update.
+ * @param target The target path.
  */
 void handle_update(const char *target);
 
 /**
- * Executes the 'open' command to open a file.
+ * Opens a file using the system default application.
  *
  * @param file The file path to open.
  */
 void handle_open(const char *file);
 
 /**
- * Executes the 'edit' command to edit a file.
+ * Opens a file in a text editor.
  *
  * @param file The file path to edit.
  */
 void handle_edit(const char *file);
 
 /**
- * Executes the 'push' command to push changes from a source to a remote location.
+ * Pushes changes from a source path to a remote location.
  *
- * @param source The source path to push from.
- * @param remote The remote location to push to.
+ * @param source The source path.
+ * @param remote The remote destination.
  */
 void handle_push(const char *source, const char *remote);
 
 /**
- * Executes the 'pull' command to pull changes from a remote location to a destination.
+ * Pulls content from a remote location into a destination.
  *
- * @param remote The remote location to pull from.
- * @param destination The destination path to pull to.
+ * @param remote The remote source.
+ * @param destination The local destination path.
  */
 void handle_pull(const char *remote, const char *destination);
 
