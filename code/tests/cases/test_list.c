@@ -50,7 +50,11 @@ FOSSIL_TEST_CASE(c_test_handle_list_success) {
     const char *directory = "test_directory";
 
     // Create a mock directory to simulate the listing
+    #if defined(_WIN32) || defined(_WIN64)
+    _mkdir(directory);
+    #else
     mkdir(directory, 0700);
+    #endif
 
     // Create a mock file inside the directory
     char file_path[256];
@@ -65,7 +69,11 @@ FOSSIL_TEST_CASE(c_test_handle_list_success) {
 
     // Cleanup
     remove(file_path);
+    #if defined(_WIN32) || defined(_WIN64)
+    _rmdir(directory);
+    #else
     rmdir(directory);
+    #endif
 }
 
 FOSSIL_TEST_CASE(c_test_handle_list_failure) {
