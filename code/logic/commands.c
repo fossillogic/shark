@@ -22,6 +22,7 @@
 #else
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/statvfs.h>
 #endif
 
 
@@ -44,12 +45,7 @@ void handle_help(void) {
     fossil_io_printf("{cyan}  disk                Display disk usage and free space{reset}\n");
     fossil_io_printf("{cyan}  tree                Display directory structure as a tree{reset}\n");
     fossil_io_printf("{cyan}  compare             Compare two files or directories{reset}\n");
-    fossil_io_printf("{cyan}  sync                Synchronize files between directories{reset}\n");
-    fossil_io_printf("{cyan}  update              Update file timestamps{reset}\n");
-    fossil_io_printf("{cyan}  open                Open file with a specified editor or viewer{reset}\n");
-    fossil_io_printf("{cyan}  edit                Open file in a default or specified editor for editing{reset}\n");
-    fossil_io_printf("{cyan}  push                Push files to a remote location{reset}\n");
-    fossil_io_printf("{cyan}  pull                Pull files from a remote location{reset}\n");
+    fossil_io_printf("{cyan}  create              Create a new file or directory{reset}\n");
 }
 
 void handle_version(void) {
@@ -185,41 +181,96 @@ void handle_search(const char *file, const char *pattern) {
 }
 
 void handle_size(const char *target) {
-    fossil_io_printf("Calculating size of '%s'...\n", target);
+    fossil_io_printf("{cyan}Calculating size of '%s'...{reset}\n", target);
+    struct stat st;
+    if (stat(target, &st) == 0) {
+#if defined(_WIN32) || defined(_WIN64)
+        fossil_io_printf("{green}Size: %lld bytes{reset}\n", (long long)st.st_size);
+#else
+        fossil_io_printf("{green}Size: %ld bytes{reset}\n", st.st_size);
+#endif
+    } else {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting size: %s{reset}\n", target);
+    }
 }
 
 void handle_disk(const char *path) {
-    fossil_io_printf("Displaying disk usage for path '%s'...\n", path);
+    fossil_io_printf("{cyan}Calculating disk usage for '%s'...\n{reset}", path);
+    struct statvfs stat;
+    if (statvfs(path, &stat) == 0) {
+        unsigned long total = stat.f_frsize * stat.f_blocks;
+        unsigned long free = stat.f_frsize * stat.f_bfree;
+        unsigned long used = total - free;
+        fossil_io_printf("Total: %lu bytes\nFree: %lu bytes\nUsed: %lu bytes\n", total, free, used);
+    } else {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting disk usage: %s{reset}\n", path);
+    }
 }
 
 void handle_tree(const char *directory) {
-    fossil_io_printf("Displaying directory tree for '%s'...\n", directory);
+    fossil_io_printf("{cyan}Walking directory tree for '%s'...{reset}\n", directory);
+    DIR *dir;
+    struct dirent *entry;
+
+    dir = opendir(directory);
+    if (dir == NULL) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening directory: %s{reset}\n", directory);
+        return;
+    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        // Skip "." and ".."
+        if (fossil_io_cstring_compare(entry->d_name, ".") == 0 || fossil_io_cstring_compare(entry->d_name, "..") == 0) {
+            continue;
+        }
+        fossil_io_printf("{green}  %s{reset}\n", entry->d_name);
+    }
+
+    closedir(dir);
 }
 
 void handle_compare(const char *path1, const char *path2) {
-    fossil_io_printf("Comparing '%s' with '%s'...\n", path1, path2);
+    fossil_io_printf("{cyan}Comparing '%s' with '%s'...{reset}\n", path1, path2);
+
+    FILE *file1 = fopen(path1, "rb");
+    FILE *file2 = fopen(path2, "rb");
+
+    if (!file1 || !file2) {
+        if (file1) fclose(file1);
+        if (file2) fclose(file2);
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening files: %s or %s{reset}\n", path1, path2);
+        return;
+    }
+
+    int ch1, ch2;
+    int position = 0;
+    while ((ch1 = fgetc(file1)) != EOF && (ch2 = fgetc(file2)) != EOF) {
+        position++;
+        if (ch1 != ch2) {
+            fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Files differ at byte %d: %s and %s{reset}\n", position, path1, path2);
+            fclose(file1);
+            fclose(file2);
+            return;
+        }
+    }
+
+    if (fgetc(file1) != EOF || fgetc(file2) != EOF) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Files differ in size: %s and %s{reset}\n", path1, path2);
+    } else {
+        fossil_io_printf("{green}Files are identical.{reset}\n");
+    }
+
+    fclose(file1);
+    fclose(file2);
 }
 
-void handle_sync(const char *source, const char *destination) {
-    fossil_io_printf("Synchronizing from '%s' to '%s'...\n", source, destination);
-}
-
-void handle_update(const char *target) {
-    fossil_io_printf("Updating '%s'...\n", target);
-}
-
-void handle_open(const char *file) {
-    fossil_io_printf("Opening file '%s'...\n", file);
-}
-
-void handle_edit(const char *file) {
-    fossil_io_printf("Editing file '%s'...\n", file);
-}
-
-void handle_push(const char *source, const char *remote) {
-    fossil_io_printf("Pushing from '%s' to remote '%s'...\n", source, remote);
-}
-
-void handle_pull(const char *remote, const char *destination) {
-    fossil_io_printf("Pulling from remote '%s' to '%s'...\n", remote, destination);
+void handle_create(const char *target) {
+    fossil_io_printf("{cyan}Creating '%s'...{reset}\n", target);
+    fossil_fstream_t stream;
+    if (fossil_fstream_open(&stream, target, "w") != 0) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error creating file: %s{reset}\n", target);
+        return;
+    }
+    fossil_fstream_close(&stream);
+    fossil_io_printf("{green}Created '%s' successfully.{reset}\n", target);
 }

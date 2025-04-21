@@ -122,49 +122,11 @@ void handle_tree(const char *directory);
 void handle_compare(const char *path1, const char *path2);
 
 /**
- * Synchronizes contents from source to destination.
+ * Creates a new file or directory.
  *
- * @param source The source path.
- * @param destination The destination path.
+ * @param target The target path to create.
  */
-void handle_sync(const char *source, const char *destination);
-
-/**
- * Updates a file or directory with the latest version.
- *
- * @param target The target path.
- */
-void handle_update(const char *target);
-
-/**
- * Opens a file using the system default application.
- *
- * @param file The file path to open.
- */
-void handle_open(const char *file);
-
-/**
- * Opens a file in a text editor.
- *
- * @param file The file path to edit.
- */
-void handle_edit(const char *file);
-
-/**
- * Pushes changes from a source path to a remote location.
- *
- * @param source The source path.
- * @param remote The remote destination.
- */
-void handle_push(const char *source, const char *remote);
-
-/**
- * Pulls content from a remote location into a destination.
- *
- * @param remote The remote source.
- * @param destination The local destination path.
- */
-void handle_pull(const char *remote, const char *destination);
+void handle_create(const char *target);
 
 #ifdef __cplusplus
 }
