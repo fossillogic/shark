@@ -4,35 +4,25 @@
 
 ## 🦈 **shark** CLI Command Reference
 
-| **Command**       | **Description**                                                     | **Subflags**                                                                 |
-|-------------------|---------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| `shark --version` | Display the current version of the Shark tool.                     | None                                                                        |
-| `shark --help`    | Display help information for the Shark tool.                       | None                                                                        |
-| `shark move`      | Move or rename files and directories.                              | `--force`, `--interactive`, `--backup`                                      |
-| `shark copy`      | Copy files or directories.                                         | `--recursive`, `--preserve`, `--verbose`                                    |
-| `shark delete`    | Delete files or directories.                                       | `--force`, `--recursive`, `--dry-run`                                       |
-| `shark list`      | List files and directories. Customize output using sort and format.| `--sort`, `--format`, `--human-readable`                                    |
-| `shark show`      | Display contents of a file, with options for viewing parts of it.  | `--lines`, `--bytes`, `--encoding`                                          |
-| `shark find`      | Find files matching specific criteria (name, size, type, etc.).    | `--name`, `--size`, `--type`, `--ignore-case`                               |
-| `shark search`    | Search file contents for patterns.                                 | `--pattern`, `--ignore-case`, `--line-numbers`                              |
-| `shark size`      | Display size of files or directories.                              | `--human-readable`, `--total`, `--sort`                                     |
-| `shark disk`      | Display disk usage and free space.                                 | `--all`, `--human-readable`, `--threshold`                                  |
-| `shark tree`      | Display directory structure as a tree.                             | `--depth`, `--all`, `--human-readable`                                      |
-| `shark compare`   | Compare two files or directories.                                  | `--recursive`, `--ignore-case`, `--detailed`                                |
-| `shark sync`      | Synchronize files between directories.                             | `--delete`, `--dry-run`, `--verbose`                                        |
-| `shark update`    | Update file timestamps, or create files if they don’t exist.       | `--access-time`, `--modification-time`, `--create`                          |
-| `shark open`      | Open file with a specified editor or viewer.                       | `--editor`, `--viewer`, `--read-only`                                       |
-| `shark edit`      | Open file in a default or specified editor for editing.            | `--editor`, `--backup`, `--encoding`                                        |
-| `shark push`      | Push files to a remote location via SCP or another protocol.       | `--protocol`, `--port`, `--verbose`                                         |
-| `shark pull`      | Pull files from a remote location via SCP or another protocol.     | `--protocol`, `--port`, `--verbose`                                         |
-
-### Notes:
-- **--dry-run**: Simulate the command without actually performing any actions. Useful for previewing.
-- **--recursive**: Apply the operation to directories and subdirectories.
-- **--backup**: Create backup files before making changes (e.g., when deleting or overwriting).
-- **--human-readable**: Show sizes in a human-readable format (e.g., MB, GB).
-- **--ignore-case**: Make searches case-insensitive.
-- **--editor/--viewer**: Specify custom editors or viewers for file operations.
+| **Command**       | **Description**                                                    |
+|-------------------|--------------------------------------------------------------------|
+| `shark --version` | Display the current version of the Shark tool.                     |
+| `shark --help`    | Display help information for the Shark tool.                       |
+| `shark --name`    | Display app name.                                                  |
+| `shark move`      | Move or rename files and directories.                              |
+| `shark copy`      | Copy files or directories.                                         |
+| `shark delete`    | Delete files or directories.                                       |
+| `shark list`      | List files and directories. Customize output using sort and format.|
+| `shark show`      | Display contents of a file, with options for viewing parts of it.  |
+| `shark find`      | Find files matching specific criteria (name, size, type, etc.).    |
+| `shark search`    | Search file contents for patterns.                                 |
+| `shark size`      | Display size of files or directories.                              |
+| `shark disk`      | Display disk usage and free space.                                 |
+| `shark tree`      | Display directory structure as a tree.                             |
+| `shark compare`   | Compare two files or directories.                                  |
+| `shark sync`      | Synchronize files between directories.                             |
+| `shark update`    | Update file timestamps, or create files if they don’t exist.       |
+| `shark create`    | Create new files or directories.                                   |
 
 ## **Prerequisites**
 
