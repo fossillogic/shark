@@ -14,8 +14,15 @@
 #include <fossil/test/framework.h>
 
 #include "fossil/code/app.h"
-#include <dirent.h> // for custom_list to use opendir, readdir, closedir
-#include <sys/stat.h> // for mkdir
+#include <dirent.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
