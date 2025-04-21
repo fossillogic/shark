@@ -4,30 +4,27 @@
 
 ## 🦈 **shark** CLI Command Reference
 
-| **Command**       | **Sub Flags**                                                                                      | **Description**                                                     |
-|-------------------|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
-| `shark move`      | `--rename`, `--force`, `--dry-run`, `--backup`                                                      | Move or rename files and directories. `--dry-run` simulates the move. |
-| `shark copy`      | `--recursive`, `--backup`, `--no-overwrite`, `--force`                                               | Copy files or directories. `--recursive` copies directories.        |
-| `shark delete`    | `--recursive`, `--force`, `--dry-run`, `--backup`                                                   | Delete files or directories. `--recursive` deletes subdirectories. |
-| `shark list`      | `--long`, `--all`, `--human-readable`, `--sort=NAME|SIZE|DATE`                                       | List files and directories. Customize output using sort and format. |
-| `shark show`      | `--lines=N`, `--head`, `--tail`, `--json`, `--yaml`                                                 | Display contents of a file, with options for viewing parts of it.   |
-| `shark meta`      | `--size`, `--permissions`, `--owner`, `--timestamps`                                                | Show metadata of a file or directory (like `stat`).                 |
-| `shark compress`  | `--gzip`, `--tar`, `--zip`, `--bzip2`, `--output=FILE`                                              | Compress files or directories into a specific format.               |
-| `shark extract`   | `--tar`, `--zip`, `--gzip`, `--bzip2`, `--output=DIR`                                               | Extract files from archives. Specify the format or output directory.|
-| `shark chmod`     | `--recursive`, `--permissions=MODE`                                                                 | Change file permissions. `--recursive` applies changes to subdirectories. |
-| `shark ownership` | `--user=USER`, `--group=GROUP`, `--recursive`                                                        | Change file ownership (user/group).                                |
-| `shark find`      | `--name=PATTERN`, `--size=SIZE`, `--type=TYPE`, `--modified=DATE`, `--max-depth=N`                   | Find files matching specific criteria (name, size, type, etc.).     |
-| `shark search`    | `--pattern=PATTERN`, `--ignore-case`, `--files`, `--invert-match`, `--recursive`                     | Search file contents for patterns.                                  |
-| `shark size`      | `--human-readable`, `--summarize`, `--depth=N`, `--max-depth=N`                                     | Display size of files or directories.                               |
-| `shark disk`      | `--total`, `--human-readable`, `--inodes`                                                            | Display disk usage and free space.                                  |
-| `shark tree`      | `--depth=N`, `--file-limit=N`, `--long`                                                              | Display directory structure as a tree, customizable with depth.     |
-| `shark compare`   | `--binary`, `--ignore-whitespace`, `--recursive`, `--side-by-side`                                  | Compare two files or directories.                                   |
-| `shark sync`      | `--dry-run`, `--recursive`, `--delete`, `--ignore-existing`                                          | Synchronize files between directories.                              |
-| `shark update`    | `--timestamp=TIME`, `--create`, `--modify`, `--dry-run`                                              | Update file timestamps, or create files if they don’t exist.        |
-| `shark open`      | `--editor=EDITOR`, `--viewer=VIEWER`                                                                | Open file with a specified editor or viewer.                         |
-| `shark edit`      | `--editor=EDITOR`, `--line=N`                                                                       | Open file in a default or specified editor for editing.              |
-| `shark push`      | `--remote=HOST`, `--user=USER`, `--port=PORT`, `--recursive`                                         | Push files to a remote location via SCP or another protocol.        |
-| `shark pull`      | `--remote=HOST`, `--user=USER`, `--port=PORT`, `--recursive`                                         | Pull files from a remote location via SCP or another protocol.      |
+| **Command**       | **Description**                                                     | **Subflags**                                                                 |
+|-------------------|---------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| `shark --version` | Display the current version of the Shark tool.                     | None                                                                        |
+| `shark --help`    | Display help information for the Shark tool.                       | None                                                                        |
+| `shark move`      | Move or rename files and directories.                              | `--force`, `--interactive`, `--backup`                                      |
+| `shark copy`      | Copy files or directories.                                         | `--recursive`, `--preserve`, `--verbose`                                    |
+| `shark delete`    | Delete files or directories.                                       | `--force`, `--recursive`, `--dry-run`                                       |
+| `shark list`      | List files and directories. Customize output using sort and format.| `--sort`, `--format`, `--human-readable`                                    |
+| `shark show`      | Display contents of a file, with options for viewing parts of it.  | `--lines`, `--bytes`, `--encoding`                                          |
+| `shark find`      | Find files matching specific criteria (name, size, type, etc.).    | `--name`, `--size`, `--type`, `--ignore-case`                               |
+| `shark search`    | Search file contents for patterns.                                 | `--pattern`, `--ignore-case`, `--line-numbers`                              |
+| `shark size`      | Display size of files or directories.                              | `--human-readable`, `--total`, `--sort`                                     |
+| `shark disk`      | Display disk usage and free space.                                 | `--all`, `--human-readable`, `--threshold`                                  |
+| `shark tree`      | Display directory structure as a tree.                             | `--depth`, `--all`, `--human-readable`                                      |
+| `shark compare`   | Compare two files or directories.                                  | `--recursive`, `--ignore-case`, `--detailed`                                |
+| `shark sync`      | Synchronize files between directories.                             | `--delete`, `--dry-run`, `--verbose`                                        |
+| `shark update`    | Update file timestamps, or create files if they don’t exist.       | `--access-time`, `--modification-time`, `--create`                          |
+| `shark open`      | Open file with a specified editor or viewer.                       | `--editor`, `--viewer`, `--read-only`                                       |
+| `shark edit`      | Open file in a default or specified editor for editing.            | `--editor`, `--backup`, `--encoding`                                        |
+| `shark push`      | Push files to a remote location via SCP or another protocol.       | `--protocol`, `--port`, `--verbose`                                         |
+| `shark pull`      | Pull files from a remote location via SCP or another protocol.     | `--protocol`, `--port`, `--verbose`                                         |
 
 ### Notes:
 - **--dry-run**: Simulate the command without actually performing any actions. Useful for previewing.
