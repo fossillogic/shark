@@ -54,15 +54,31 @@ void handle_name(void) {
 }
 
 void handle_move(const char *source, const char *destination) {
-    fossil_io_printf("Moving from '%s' to '%s'...\n", source, destination);
+    fossil_io_printf("{cyan}Moving from '%s' to '%s'...{reset}\n", source, destination);
+    if (fossil_fstream_rename(source, destination) != 0) {
+        perror("Error moving file");
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error moving file: %s{reset}\n", source);
+    } else {
+        fossil_io_printf("{cyan}Moved '%s' to '%s' successfully.{reset}\n", source, destination);
+    }
 }
 
 void handle_copy(const char *source, const char *destination) {
-    fossil_io_printf("Copying from '%s' to '%s'...\n", source, destination);
+    fossil_io_printf("{cyan}Copying from '%s' to '%s'...{reset}\n", source, destination);
+    if (fossil_fstream_copy(source, destination) != 0) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error copying file: %s{reset}\n", source);
+    } else {
+        fossil_io_printf("{cyan}Copied '%s' to '%s' successfully.{reset}\n", source, destination);
+    }
 }
 
 void handle_delete(const char *target) {
-    fossil_io_printf("Deleting '%s'...\n", target);
+    fossil_io_printf("{cyan}Deleting '%s'...\n{reset}", target);
+    if (fossil_fstream_delete(target) != 0) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error deleting file: %s{reset}\n", target);
+    } else {
+        fossil_io_printf("{cyan}Deleted '%s' successfully.{reset}\n", target);
+    }
 }
 
 void handle_list(const char *directory) {
