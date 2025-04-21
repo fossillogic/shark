@@ -20,8 +20,6 @@
 | `shark disk`      | Display disk usage and free space.                                 |
 | `shark tree`      | Display directory structure as a tree.                             |
 | `shark compare`   | Compare two files or directories.                                  |
-| `shark sync`      | Synchronize files between directories.                             |
-| `shark update`    | Update file timestamps, or create files if they don’t exist.       |
 | `shark create`    | Create new files or directories.                                   |
 
 ## **Prerequisites**
