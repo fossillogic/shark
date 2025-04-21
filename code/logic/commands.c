@@ -13,6 +13,7 @@
  */
 #include "fossil/code/commands.h"
 #include <dirent.h> // for custom_list to use opendir, readdir, closedir
+#include <sys/stat.h> // for mkdir
 
 // Handler function definitions
 void handle_help(void) {
@@ -94,6 +95,12 @@ int custom_list(const char *directory) {
 
     fossil_io_printf("{cyan}Contents of '%s':{reset}\n", directory);
     while ((entry = readdir(dir)) != NULL) {
+#ifdef _WIN32
+        // On Windows, skip "." and ".." explicitly
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+#endif
         fossil_io_printf("{green}  %s{reset}\n", entry->d_name);
     }
 

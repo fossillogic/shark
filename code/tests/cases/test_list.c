@@ -14,7 +14,8 @@
 #include <fossil/test/framework.h>
 
 #include "fossil/code/app.h"
-#include <dirent.h>
+#include <dirent.h> // for custom_list to use opendir, readdir, closedir
+#include <sys/stat.h> // for mkdir
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
