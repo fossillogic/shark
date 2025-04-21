@@ -54,36 +54,6 @@ bool app_entry(int argc, char** argv) {
             return EXIT_FAILURE;
         }
         handle_show(argv[2]);
-    } else if (fossil_io_cstring_compare(command, "meta") == 0) {
-        if (argc < 3) {
-            fossil_io_printf("Usage: shark meta <target>\n");
-            return EXIT_FAILURE;
-        }
-        handle_meta(argv[2]);
-    } else if (fossil_io_cstring_compare(command, "compress") == 0) {
-        if (argc < 4) {
-            fossil_io_printf("Usage: shark compress <source> <archive>\n");
-            return EXIT_FAILURE;
-        }
-        handle_compress(argv[2], argv[3]);
-    } else if (fossil_io_cstring_compare(command, "extract") == 0) {
-        if (argc < 4) {
-            fossil_io_printf("Usage: shark extract <archive> <destination>\n");
-            return EXIT_FAILURE;
-        }
-        handle_extract(argv[2], argv[3]);
-    } else if (fossil_io_cstring_compare(command, "chmod") == 0) {
-        if (argc < 4) {
-            fossil_io_printf("Usage: shark chmod <target> <permissions>\n");
-            return EXIT_FAILURE;
-        }
-        handle_chmod(argv[2], argv[3]);
-    } else if (fossil_io_cstring_compare(command, "ownership") == 0) {
-        if (argc < 4) {
-            fossil_io_printf("Usage: shark ownership <target> <owner>\n");
-            return EXIT_FAILURE;
-        }
-        handle_ownership(argv[2], argv[3]);
     } else if (fossil_io_cstring_compare(command, "find") == 0) {
         if (argc < 4) {
             fossil_io_printf("Usage: shark find <directory> <pattern>\n");

@@ -77,45 +77,6 @@ void handle_list(const char *directory);
 void handle_show(const char *file);
 
 /**
- * Displays metadata for a file or directory.
- *
- * @param target The target path to retrieve metadata for.
- */
-void handle_meta(const char *target);
-
-/**
- * Compresses a file or directory into an archive.
- *
- * @param source The source path to compress.
- * @param archive The archive file path to create.
- */
-void handle_compress(const char *source, const char *archive);
-
-/**
- * Extracts an archive to a specified destination.
- *
- * @param archive The archive file to extract.
- * @param destination The destination path to extract to.
- */
-void handle_extract(const char *archive, const char *destination);
-
-/**
- * Changes permissions of a file or directory.
- *
- * @param target The target path.
- * @param permissions The permissions string (e.g., "755").
- */
-void handle_chmod(const char *target, const char *permissions);
-
-/**
- * Changes the owner of a file or directory.
- *
- * @param target The target path.
- * @param owner The new owner to assign.
- */
-void handle_ownership(const char *target, const char *owner);
-
-/**
  * Searches a directory for entries matching a pattern.
  *
  * @param directory The directory to search.
