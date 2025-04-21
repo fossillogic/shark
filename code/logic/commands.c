@@ -259,27 +259,28 @@ void handle_compare(const char *path1, const char *path2) {
     fossil_io_printf("{cyan}Comparing '%s' with '%s'...{reset}\n", path1, path2);
 
     fossil_fstream_t stream1, stream2;
-    if (fossil_fstream_open(&stream1, path1, "rb") != 0 || fossil_fstream_open(&stream2, path2, "rb") != 0) {
+    if (fossil_fstream_open(&stream1, path1, "r") != 0 || fossil_fstream_open(&stream2, path2, "r") != 0) {
         if (stream1.file) fossil_fstream_close(&stream1);
         if (stream2.file) fossil_fstream_close(&stream2);
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening files: %s or %s{reset}\n", path1, path2);
         return;
     }
 
-    int ch1, ch2;
-    int position = 0;
-    while ((ch1 = fossil_io_getc_from_stream(stream1.file)) != EOF && 
-           (ch2 = fossil_io_getc_from_stream(stream2.file)) != EOF) {
-        position++;
-        if (ch1 != ch2) {
-            fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Files differ at byte %d: %s and %s{reset}\n", position, path1, path2);
+    char buf1[256], buf2[256];
+    int line_number = 0;
+    while (fossil_io_gets_from_stream(buf1, sizeof(buf1), stream1.file) != NULL &&
+           fossil_io_gets_from_stream(buf2, sizeof(buf2), stream2.file) != NULL) {
+        line_number++;
+        if (strcmp(buf1, buf2) != 0) {
+            fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Files differ at line %d: %s and %s{reset}\n", line_number, path1, path2);
             fossil_fstream_close(&stream1);
             fossil_fstream_close(&stream2);
             return;
         }
     }
 
-    if (fossil_io_getc_from_stream(stream1.file) != EOF || fossil_io_getc_from_stream(stream2.file) != EOF) {
+    if (fossil_io_gets_from_stream(buf1, sizeof(buf1), stream1.file) != NULL ||
+        fossil_io_gets_from_stream(buf2, sizeof(buf2), stream2.file) != NULL) {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Files differ in size: %s and %s{reset}\n", path1, path2);
     } else {
         fossil_io_printf("{green}Files are identical.{reset}\n");
