@@ -28,11 +28,6 @@ void handle_help(void) {
     fossil_io_printf("{cyan}  delete              Delete files or directories{reset}\n");
     fossil_io_printf("{cyan}  list                List files and directories{reset}\n");
     fossil_io_printf("{cyan}  show                Display contents of a file{reset}\n");
-    fossil_io_printf("{cyan}  meta                Show metadata of a file or directory{reset}\n");
-    fossil_io_printf("{cyan}  compress            Compress files or directories{reset}\n");
-    fossil_io_printf("{cyan}  extract             Extract files from archives{reset}\n");
-    fossil_io_printf("{cyan}  chmod               Change file permissions{reset}\n");
-    fossil_io_printf("{cyan}  ownership           Change file ownership (user/group){reset}\n");
     fossil_io_printf("{cyan}  find                Find files matching specific criteria{reset}\n");
     fossil_io_printf("{cyan}  search              Search file contents for patterns{reset}\n");
     fossil_io_printf("{cyan}  size                Display size of files or directories{reset}\n");
@@ -97,7 +92,7 @@ int custom_list(const char *directory) {
     while ((entry = readdir(dir)) != NULL) {
 #ifdef _WIN32
         // On Windows, skip "." and ".." explicitly
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+        if (fossil_io_cstring_compare(entry->d_name, ".") == 0 || fossil_io_cstring_compare(entry->d_name, "..") == 0) {
             continue;
         }
 #endif
@@ -109,7 +104,7 @@ int custom_list(const char *directory) {
 }
 
 void handle_list(const char *directory) {
-    fossil_io_printf("Listing contents of directory '%s'...\n", directory);
+    fossil_io_printf("{cyan}Listing contents of directory '%s'...{reset}\n", directory);
     if (custom_list(directory) != 0) {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error listing directory: %s{reset}\n", directory);
     } else {
@@ -118,35 +113,65 @@ void handle_list(const char *directory) {
 }
 
 void handle_show(const char *file) {
-    fossil_io_printf("Showing contents of file '%s'...\n", file);
-}
+    fossil_io_printf("{cyan}Displaying contents of file '%s'...{reset}\n", file);
+    fossil_fstream_t stream;
+    if (fossil_fstream_open(&stream, file, "r") != 0) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening file: %s{reset}\n", file);
+        return;
+    }
 
-void handle_meta(const char *target) {
-    fossil_io_printf("Displaying metadata for '%s'...\n", target);
-}
-
-void handle_compress(const char *source, const char *archive) {
-    fossil_io_printf("Compressing '%s' into archive '%s'...\n", source, archive);
-}
-
-void handle_extract(const char *archive, const char *destination) {
-    fossil_io_printf("Extracting archive '%s' to '%s'...\n", archive, destination);
-}
-
-void handle_chmod(const char *target, const char *permissions) {
-    fossil_io_printf("Changing permissions of '%s' to '%s'...\n", target, permissions);
-}
-
-void handle_ownership(const char *target, const char *owner) {
-    fossil_io_printf("Changing ownership of '%s' to user '%s'...\n", target, owner);
+    char line[256];
+    while (fossil_io_gets_from_stream(line, sizeof(line), stream.file) != NULL) {
+        fossil_io_printf("%s", line);
+    }
+    fossil_fstream_close(&stream);
 }
 
 void handle_find(const char *directory, const char *pattern) {
-    fossil_io_printf("Finding entries in '%s' matching pattern '%s'...\n", directory, pattern);
+    fossil_io_printf("{cyan}Finding files in '%s' matching pattern '%s'...{reset}\n", directory, pattern);
+
+    DIR *dir;
+    struct dirent *entry;
+
+    dir = opendir(directory);
+    if (dir == NULL) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening directory: %s{reset}\n", directory);
+        return;
+    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        // Skip "." and ".."
+        if (fossil_io_cstring_compare(entry->d_name, ".") == 0 || fossil_io_cstring_compare(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        // Check if the file name matches the pattern
+        if (fossil_io_cstring_contains(entry->d_name, pattern)) {
+            fossil_io_printf("{green}  %s{reset}\n", entry->d_name);
+        }
+    }
+
+    closedir(dir);
+    fossil_io_printf("{cyan}Finished searching in '%s'.{reset}\n", directory);
 }
 
 void handle_search(const char *file, const char *pattern) {
-    fossil_io_printf("Searching file '%s' for pattern '%s'...\n", file, pattern);
+    fossil_io_printf("{cyan}Searching file '%s' for pattern '%s'...{reset}\n", file, pattern);
+    fossil_fstream_t stream;
+    if (fossil_fstream_open(&stream, file, "r") != 0) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening file: %s{reset}\n", file);
+        return;
+    }
+
+    char line[256];
+    int line_number = 0;
+    while (fossil_io_gets_from_stream(line, sizeof(line), stream.file) != NULL) {
+        line_number++;
+        if (fossil_io_cstring_contains(line, pattern)) {
+            fossil_io_printf("{green}Line %d: %s{reset}\n", line_number, line);
+        }
+    }
+    fossil_fstream_close(&stream);
 }
 
 void handle_size(const char *target) {
