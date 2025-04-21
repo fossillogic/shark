@@ -14,6 +14,7 @@
 #include "fossil/code/commands.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <dirent.h>
 
@@ -28,24 +29,37 @@
 
 // Handler function definitions
 void handle_help(void) {
+    const char *flags[] = {
+        "--help              Show usage and available subcommands",
+        "--name              Show the name of the application",
+        "--version           Prints the current version number"
+    };
+
+    const char *commands[] = {
+        "move                Move or rename files and directories",
+        "copy                Copy files or directories",
+        "delete              Delete files or directories",
+        "list                List files and directories",
+        "show                Display contents of a file",
+        "find                Find files matching specific criteria",
+        "search              Search file contents for patterns",
+        "size                Display size of files or directories",
+        "disk                Display disk usage and free space",
+        "tree                Display directory structure as a tree",
+        "compare             Compare two files or directories",
+        "create              Create a new file or directory"
+    };
+
     fossil_io_printf("{blue,bold}Usage: shark <command> [options]{reset}\n");
     fossil_io_printf("{blue,bold}Flags:{reset}\n");
-    fossil_io_printf("{cyan}  --help              Show usage and available subcommands{reset}\n");
-    fossil_io_printf("{cyan}  --name              Show the name of the application{reset}\n");
-    fossil_io_printf("{cyan}  --version           Prints the current version number{reset}\n");
+    for (size_t i = 0; i < sizeof(flags) / sizeof(flags[0]); i++) {
+        fossil_io_printf("{cyan} > %s{reset}\n", flags[i]);
+    }
+
     fossil_io_printf("{blue,bold}Commands:{reset}\n");
-    fossil_io_printf("{cyan}  move                Move or rename files and directories{reset}\n");
-    fossil_io_printf("{cyan}  copy                Copy files or directories{reset}\n");
-    fossil_io_printf("{cyan}  delete              Delete files or directories{reset}\n");
-    fossil_io_printf("{cyan}  list                List files and directories{reset}\n");
-    fossil_io_printf("{cyan}  show                Display contents of a file{reset}\n");
-    fossil_io_printf("{cyan}  find                Find files matching specific criteria{reset}\n");
-    fossil_io_printf("{cyan}  search              Search file contents for patterns{reset}\n");
-    fossil_io_printf("{cyan}  size                Display size of files or directories{reset}\n");
-    fossil_io_printf("{cyan}  disk                Display disk usage and free space{reset}\n");
-    fossil_io_printf("{cyan}  tree                Display directory structure as a tree{reset}\n");
-    fossil_io_printf("{cyan}  compare             Compare two files or directories{reset}\n");
-    fossil_io_printf("{cyan}  create              Create a new file or directory{reset}\n");
+    for (size_t i = 0; i < sizeof(commands) / sizeof(commands[0]); i++) {
+        fossil_io_printf("{cyan} > %s{reset}\n", commands[i]);
+    }
 }
 
 void handle_version(void) {
@@ -185,26 +199,38 @@ void handle_size(const char *target) {
     struct stat st;
     if (stat(target, &st) == 0) {
 #if defined(_WIN32) || defined(_WIN64)
-        fossil_io_printf("{green}Size: %lld bytes{reset}\n", (long long)st.st_size);
+        fossil_io_printf("{green}Size of '%s': %lld bytes{reset}\n", target, (long long)st.st_size);
 #else
-        fossil_io_printf("{green}Size: %ld bytes{reset}\n", st.st_size);
+        fossil_io_printf("{green}Size of '%s': %ld bytes{reset}\n", target, st.st_size);
 #endif
     } else {
-        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting size: %s{reset}\n", target);
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting size of '%s': %s{reset}\n", target, strerror(errno));
     }
 }
 
 void handle_disk(const char *path) {
-    fossil_io_printf("{cyan}Calculating disk usage for '%s'...\n{reset}", path);
-    struct statvfs stat;
-    if (statvfs(path, &stat) == 0) {
-        unsigned long total = stat.f_frsize * stat.f_blocks;
-        unsigned long free = stat.f_frsize * stat.f_bfree;
-        unsigned long used = total - free;
-        fossil_io_printf("Total: %lu bytes\nFree: %lu bytes\nUsed: %lu bytes\n", total, free, used);
+    fossil_io_printf("{cyan}Calculating disk usage for '%s'...{reset}\n", path);
+#if defined(_WIN32) || defined(_WIN64)
+    ULARGE_INTEGER freeBytesAvailable, totalBytes, totalFreeBytes;
+    if (GetDiskFreeSpaceEx(path, &freeBytesAvailable, &totalBytes, &totalFreeBytes)) {
+        unsigned long long total = totalBytes.QuadPart;
+        unsigned long long free = totalFreeBytes.QuadPart;
+        unsigned long long used = total - free;
+        fossil_io_printf("Total: %llu bytes\nFree: %llu bytes\nUsed: %llu bytes\n", total, free, used);
     } else {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting disk usage: %s{reset}\n", path);
     }
+#else
+    struct statvfs stat;
+    if (statvfs(path, &stat) == 0) {
+        unsigned long long total = (unsigned long long)stat.f_frsize * stat.f_blocks;
+        unsigned long long free = (unsigned long long)stat.f_frsize * stat.f_bfree;
+        unsigned long long used = total - free;
+        fossil_io_printf("Total: %llu bytes\nFree: %llu bytes\nUsed: %llu bytes\n", total, free, used);
+    } else {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting disk usage: %s{reset}\n", path);
+    }
+#endif
 }
 
 void handle_tree(const char *directory) {
@@ -232,36 +258,35 @@ void handle_tree(const char *directory) {
 void handle_compare(const char *path1, const char *path2) {
     fossil_io_printf("{cyan}Comparing '%s' with '%s'...{reset}\n", path1, path2);
 
-    FILE *file1 = fopen(path1, "rb");
-    FILE *file2 = fopen(path2, "rb");
-
-    if (!file1 || !file2) {
-        if (file1) fclose(file1);
-        if (file2) fclose(file2);
+    fossil_fstream_t stream1, stream2;
+    if (fossil_fstream_open(&stream1, path1, "rb") != 0 || fossil_fstream_open(&stream2, path2, "rb") != 0) {
+        if (stream1.file) fossil_fstream_close(&stream1);
+        if (stream2.file) fossil_fstream_close(&stream2);
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening files: %s or %s{reset}\n", path1, path2);
         return;
     }
 
     int ch1, ch2;
     int position = 0;
-    while ((ch1 = fgetc(file1)) != EOF && (ch2 = fgetc(file2)) != EOF) {
+    while ((ch1 = fossil_io_getc_from_stream(stream1.file)) != EOF && 
+           (ch2 = fossil_io_getc_from_stream(stream2.file)) != EOF) {
         position++;
         if (ch1 != ch2) {
             fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Files differ at byte %d: %s and %s{reset}\n", position, path1, path2);
-            fclose(file1);
-            fclose(file2);
+            fossil_fstream_close(&stream1);
+            fossil_fstream_close(&stream2);
             return;
         }
     }
 
-    if (fgetc(file1) != EOF || fgetc(file2) != EOF) {
+    if (fossil_io_getc_from_stream(stream1.file) != EOF || fossil_io_getc_from_stream(stream2.file) != EOF) {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Files differ in size: %s and %s{reset}\n", path1, path2);
     } else {
         fossil_io_printf("{green}Files are identical.{reset}\n");
     }
 
-    fclose(file1);
-    fclose(file2);
+    fossil_fstream_close(&stream1);
+    fossil_fstream_close(&stream2);
 }
 
 void handle_create(const char *target) {
