@@ -12,6 +12,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
+#include <dirent.h> // for custom_list to use opendir, readdir, closedir
 
 // Handler function definitions
 void handle_help(void) {
@@ -81,8 +82,32 @@ void handle_delete(const char *target) {
     }
 }
 
+int custom_list(const char *directory) {
+    DIR *dir;
+    struct dirent *entry;
+
+    dir = opendir(directory);
+    if (dir == NULL) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening directory: %s{reset}\n", directory);
+        return -1; // Return non-zero on failure
+    }
+
+    fossil_io_printf("{cyan}Contents of '%s':{reset}\n", directory);
+    while ((entry = readdir(dir)) != NULL) {
+        fossil_io_printf("{green}  %s{reset}\n", entry->d_name);
+    }
+
+    closedir(dir);
+    return 0; // Return 0 on success
+}
+
 void handle_list(const char *directory) {
     fossil_io_printf("Listing contents of directory '%s'...\n", directory);
+    if (custom_list(directory) != 0) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error listing directory: %s{reset}\n", directory);
+    } else {
+        fossil_io_printf("{cyan}Listed contents of '%s' successfully.{reset}\n", directory);
+    }
 }
 
 void handle_show(const char *file) {
