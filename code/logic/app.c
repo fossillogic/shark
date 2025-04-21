@@ -20,8 +20,20 @@ bool app_entry(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    // The first argument is the command
+    // The first argument is the command or flag
     const char *command = argv[1];
+
+    // Handle flags
+    if (fossil_io_cstring_compare(command, "--help") == 0) {
+        handle_help();
+        return EXIT_SUCCESS;
+    } else if (fossil_io_cstring_compare(command, "--version") == 0) {
+        handle_version();
+        return EXIT_SUCCESS;
+    } else if (fossil_io_cstring_compare(command, "--name") == 0) {
+        handle_name();
+        return EXIT_SUCCESS;
+    }
 
     // Parse the command
     if (fossil_io_cstring_compare(command, "move") == 0) {
@@ -90,48 +102,12 @@ bool app_entry(int argc, char** argv) {
             return EXIT_FAILURE;
         }
         handle_compare(argv[2], argv[3]);
-    } else if (fossil_io_cstring_compare(command, "sync") == 0) {
-        if (argc < 4) {
-            fossil_io_printf("Usage: shark sync <source> <destination>\n");
-            return EXIT_FAILURE;
-        }
-        handle_sync(argv[2], argv[3]);
-    } else if (fossil_io_cstring_compare(command, "update") == 0) {
+    } else if (fossil_io_cstring_compare(command, "create") == 0) {
         if (argc < 3) {
-            fossil_io_printf("Usage: shark update <target>\n");
+            fossil_io_printf("Usage: shark create <target>\n");
             return EXIT_FAILURE;
         }
-        handle_update(argv[2]);
-    } else if (fossil_io_cstring_compare(command, "open") == 0) {
-        if (argc < 3) {
-            fossil_io_printf("Usage: shark open <file>\n");
-            return EXIT_FAILURE;
-        }
-        handle_open(argv[2]);
-    } else if (fossil_io_cstring_compare(command, "edit") == 0) {
-        if (argc < 3) {
-            fossil_io_printf("Usage: shark edit <file>\n");
-            return EXIT_FAILURE;
-        }
-        handle_edit(argv[2]);
-    } else if (fossil_io_cstring_compare(command, "push") == 0) {
-        if (argc < 4) {
-            fossil_io_printf("Usage: shark push <source> <remote>\n");
-            return EXIT_FAILURE;
-        }
-        handle_push(argv[2], argv[3]);
-    } else if (fossil_io_cstring_compare(command, "pull") == 0) {
-        if (argc < 4) {
-            fossil_io_printf("Usage: shark pull <remote> <destination>\n");
-            return EXIT_FAILURE;
-        }
-        handle_pull(argv[2], argv[3]);
-    } else if (fossil_io_cstring_compare(command, "--help") == 0) {
-        handle_help();
-    } else if (fossil_io_cstring_compare(command, "--version") == 0) {
-        handle_version();
-    } else if (fossil_io_cstring_compare(command, "--name") == 0) {
-        handle_name();
+        handle_create(argv[2]);
     } else {
         handle_help();
         return EXIT_FAILURE;
