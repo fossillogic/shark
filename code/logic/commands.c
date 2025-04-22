@@ -22,7 +22,6 @@
 #include <direct.h>
 #else
 #include <sys/stat.h>
-#include <unistd.h>
 #include <sys/statvfs.h>
 #endif
 
@@ -103,13 +102,13 @@ int custom_list(const char *directory) {
     struct dirent *entry;
 
     dir = opendir(directory);
-    if (dir == NULL) {
+    if (dir == cnull) {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening directory: %s{reset}\n", directory);
         return -1; // Return non-zero on failure
     }
 
     fossil_io_printf("{cyan}Contents of '%s':{reset}\n", directory);
-    while ((entry = readdir(dir)) != NULL) {
+    while ((entry = readdir(dir)) != cnull) {
 #ifdef _WIN32
         // On Windows, skip "." and ".." explicitly
         if (fossil_io_cstring_compare(entry->d_name, ".") == 0 || fossil_io_cstring_compare(entry->d_name, "..") == 0) {
@@ -141,7 +140,7 @@ void handle_show(const char *file) {
     }
 
     char line[256];
-    while (fossil_io_gets_from_stream(line, sizeof(line), stream.file) != NULL) {
+    while (fossil_io_gets_from_stream(line, sizeof(line), stream.file) != cnull) {
         fossil_io_printf("%s", line);
     }
     fossil_fstream_close(&stream);
@@ -154,12 +153,12 @@ void handle_find(const char *directory, const char *pattern) {
     struct dirent *entry;
 
     dir = opendir(directory);
-    if (dir == NULL) {
+    if (dir == cnull) {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening directory: %s{reset}\n", directory);
         return;
     }
 
-    while ((entry = readdir(dir)) != NULL) {
+    while ((entry = readdir(dir)) != cnull) {
         // Skip "." and ".."
         if (fossil_io_cstring_compare(entry->d_name, ".") == 0 || fossil_io_cstring_compare(entry->d_name, "..") == 0) {
             continue;
@@ -185,7 +184,7 @@ void handle_search(const char *file, const char *pattern) {
 
     char line[256];
     int line_number = 0;
-    while (fossil_io_gets_from_stream(line, sizeof(line), stream.file) != NULL) {
+    while (fossil_io_gets_from_stream(line, sizeof(line), stream.file) != cnull) {
         line_number++;
         if (fossil_io_cstring_contains(line, pattern)) {
             fossil_io_printf("{green}Line %d: %s{reset}\n", line_number, line);
@@ -198,14 +197,11 @@ void handle_size(const char *target) {
     fossil_io_printf("{cyan}Calculating size of '%s'...{reset}\n", target);
     struct stat st;
     if (stat(target, &st) == 0) {
-#if defined(_WIN32) || defined(_WIN64)
         fossil_io_printf("{green}Size of '%s': %lld bytes{reset}\n", target, (long long)st.st_size);
-#else
-        fossil_io_printf("{green}Size of '%s': %ld bytes{reset}\n", target, st.st_size);
-#endif
     } else {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting size of '%s': %s{reset}\n", target, strerror(errno));
     }
+    cunused(target); // To avoid unused parameter warning
 }
 
 void handle_disk(const char *path) {
@@ -239,12 +235,12 @@ void handle_tree(const char *directory) {
     struct dirent *entry;
 
     dir = opendir(directory);
-    if (dir == NULL) {
+    if (dir == cnull) {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening directory: %s{reset}\n", directory);
         return;
     }
 
-    while ((entry = readdir(dir)) != NULL) {
+    while ((entry = readdir(dir)) != cnull) {
         // Skip "." and ".."
         if (fossil_io_cstring_compare(entry->d_name, ".") == 0 || fossil_io_cstring_compare(entry->d_name, "..") == 0) {
             continue;
@@ -268,8 +264,8 @@ void handle_compare(const char *path1, const char *path2) {
 
     char buf1[256], buf2[256];
     int line_number = 0;
-    while (fossil_io_gets_from_stream(buf1, sizeof(buf1), stream1.file) != NULL &&
-           fossil_io_gets_from_stream(buf2, sizeof(buf2), stream2.file) != NULL) {
+    while (fossil_io_gets_from_stream(buf1, sizeof(buf1), stream1.file) != cnull &&
+           fossil_io_gets_from_stream(buf2, sizeof(buf2), stream2.file) != cnull) {
         line_number++;
         if (strcmp(buf1, buf2) != 0) {
             fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Files differ at line %d: %s and %s{reset}\n", line_number, path1, path2);
@@ -279,8 +275,8 @@ void handle_compare(const char *path1, const char *path2) {
         }
     }
 
-    if (fossil_io_gets_from_stream(buf1, sizeof(buf1), stream1.file) != NULL ||
-        fossil_io_gets_from_stream(buf2, sizeof(buf2), stream2.file) != NULL) {
+    if (fossil_io_gets_from_stream(buf1, sizeof(buf1), stream1.file) != cnull ||
+        fossil_io_gets_from_stream(buf2, sizeof(buf2), stream2.file) != cnull) {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Files differ in size: %s and %s{reset}\n", path1, path2);
     } else {
         fossil_io_printf("{green}Files are identical.{reset}\n");
