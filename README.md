@@ -1,6 +1,6 @@
 # **Shark File Tool**
 
-**Shark** is a powerful, all-in-one command-line tool designed to simplify and centralize file operations. Instead of juggling multiple utilities for tasks like copying, moving, deleting, listing, and searching for files, **Shark** consolidates them into a single, easy-to-use tool. With modern, intuitive commands, **Shark** streamlines your workflow, allowing you to manage files, search file contents, compare directories, adjust permissions, display disk usage, and much more—all with one tool. Whether you're working with local files or need to push/pull files remotely, **Shark** handles it with speed and efficiency. Say goodbye to the clutter of multiple command-line tools—**Shark** does it all in one bite.
+**Shark** is a powerful, all-in-one command-line tool designed to simplify and centralize file operations. Instead of juggling multiple utilities for tasks like copying, moving, deleting, listing, and searching for files, **Shark** consolidates them into a single, easy-to-use tool. With modern, intuitive commands, **Shark** streamlines your workflow, allowing you to manage files, search file contents, compare directories, adjust permissions, display disk usage, and much more—all with one tool. **Shark** handles it with speed and efficiency. Say goodbye to the clutter of multiple command-line tools—**Shark** does it all in one bite.
 
 ## 🦈 **shark** CLI Command Reference
 
