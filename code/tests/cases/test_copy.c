@@ -24,16 +24,15 @@
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 // Define the test suite and add test cases
-FOSSIL_TEST_SUITE(c_sample_suite);
-fossil_fstream_t c_string;
+FOSSIL_TEST_SUITE(c_copy_suite);
 
 // Setup function for the test suite
-FOSSIL_SETUP(c_sample_suite) {
+FOSSIL_SETUP(c_copy_suite) {
     // Setup code here
 }
 
 // Teardown function for the test suite
-FOSSIL_TEARDOWN(c_sample_suite) {
+FOSSIL_TEARDOWN(c_copy_suite) {
     // Teardown code here
 }
 
@@ -45,23 +44,53 @@ FOSSIL_TEARDOWN(c_sample_suite) {
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-FOSSIL_TEST_CASE(c_test_app_name) {
-    const char *app_name = FOSSIL_APP_NAME;
-    ASSUME_ITS_EQUAL_CSTR("Shark Tool", app_name);
+FOSSIL_TEST_CASE(c_test_handle_copy_success) {
+    const char *source = "test_source_copy.txt";
+    const char *destination = "test_destination_copy.txt";
+
+    // Create a mock file to simulate the source
+    FILE *file = fopen(source, "w");
+    ASSUME_NOT_CNULL(file);
+    fprintf(file, "Copy test content");
+    fclose(file);
+
+    // Call the function to test
+    handle_copy(source, destination);
+
+    // Check if the destination file exists and contains the expected content
+    FILE *dest_file = fopen(destination, "r");
+    ASSUME_NOT_CNULL(dest_file);
+
+    char buffer[256];
+    fgets(buffer, sizeof(buffer), dest_file);
+    ASSUME_ITS_EQUAL_CSTR("Copy test content", buffer);
+    fclose(dest_file);
+
+    // Cleanup
+    remove(source);
+    remove(destination);
 }
 
-FOSSIL_TEST_CASE(c_test_app_version) {
-    const char *app_version = FOSSIL_APP_VERSION;
-    ASSUME_ITS_EQUAL_CSTR("0.1.0", app_version);
+FOSSIL_TEST_CASE(c_test_handle_copy_failure) {
+    const char *source = "non_existent_copy_file.txt";
+    const char *destination = "test_destination_copy.txt";
+
+    // Call the function to test
+    handle_copy(source, destination);
+
+    // Ensure the destination file does not exist
+    FILE *dest_file = fopen(destination, "r");
+    ASSUME_ITS_CNULL(dest_file);
 }
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-FOSSIL_TEST_GROUP(c_sample_tests) {
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_app_name);
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_app_version);
+FOSSIL_TEST_GROUP(c_copy_command_tests) {
+    FOSSIL_TEST_ADD(c_copy_suite, c_test_handle_copy_success);
+    FOSSIL_TEST_ADD(c_copy_suite, c_test_handle_copy_failure);
 
-    FOSSIL_TEST_REGISTER(c_sample_suite);
+    FOSSIL_TEST_REGISTER(c_copy_suite);
 }

@@ -3,7 +3,7 @@
 # ======================
 [wrap-git]
 url = https://github.com/fossillogic/fossil-sys.git
-revision = v0.1.0
+revision = v0.1.1
 
 [provide]
 fossil-sys = fossil_sys_dep

@@ -24,16 +24,15 @@
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 // Define the test suite and add test cases
-FOSSIL_TEST_SUITE(c_sample_suite);
-fossil_fstream_t c_string;
+FOSSIL_TEST_SUITE(c_delete_suite);
 
 // Setup function for the test suite
-FOSSIL_SETUP(c_sample_suite) {
+FOSSIL_SETUP(c_delete_suite) {
     // Setup code here
 }
 
 // Teardown function for the test suite
-FOSSIL_TEARDOWN(c_sample_suite) {
+FOSSIL_TEARDOWN(c_delete_suite) {
     // Teardown code here
 }
 
@@ -45,23 +44,41 @@ FOSSIL_TEARDOWN(c_sample_suite) {
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-FOSSIL_TEST_CASE(c_test_app_name) {
-    const char *app_name = FOSSIL_APP_NAME;
-    ASSUME_ITS_EQUAL_CSTR("Shark Tool", app_name);
+FOSSIL_TEST_CASE(c_test_handle_delete_success) {
+    const char *target = "test_file_to_delete.txt";
+
+    // Create a mock file to simulate the target
+    FILE *file = fopen(target, "w");
+    ASSUME_NOT_CNULL(file);
+    fprintf(file, "Test content");
+    fclose(file);
+
+    // Call the function to test
+    handle_delete(target);
+
+    // Ensure the file no longer exists
+    FILE *deleted_file = fopen(target, "r");
+    ASSUME_ITS_CNULL(deleted_file);
 }
 
-FOSSIL_TEST_CASE(c_test_app_version) {
-    const char *app_version = FOSSIL_APP_VERSION;
-    ASSUME_ITS_EQUAL_CSTR("0.1.0", app_version);
+FOSSIL_TEST_CASE(c_test_handle_delete_failure) {
+    const char *target = "non_existent_file_to_delete.txt";
+
+    // Call the function to test
+    handle_delete(target);
+
+    // Ensure no file was created or exists with the target name
+    FILE *deleted_file = fopen(target, "r");
+    ASSUME_ITS_CNULL(deleted_file);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-FOSSIL_TEST_GROUP(c_sample_tests) {
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_app_name);
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_app_version);
+FOSSIL_TEST_GROUP(c_delete_command_tests) {
+    FOSSIL_TEST_ADD(c_delete_suite, c_test_handle_delete_success);
+    FOSSIL_TEST_ADD(c_delete_suite, c_test_handle_delete_failure);
 
-    FOSSIL_TEST_REGISTER(c_sample_suite);
+    FOSSIL_TEST_REGISTER(c_delete_suite);
 }

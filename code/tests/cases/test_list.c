@@ -14,6 +14,15 @@
 #include <fossil/test/framework.h>
 
 #include "fossil/code/app.h"
+#include <dirent.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
@@ -24,16 +33,15 @@
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 // Define the test suite and add test cases
-FOSSIL_TEST_SUITE(c_sample_suite);
-fossil_fstream_t c_string;
+FOSSIL_TEST_SUITE(c_list_suite);
 
 // Setup function for the test suite
-FOSSIL_SETUP(c_sample_suite) {
+FOSSIL_SETUP(c_list_suite) {
     // Setup code here
 }
 
 // Teardown function for the test suite
-FOSSIL_TEARDOWN(c_sample_suite) {
+FOSSIL_TEARDOWN(c_list_suite) {
     // Teardown code here
 }
 
@@ -45,23 +53,54 @@ FOSSIL_TEARDOWN(c_sample_suite) {
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-FOSSIL_TEST_CASE(c_test_app_name) {
-    const char *app_name = FOSSIL_APP_NAME;
-    ASSUME_ITS_EQUAL_CSTR("Shark Tool", app_name);
+FOSSIL_TEST_CASE(c_test_handle_list_success) {
+    const char *directory = "test_directory";
+
+    // Create a mock directory to simulate the listing
+    #if defined(_WIN32) || defined(_WIN64)
+    _mkdir(directory);
+    #else
+    mkdir(directory, 0700);
+    #endif
+
+    // Create a mock file inside the directory
+    char file_path[256];
+    snprintf(file_path, sizeof(file_path), "%s/test_file.txt", directory);
+    FILE *file = fopen(file_path, "w");
+    ASSUME_NOT_CNULL(file);
+    fprintf(file, "Sample content");
+    fclose(file);
+
+    // Call the function to test
+    handle_list(directory);
+
+    // Cleanup
+    remove(file_path);
+    #if defined(_WIN32) || defined(_WIN64)
+    _rmdir(directory);
+    #else
+    rmdir(directory);
+    #endif
 }
 
-FOSSIL_TEST_CASE(c_test_app_version) {
-    const char *app_version = FOSSIL_APP_VERSION;
-    ASSUME_ITS_EQUAL_CSTR("0.1.0", app_version);
+FOSSIL_TEST_CASE(c_test_handle_list_failure) {
+    const char *directory = "non_existent_directory";
+
+    // Call the function to test
+    handle_list(directory);
+
+    // Ensure no directory was created or modified
+    DIR *dir = opendir(directory);
+    ASSUME_ITS_CNULL(dir);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-FOSSIL_TEST_GROUP(c_sample_tests) {
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_app_name);
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_app_version);
+FOSSIL_TEST_GROUP(c_list_command_tests) {
+    FOSSIL_TEST_ADD(c_list_suite, c_test_handle_list_success);
+    FOSSIL_TEST_ADD(c_list_suite, c_test_handle_list_failure);
 
-    FOSSIL_TEST_REGISTER(c_sample_suite);
+    FOSSIL_TEST_REGISTER(c_list_suite);
 }

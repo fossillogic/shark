@@ -29,7 +29,7 @@ ENV CXX=/usr/bin/g++
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
 # Set the working directory
-WORKDIR /usr/src/shark
+WORKDIR /usr/src/app
 
 # Copy the source code
 COPY . .
