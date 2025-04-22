@@ -17,12 +17,11 @@
 #include <errno.h>
 #include <string.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <sys/statvfs.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <direct.h>
-#else
-#include <sys/stat.h>
-#include <sys/statvfs.h>
 #endif
 
 
