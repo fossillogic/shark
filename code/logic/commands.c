@@ -28,7 +28,6 @@
 
 int ENABLE_VERBOSE = 0; // Global variable to control verbose output
 
-
 // Handler function definitions
 void handle_help(void) {
     const char *flags[] = {
