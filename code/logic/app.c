@@ -113,6 +113,8 @@ bool app_entry(int argc, char** argv) {
             return EXIT_FAILURE;
         }
         handle_create(argv[2]);
+    } else if (fossil_io_cstring_compare(command, "clear") == 0) {
+        fossil_io_clear_screen();
     } else if (fossil_io_cstring_compare(command, "color=") == 0) {
         if (argc < 3) {
             fossil_io_printf("{blue}Usage:{cyan} shark color=<enable|disable|auto>{reset}\n");
