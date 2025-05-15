@@ -49,6 +49,9 @@ FOSSIL_TEST_CASE(c_test_handle_copy_success) {
     const char *destination = "test_destination_copy.txt";
 
     // Create a mock file to simulate the source
+    int create_result = FOSSIL_SANITY_SYS_CREATE_FILE(source);
+    ASSUME_ITS_EQUAL_I32(0, create_result);
+
     FILE *file = fopen(source, "w");
     ASSUME_NOT_CNULL(file);
     fprintf(file, "Copy test content");
@@ -58,6 +61,8 @@ FOSSIL_TEST_CASE(c_test_handle_copy_success) {
     handle_copy(source, destination);
 
     // Check if the destination file exists and contains the expected content
+    ASSUME_ITS_EQUAL_I32(1, FOSSIL_SANITY_SYS_FILE_EXISTS(destination));
+
     FILE *dest_file = fopen(destination, "r");
     ASSUME_NOT_CNULL(dest_file);
 
@@ -79,8 +84,7 @@ FOSSIL_TEST_CASE(c_test_handle_copy_failure) {
     handle_copy(source, destination);
 
     // Ensure the destination file does not exist
-    FILE *dest_file = fopen(destination, "r");
-    ASSUME_ITS_CNULL(dest_file);
+    ASSUME_ITS_EQUAL_I32(0, FOSSIL_SANITY_SYS_FILE_EXISTS(destination));
 }
 
 

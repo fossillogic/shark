@@ -48,28 +48,30 @@ FOSSIL_TEST_CASE(c_test_handle_delete_success) {
     const char *target = "test_file_to_delete.txt";
 
     // Create a mock file to simulate the target
-    FILE *file = fopen(target, "w");
-    ASSUME_NOT_CNULL(file);
-    fprintf(file, "Test content");
-    fclose(file);
+    int create_result = FOSSIL_SANITY_SYS_CREATE_FILE(target);
+    ASSUME_ITS_EQUAL_I32(create_result, 0);
+
+    // Ensure the file exists before deletion
+    ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS(target));
 
     // Call the function to test
     handle_delete(target);
 
     // Ensure the file no longer exists
-    FILE *deleted_file = fopen(target, "r");
-    ASSUME_ITS_CNULL(deleted_file);
+    ASSUME_ITS_FALSE(FOSSIL_SANITY_SYS_FILE_EXISTS(target));
 }
 
 FOSSIL_TEST_CASE(c_test_handle_delete_failure) {
     const char *target = "non_existent_file_to_delete.txt";
 
+    // Ensure the file does not exist before deletion
+    ASSUME_ITS_FALSE(FOSSIL_SANITY_SYS_FILE_EXISTS(target));
+
     // Call the function to test
     handle_delete(target);
 
-    // Ensure no file was created or exists with the target name
-    FILE *deleted_file = fopen(target, "r");
-    ASSUME_ITS_CNULL(deleted_file);
+    // Ensure the file still does not exist
+    ASSUME_ITS_FALSE(FOSSIL_SANITY_SYS_FILE_EXISTS(target));
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
