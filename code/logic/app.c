@@ -12,6 +12,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/app.h"
+#include <unistd.h> // For STDOUT_FILENO
 
 
 bool app_entry(int argc, char** argv) {
@@ -112,6 +113,27 @@ bool app_entry(int argc, char** argv) {
             return EXIT_FAILURE;
         }
         handle_create(argv[2]);
+    } else if (fossil_io_cstring_compare(command, "color=") == 0) {
+        if (argc < 3) {
+            fossil_io_printf("{blue}Usage:{cyan} shark color=<enable|disable|auto>{reset}\n");
+            return EXIT_FAILURE;
+        }
+
+        const char *color_option = argv[2];
+        if (fossil_io_cstring_compare(color_option, "enable") == 0) {
+            FOSSIL_IO_COLOR_ENABLE = true;
+            fossil_io_printf("{green}Color output enabled.{reset}\n");
+        } else if (fossil_io_cstring_compare(color_option, "disable") == 0) {
+            FOSSIL_IO_COLOR_ENABLE = false;
+            fossil_io_printf("{yellow}Color output disabled.{reset}\n");
+        } else if (fossil_io_cstring_compare(color_option, "auto") == 0) {
+            FOSSIL_IO_COLOR_ENABLE = isatty(STDOUT_FILENO);
+            fossil_io_printf("{cyan}Color output set to auto-detect.{reset}\n");
+        } else {
+            fossil_io_printf("{red}Invalid color option. Use enable, disable, or auto.{reset}\n");
+            return EXIT_FAILURE;
+        }
+        return EXIT_SUCCESS;
     } else {
         handle_help();
         return EXIT_FAILURE;
