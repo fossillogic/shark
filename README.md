@@ -9,6 +9,7 @@
 | `shark --version` | Display the current version of the Shark tool.                     |
 | `shark --help`    | Display help information for the Shark tool.                       |
 | `shark --name`    | Display app name.                                                  |
+| `shark --verbose` | Enable verbose output.                                             |
 | `shark move`      | Move or rename files and directories.                              |
 | `shark copy`      | Copy files or directories.                                         |
 | `shark delete`    | Delete files or directories.                                       |
@@ -21,6 +22,8 @@
 | `shark tree`      | Display directory structure as a tree.                             |
 | `shark compare`   | Compare two files or directories.                                  |
 | `shark create`    | Create new files or directories.                                   |
+| `shark color`     | <enable|disable|auto> Set color output mode                        |
+| `shark clear`     | Clear output from console                                          |
 
 ## **Prerequisites**
 
@@ -72,7 +75,7 @@ Interested in contributing? Please open pull requests or create issues on the [G
 
 ## **Feedback and Support**
 
-For issues, questions, or feedback, open an issue on the [GitHub repository](https://github.com/fossillogic/fossil-app/shark).
+For issues, questions, or feedback, open an issue on the [GitHub repository](https://github.com/fossillogic/shark/issues).
 
 ## **License**
 

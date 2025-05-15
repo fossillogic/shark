@@ -11,7 +11,7 @@
  * Copyright (C) 2024 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include <fossil/test/framework.h>
+#include <fossil/pizza/framework.h>
 
 #include "fossil/code/app.h"
 
@@ -49,6 +49,8 @@ FOSSIL_TEST_CASE(c_test_handle_search_found) {
     const char *pattern = "match";
 
     // Create a mock file to simulate the target
+    int create_result = FOSSIL_SANITY_SYS_CREATE_FILE(file);
+    ASSUME_ITS_EQUAL_I32(create_result, 0);
     FILE *mock_file = fopen(file, "w");
     ASSUME_NOT_CNULL(mock_file);
     fprintf(mock_file, "This is a test line.\nAnother line with match.\nFinal line.");
@@ -66,6 +68,8 @@ FOSSIL_TEST_CASE(c_test_handle_search_not_found) {
     const char *pattern = "notfound";
 
     // Create a mock file to simulate the target
+    int create_result = FOSSIL_SANITY_SYS_CREATE_FILE(file);
+    ASSUME_ITS_EQUAL_I32(create_result, 0);
     FILE *mock_file = fopen(file, "w");
     ASSUME_NOT_CNULL(mock_file);
     fprintf(mock_file, "This is a test line.\nAnother line.\nFinal line.");
@@ -82,12 +86,16 @@ FOSSIL_TEST_CASE(c_test_handle_search_file_not_found) {
     const char *file = "non_existent_file.txt";
     const char *pattern = "anything";
 
+    // Ensure the file does not exist
+    int file_exists = FOSSIL_SANITY_SYS_FILE_EXISTS(file);
+    ASSUME_ITS_EQUAL_I32(file_exists, 0);
+
     // Call the function to test
     handle_search(file, pattern);
 
     // Ensure no file was created
-    FILE *non_existent_file = fopen(file, "r");
-    ASSUME_ITS_CNULL(non_existent_file);
+    int file_still_exists = FOSSIL_SANITY_SYS_FILE_EXISTS(file);
+    ASSUME_ITS_EQUAL_I32(file_still_exists, 0);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *

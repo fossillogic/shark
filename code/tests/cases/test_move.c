@@ -11,7 +11,7 @@
  * Copyright (C) 2024 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include <fossil/test/framework.h>
+#include <fossil/pizza/framework.h>
 
 #include "fossil/code/app.h"
 
@@ -49,6 +49,9 @@ FOSSIL_TEST_CASE(c_test_handle_move_success) {
     const char *destination = "test_destination.txt";
 
     // Create a mock file to simulate the source
+    int create_result = FOSSIL_SANITY_SYS_CREATE_FILE(source);
+    ASSUME_ITS_EQUAL_I32(0, create_result);
+
     FILE *file = fopen(source, "w");
     ASSUME_NOT_CNULL(file);
     fprintf(file, "Test content");
@@ -58,6 +61,8 @@ FOSSIL_TEST_CASE(c_test_handle_move_success) {
     handle_move(source, destination);
 
     // Check if the destination file exists and contains the expected content
+    ASSUME_ITS_EQUAL_I32(1, FOSSIL_SANITY_SYS_FILE_EXISTS(destination));
+
     FILE *dest_file = fopen(destination, "r");
     ASSUME_NOT_CNULL(dest_file);
 
@@ -74,12 +79,14 @@ FOSSIL_TEST_CASE(c_test_handle_move_failure) {
     const char *source = "non_existent_file.txt";
     const char *destination = "test_destination.txt";
 
+    // Ensure the source file does not exist
+    ASSUME_ITS_EQUAL_I32(0, FOSSIL_SANITY_SYS_FILE_EXISTS(source));
+
     // Call the function to test
     handle_move(source, destination);
 
     // Ensure the destination file does not exist
-    FILE *dest_file = fopen(destination, "r");
-    ASSUME_ITS_CNULL(dest_file);
+    ASSUME_ITS_EQUAL_I32(0, FOSSIL_SANITY_SYS_FILE_EXISTS(destination));
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *

@@ -11,7 +11,7 @@
  * Copyright (C) 2024 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include <fossil/test/framework.h>
+#include <fossil/pizza/framework.h>
 
 #include "fossil/code/app.h"
 #include <dirent.h>
@@ -58,28 +58,26 @@ FOSSIL_TEST_CASE(c_test_handle_list_success) {
 
     // Create a mock directory to simulate the listing
     #if defined(_WIN32) || defined(_WIN64)
-    _mkdir(directory);
+    FOSSIL_SANITY_SYS_EXECUTE("_mkdir test_directory");
     #else
-    mkdir(directory, 0700);
+    FOSSIL_SANITY_SYS_EXECUTE("mkdir -p test_directory");
     #endif
 
     // Create a mock file inside the directory
     char file_path[256];
     snprintf(file_path, sizeof(file_path), "%s/test_file.txt", directory);
-    FILE *file = fopen(file_path, "w");
-    ASSUME_NOT_CNULL(file);
-    fprintf(file, "Sample content");
-    fclose(file);
+    int create_result = FOSSIL_SANITY_SYS_CREATE_FILE(file_path);
+    ASSUME_ITS_EQUAL_I32(create_result, 0);
 
     // Call the function to test
     handle_list(directory);
 
     // Cleanup
-    remove(file_path);
+    FOSSIL_SANITY_SYS_EXECUTE("rm -f test_directory/test_file.txt");
     #if defined(_WIN32) || defined(_WIN64)
-    _rmdir(directory);
+    FOSSIL_SANITY_SYS_EXECUTE("_rmdir test_directory");
     #else
-    rmdir(directory);
+    FOSSIL_SANITY_SYS_EXECUTE("rmdir test_directory");
     #endif
 }
 
@@ -90,8 +88,8 @@ FOSSIL_TEST_CASE(c_test_handle_list_failure) {
     handle_list(directory);
 
     // Ensure no directory was created or modified
-    DIR *dir = opendir(directory);
-    ASSUME_ITS_CNULL(dir);
+    int dir_exists = FOSSIL_SANITY_SYS_FILE_EXISTS(directory);
+    ASSUME_ITS_EQUAL_I32(dir_exists, 0);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
