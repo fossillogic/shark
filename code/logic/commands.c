@@ -21,6 +21,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <direct.h>
+#include <windows.h> // Required for ULARGE_INTEGER and GetDiskFreeSpaceEx
 #else
 #include <sys/statvfs.h>
 #endif
@@ -272,16 +273,20 @@ void handle_disk(const char *path) {
         return;
     }
 
-#if defined(_WIN32) || defined(_WIN64)
-    ULARGE_INTEGER freeBytesAvailable, totalBytes, totalFreeBytes;
-    if (GetDiskFreeSpaceEx(path, &freeBytesAvailable, &totalBytes, &totalFreeBytes)) {
-        unsigned long long total = totalBytes.QuadPart;
-        unsigned long long free = totalFreeBytes.QuadPart;
-        unsigned long long used = total - free;
-        fossil_io_printf("{cyan}Disk Usage for '%s':{reset}\n", path);
-        fossil_io_printf("  Total: %llu bytes\n  Free: %llu bytes\n  Used: %llu bytes\n", total, free, used);
-    } else {
-        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting disk usage: %s{reset}\n", path);
+    #if defined(_WIN32) || defined(_WIN64)
+        ULARGE_INTEGER freeBytesAvailable, totalBytes, totalFreeBytes;
+        if (GetDiskFreeSpaceEx(path, &freeBytesAvailable, &totalBytes, &totalFreeBytes)) {
+            unsigned long long total = totalBytes.QuadPart;
+            unsigned long long free = totalFreeBytes.QuadPart;
+            unsigned long long used = total - free;
+            fossil_io_printf("{cyan}Disk Usage for '%s':{reset}\n", path);
+            fossil_io_printf("  Total: %llu bytes\n  Free: %llu bytes\n  Used: %llu bytes\n", total, free, used);
+        } else {
+            fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting disk usage: %s{reset}\n", strerror(GetLastError()));
+        }
+    #else
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Disk usage calculation is not supported on this platform.{reset}\n");
+    #endif
     }
 #else
     struct statvfs stat;
