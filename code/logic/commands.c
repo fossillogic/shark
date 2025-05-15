@@ -237,19 +237,28 @@ void handle_search(const char *file, const char *pattern) {
 
 void handle_size(const char *target) {
     if (ENABLE_VERBOSE) {
-        fossil_io_printf("{cyan}Calculating size of '%s'...{reset}\n", target);
+        fossil_io_printf("{blue,bold}Calculating size of '%s'...{reset}\n", target);
     }
 
     struct stat st;
     if (stat(target, &st) == 0) {
-        fossil_io_printf("{cyan}Size of '%s': %lld bytes{reset}\n", target, (long long)st.st_size);
+        long long size_bytes = (long long)st.st_size;
+        double size_kb = size_bytes / 1024.0;
+        double size_mb = size_kb / 1024.0;
+        double size_gb = size_mb / 1024.0;
+
+        fossil_io_printf("{blue,bold}Size of '%s':{reset}\n", target);
+        fossil_io_printf("{cyan}  %lld bytes{reset}\n", size_bytes);
+        fossil_io_printf("{cyan}  %.2f KB{reset}\n", size_kb);
+        fossil_io_printf("{cyan}  %.2f MB{reset}\n", size_mb);
+        fossil_io_printf("{cyan}  %.2f GB{reset}\n", size_gb);
     } else {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting size of '%s': %s{reset}\n", target, strerror(errno));
     }
     cunused(target); // To avoid unused parameter warning
 
     if (ENABLE_VERBOSE) {
-        fossil_io_printf("{cyan}Finished calculating size of '%s'.{reset}\n", target);
+        fossil_io_printf("{blue,bold}Finished calculating size of '%s'.{reset}\n", target);
     }
 }
 
@@ -258,13 +267,19 @@ void handle_disk(const char *path) {
         fossil_io_printf("{cyan}Calculating disk usage for '%s'...{reset}\n", path);
     }
 
+    if (path == NULL || strlen(path) == 0) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Invalid path provided.{reset}\n");
+        return;
+    }
+
 #if defined(_WIN32) || defined(_WIN64)
     ULARGE_INTEGER freeBytesAvailable, totalBytes, totalFreeBytes;
     if (GetDiskFreeSpaceEx(path, &freeBytesAvailable, &totalBytes, &totalFreeBytes)) {
         unsigned long long total = totalBytes.QuadPart;
         unsigned long long free = totalFreeBytes.QuadPart;
         unsigned long long used = total - free;
-        fossil_io_printf("Total: %llu bytes\nFree: %llu bytes\nUsed: %llu bytes\n", total, free, used);
+        fossil_io_printf("{cyan}Disk Usage for '%s':{reset}\n", path);
+        fossil_io_printf("  Total: %llu bytes\n  Free: %llu bytes\n  Used: %llu bytes\n", total, free, used);
     } else {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting disk usage: %s{reset}\n", path);
     }
@@ -273,10 +288,12 @@ void handle_disk(const char *path) {
     if (statvfs(path, &stat) == 0) {
         unsigned long long total = (unsigned long long)stat.f_frsize * stat.f_blocks;
         unsigned long long free = (unsigned long long)stat.f_frsize * stat.f_bfree;
+        unsigned long long available = (unsigned long long)stat.f_frsize * stat.f_bavail;
         unsigned long long used = total - free;
-        fossil_io_printf("Total: %llu bytes\nFree: %llu bytes\nUsed: %llu bytes\n", total, free, used);
+        fossil_io_printf("{cyan}Disk Usage for '%s':{reset}\n", path);
+        fossil_io_printf("  Total: %llu bytes\n  Free: %llu bytes\n  Available: %llu bytes\n  Used: %llu bytes\n", total, free, available, used);
     } else {
-        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting disk usage: %s{reset}\n", path);
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting disk usage: %s{reset}\n", strerror(errno));
     }
 #endif
 
@@ -287,7 +304,7 @@ void handle_disk(const char *path) {
 
 void handle_tree(const char *directory) {
     if (ENABLE_VERBOSE) {
-        fossil_io_printf("{cyan}Walking directory tree for '%s'...{reset}\n", directory);
+        fossil_io_printf("{cyan}Walking directory tree for '%s' (one level)...{reset}\n", directory);
     }
 
     DIR *dir;
@@ -298,6 +315,8 @@ void handle_tree(const char *directory) {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening directory: %s{reset}\n", directory);
         return;
     }
+
+    fossil_io_printf("{cyan}%s{reset}\n", directory);
 
     while ((entry = readdir(dir)) != cnull) {
         // Skip "." and ".."
@@ -310,10 +329,9 @@ void handle_tree(const char *directory) {
 
         struct stat st;
         if (stat(path, &st) == 0 && S_ISDIR(st.st_mode)) {
-            fossil_io_printf("{cyan}[DIR]  %s{reset}\n", path);
-            handle_tree(path); // Recursively walk subdirectories
+            fossil_io_printf("{cyan}├── [DIR]  %s{reset}\n", entry->d_name);
         } else {
-            fossil_io_printf("{cyan}      %s{reset}\n", path);
+            fossil_io_printf("{cyan}├──       %s{reset}\n", entry->d_name);
         }
     }
 
