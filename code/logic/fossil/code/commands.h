@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+extern int ENABLE_VERBOSE; // Global variable to control verbose output
+
 /**
  * Displays the general help message for available commands.
  */

@@ -25,6 +25,7 @@
 #include <sys/statvfs.h>
 #endif
 
+int ENABLE_VERBOSE = 0; // Global variable to control verbose output
 
 // Handler function definitions
 void handle_help(void) {
@@ -140,7 +141,7 @@ void handle_show(const char *file) {
     }
 
     char line[256];
-    while (fossil_io_gets_from_stream(line, sizeof(line), stream.file) != cnull) {
+    while (fossil_io_gets_from_stream(line, sizeof(line), &stream) != cnull) {
         fossil_io_printf("%s", line);
     }
     fossil_fstream_close(&stream);
@@ -184,7 +185,7 @@ void handle_search(const char *file, const char *pattern) {
 
     char line[256];
     int line_number = 0;
-    while (fossil_io_gets_from_stream(line, sizeof(line), stream.file) != cnull) {
+    while (fossil_io_gets_from_stream(line, sizeof(line), &stream) != cnull) {
         line_number++;
         if (fossil_io_cstring_contains(line, pattern)) {
             fossil_io_printf("{green}Line %d: %s{reset}\n", line_number, line);
@@ -256,16 +257,16 @@ void handle_compare(const char *path1, const char *path2) {
 
     fossil_fstream_t stream1, stream2;
     if (fossil_fstream_open(&stream1, path1, "r") != 0 || fossil_fstream_open(&stream2, path2, "r") != 0) {
-        if (stream1.file) fossil_fstream_close(&stream1);
-        if (stream2.file) fossil_fstream_close(&stream2);
+        if (&stream1) fossil_fstream_close(&stream1);
+        if (&stream2) fossil_fstream_close(&stream2);
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error opening files: %s or %s{reset}\n", path1, path2);
         return;
     }
 
     char buf1[256], buf2[256];
     int line_number = 0;
-    while (fossil_io_gets_from_stream(buf1, sizeof(buf1), stream1.file) != cnull &&
-           fossil_io_gets_from_stream(buf2, sizeof(buf2), stream2.file) != cnull) {
+    while (fossil_io_gets_from_stream(buf1, sizeof(buf1), &stream1) != cnull &&
+           fossil_io_gets_from_stream(buf2, sizeof(buf2), &stream2) != cnull) {
         line_number++;
         if (strcmp(buf1, buf2) != 0) {
             fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Files differ at line %d: %s and %s{reset}\n", line_number, path1, path2);
@@ -275,8 +276,8 @@ void handle_compare(const char *path1, const char *path2) {
         }
     }
 
-    if (fossil_io_gets_from_stream(buf1, sizeof(buf1), stream1.file) != cnull ||
-        fossil_io_gets_from_stream(buf2, sizeof(buf2), stream2.file) != cnull) {
+    if (fossil_io_gets_from_stream(buf1, sizeof(buf1), &stream1) != cnull ||
+        fossil_io_gets_from_stream(buf2, sizeof(buf2), &stream2) != cnull) {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Files differ in size: %s and %s{reset}\n", path1, path2);
     } else {
         fossil_io_printf("{green}Files are identical.{reset}\n");
