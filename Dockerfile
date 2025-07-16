@@ -6,8 +6,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TZ=UTC
 
 # Install system dependencies and clean up
-RUN apt-get update && \
-    apt-get install -y \
+RUN apt update && \
+    apt install -y \
     build-essential \
     gcc \
     g++ \
@@ -18,7 +18,7 @@ RUN apt-get update && \
     python3-pip \
     git \
     tzdata && \
-    apt-get clean && \
+    apt clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install --no-cache-dir meson ninja
@@ -29,7 +29,7 @@ ENV CXX=/usr/bin/g++
 ENV LD_LIBRARY_PATH=/usr/local/lib
 
 # Set the working directory
-WORKDIR /usr/src/app
+WORKDIR /usr/src/shark
 
 # Copy the source code
 COPY . .
@@ -41,4 +41,4 @@ RUN meson test -C builddir
 RUN meson install -C builddir
 
 # Set the entrypoint
-ENTRYPOINT ["/usr/local/bin/app"]
+ENTRYPOINT ["/usr/local/bin/shark"]
