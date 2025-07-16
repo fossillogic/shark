@@ -1,0 +1,9 @@
+# ======================
+# Git Wrap package definition
+# ======================
+[wrap-git]
+url = https://github.com/fossillogic/fossil-sys.git
+revision = v0.1.2
+
+[provide]
+fossil-sys = fossil_sys_dep
