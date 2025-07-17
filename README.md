@@ -30,7 +30,7 @@
 | `shark clear`      | None                                                   | Clear terminal or console output.                                              |
 | `shark clean`      | `--temp`, `--cache`, `--logs`, `--dry-run`             | Clean up generated or temporary files, with optional preview.                  |
 | `shark file`       | `--create=<path>`, `--modify=<path>`, `--delete=<path>`| Perform quick file operations without verbose command structure.               |
-| `shark ask`        | `--exists=<path>`, `--not-exist`, `--type=<file|dir>`  | Check for file/directory existence or type.                                    |
+| `shark ask`        | `--exists=<path>`, `--not-exist`, `--type=<file/dir>`  | Check for file/directory existence or type.                                    |
 | `shark change`     | `--target=<path>`, `--value=<new>`, `--owner`, `--mode`| Modify file properties like permissions or ownership.                          |
 
 ## **Prerequisites**
