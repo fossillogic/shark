@@ -13,3 +13,9 @@
  */
 #include "fossil/code/commands.h"
 
+
+void shark_list(const char *what, int sort, const char *format) {
+    cunused(what); // Placeholder for what usage, if needed
+    cunused(sort); // Placeholder for sort usage, if needed
+    cunused(format); // Placeholder for format usage, if needed
+}

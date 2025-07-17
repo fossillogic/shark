@@ -13,3 +13,10 @@
  */
 #include "fossil/code/commands.h"
 
+
+void shark_backup(const char *source, const char *destination, int compress, int encrypt) {
+    cunused(source); // Placeholder for source usage, if needed
+    cunused(destination); // Placeholder for destination usage, if needed
+    cunused(compress); // Placeholder for compress usage, if needed
+    cunused(encrypt); // Placeholder for encrypt usage, if needed
+}

@@ -13,3 +13,11 @@
  */
 #include "fossil/code/commands.h"
 
+
+void shark_move(const char *source, const char *destination, int force, int backup, int overwrite) {
+    cunused(source); // Placeholder for source usage, if needed
+    cunused(destination); // Placeholder for destination usage, if needed
+    cunused(force); // Placeholder for force usage, if needed
+    cunused(backup); // Placeholder for backup usage, if needed
+    cunused(overwrite); // Placeholder for overwrite usage, if needed
+}

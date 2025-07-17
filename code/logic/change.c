@@ -13,3 +13,10 @@
  */
 #include "fossil/code/commands.h"
 
+
+void shark_change(const char *target, const char *value, int owner, int mode) {
+    cunused(target); // Placeholder for target usage, if needed
+    cunused(value); // Placeholder for value usage, if needed
+    cunused(owner); // Placeholder for owner usage, if needed
+    cunused(mode); // Placeholder for mode usage, if needed
+}

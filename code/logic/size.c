@@ -13,3 +13,10 @@
  */
 #include "fossil/code/commands.h"
 
+
+void shark_size(const char *path, int human_readable, int total, int summarize) {
+    cunused(path); // Placeholder for path usage, if needed
+    cunused(human_readable); // Placeholder for human_readable usage, if needed
+    cunused(total); // Placeholder for total usage, if needed
+    cunused(summarize); // Placeholder for summarize usage, if needed
+}

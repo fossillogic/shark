@@ -13,3 +13,18 @@
  */
 #include "fossil/code/commands.h"
 
+
+/**
+ * Create new files or directories with specific type and permissions.
+ * Options:
+ *   --type=<file/dir>
+ *   --permissions=<rwx>
+ *   --path=<location>
+ *   --overwrite
+ */
+void shark_create(const char *path, const char *type, const char *permissions, int overwrite) {
+    cunused(path); // Placeholder for path usage, if needed
+    cunused(type); // Placeholder for type usage, if needed
+    cunused(permissions); // Placeholder for permissions usage, if needed
+    cunused(overwrite); // Placeholder for overwrite usage, if needed
+}

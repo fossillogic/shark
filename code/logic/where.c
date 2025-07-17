@@ -13,3 +13,9 @@
  */
 #include "fossil/code/commands.h"
 
+
+void shark_where(const char *directory, const char *name, const char *path) {
+    cunused(directory); // Placeholder for directory usage, if needed
+    cunused(name); // Placeholder for name usage, if needed
+    cunused(path); // Placeholder for path usage, if needed
+}

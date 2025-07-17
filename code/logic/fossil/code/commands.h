@@ -26,8 +26,10 @@ extern "C" {
  * Options:
  *   --type=<file/dir>
  *   --permissions=<rwx>
+ *   --path=<location>
+ *   --overwrite
  */
-void shark_create(const char *type, const char *permissions);
+void shark_create(const char *path, const char *type, const char *permissions, int overwrite);
 
 /**
  * Delete files or directories. Optionally move to trash instead of hard delete.
@@ -36,7 +38,7 @@ void shark_create(const char *type, const char *permissions);
  *   --force
  *   --trash
  */
-void shark_delete(int recursive, int force, int trash);
+void shark_delete(const char *path, int recursive, int force, int trash);
 
 /**
  * Move or rename files and directories with overwrite and backup options.

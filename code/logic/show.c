@@ -13,3 +13,11 @@
  */
 #include "fossil/code/commands.h"
 
+
+void shark_show(const char *file, int lines, int offset, int tail, int head) {
+    cunused(file); // Placeholder for file usage, if needed
+    cunused(lines); // Placeholder for lines usage, if needed
+    cunused(offset); // Placeholder for offset usage, if needed
+    cunused(tail); // Placeholder for tail usage, if needed
+    cunused(head); // Placeholder for head usage, if needed
+}

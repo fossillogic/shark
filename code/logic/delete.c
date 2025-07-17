@@ -13,3 +13,17 @@
  */
 #include "fossil/code/commands.h"
 
+
+/**
+ * Delete files or directories. Optionally move to trash instead of hard delete.
+ * Options:
+ *   --recursive
+ *   --force
+ *   --trash
+ */
+void shark_delete(const char *path, int recursive, int force, int trash) {
+    cunused(path); // Placeholder for path usage, if needed
+    cunused(recursive); // Placeholder for recursive usage, if needed
+    cunused(force); // Placeholder for force usage, if needed
+    cunused(trash); // Placeholder for trash usage, if needed
+}

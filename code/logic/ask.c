@@ -13,3 +13,9 @@
  */
 #include "fossil/code/commands.h"
 
+
+void shark_ask(const char *exists, int not_exist, const char *type) {
+    cunused(exists); // Placeholder for exists usage, if needed
+    cunused(not_exist); // Placeholder for not_exist usage, if needed
+    cunused(type); // Placeholder for type usage, if needed
+}
