@@ -16,12 +16,14 @@
 
 void show_commands(char* app_name) {
     fossil_io_printf("{blue}Usage: {cyan}%s{blue} <options>{reset}\n", app_name);
+    fossil_io_printf("{blue}Options:{reset}\n");
     fossil_io_printf("{cyan}  --help           Display help information for the Shark tool.{reset}\n");
     fossil_io_printf("{cyan}  --version        Display the current version of the Shark tool.{reset}\n");
     fossil_io_printf("{cyan}  --name           Display app name.{reset}\n");
     fossil_io_printf("{cyan}  --verbose        Enable verbose output for all commands.{reset}\n");
     fossil_io_printf("{cyan}  --color          Set color output mode: {yellow}enable{cyan}, {yellow}disable{cyan}, or {yellow}auto{cyan}.{reset}\n");
     fossil_io_printf("{cyan}  --clear          Clear terminal or console output.{reset}\n");
+    fossil_io_printf("{blue}Commands:{reset}\n");
     fossil_io_printf("{cyan}  create           --type=<file/dir>, --permissions=<rwx>                                Create new files or directories with specific type and permissions.{reset}\n");
     fossil_io_printf("{cyan}  delete           --recursive, --force, --trash                                       Delete files or directories. Optionally move to trash instead of hard delete.{reset}\n");
     fossil_io_printf("{cyan}  move             --force, --backup, --overwrite                                      Move or rename files and directories with overwrite and backup options.{reset}\n");
@@ -78,6 +80,300 @@ bool app_entry(int argc, char** argv) {
             }
         } else if (fossil_io_cstring_compare(argv[i], "--clear") == 0) {
             fossil_io_printf("\033[H\033[J"); // ANSI escape sequence to clear screen
+        } else if (fossil_io_cstring_compare(argv[i], "create") == 0) {
+            const char *type = cnullptr, *permissions = cnullptr;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (strncmp(argv[i], "--type=", 7) == 0) {
+                    type = argv[i] + 7;
+                } else if (strncmp(argv[i], "--permissions=", 14) == 0) {
+                    permissions = argv[i] + 14;
+                }
+            }
+            shark_create(type, permissions);
+        } else if (fossil_io_cstring_compare(argv[i], "delete") == 0) {
+            int recursive = 0, force = 0, trash = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (fossil_io_cstring_compare(argv[i], "--recursive") == 0) {
+                    recursive = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--force") == 0) {
+                    force = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--trash") == 0) {
+                    trash = 1;
+                }
+            }
+            shark_delete(recursive, force, trash);
+        } else if (fossil_io_cstring_compare(argv[i], "move") == 0) {
+            int force = 0, backup = 0, overwrite = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (fossil_io_cstring_compare(argv[i], "--force") == 0) {
+                    force = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--backup") == 0) {
+                    backup = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--overwrite") == 0) {
+                    overwrite = 1;
+                }
+            }
+            shark_move(force, backup, overwrite);
+        } else if (fossil_io_cstring_compare(argv[i], "rename") == 0) {
+            int force = 0, backup = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (fossil_io_cstring_compare(argv[i], "--force") == 0) {
+                    force = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--backup") == 0) {
+                    backup = 1;
+                }
+            }
+            shark_rename(force, backup);
+        } else if (fossil_io_cstring_compare(argv[i], "copy") == 0) {
+            int recursive = 0, preserve = 0, symlinks = 0, hard = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (fossil_io_cstring_compare(argv[i], "--recursive") == 0) {
+                    recursive = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--preserve") == 0) {
+                    preserve = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--symlinks") == 0) {
+                    symlinks = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--hard") == 0) {
+                    hard = 1;
+                }
+            }
+            shark_copy(recursive, preserve, symlinks, hard);
+        } else if (fossil_io_cstring_compare(argv[i], "list") == 0) {
+            const char *what = cnullptr, *sort = cnullptr, *format = cnullptr;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (strncmp(argv[i], "--what=", 7) == 0) {
+                    what = argv[i] + 7;
+                } else if (strncmp(argv[i], "--sort=", 7) == 0) {
+                    sort = argv[i] + 7;
+                } else if (strncmp(argv[i], "--format=", 9) == 0) {
+                    format = argv[i] + 9;
+                }
+            }
+            shark_list(what, sort, format);
+        } else if (fossil_io_cstring_compare(argv[i], "show") == 0) {
+            int lines = -1, offset = -1, tail = 0, head = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (strncmp(argv[i], "--lines=", 8) == 0) {
+                    lines = atoi(argv[i] + 8);
+                } else if (strncmp(argv[i], "--offset=", 9) == 0) {
+                    offset = atoi(argv[i] + 9);
+                } else if (fossil_io_cstring_compare(argv[i], "--tail") == 0) {
+                    tail = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--head") == 0) {
+                    head = 1;
+                }
+            }
+            shark_show(lines, offset, tail, head);
+        } else if (fossil_io_cstring_compare(argv[i], "find") == 0) {
+            const char *name = cnullptr, *size = cnullptr, *type = cnullptr;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (strncmp(argv[i], "--name=", 7) == 0) {
+                    name = argv[i] + 7;
+                } else if (strncmp(argv[i], "--size=", 7) == 0) {
+                    size = argv[i] + 7;
+                } else if (strncmp(argv[i], "--type=", 7) == 0) {
+                    type = argv[i] + 7;
+                }
+            }
+            shark_find(name, size, type);
+        } else if (fossil_io_cstring_compare(argv[i], "where") == 0) {
+            const char *name = cnullptr, *path = cnullptr;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (strncmp(argv[i], "--name=", 7) == 0) {
+                    name = argv[i] + 7;
+                } else if (strncmp(argv[i], "--path=", 7) == 0) {
+                    path = argv[i] + 7;
+                }
+            }
+            shark_where(name, path);
+        } else if (fossil_io_cstring_compare(argv[i], "search") == 0) {
+            const char *pattern = cnullptr;
+            int ignore_case = 0, whole_word = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (strncmp(argv[i], "--pattern=", 10) == 0) {
+                    pattern = argv[i] + 10;
+                } else if (fossil_io_cstring_compare(argv[i], "--ignore-case") == 0) {
+                    ignore_case = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--whole-word") == 0) {
+                    whole_word = 1;
+                }
+            }
+            shark_search(pattern, ignore_case, whole_word);
+        } else if (fossil_io_cstring_compare(argv[i], "backup") == 0) {
+            const char *destination = cnullptr;
+            int compress = 0, encrypt = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (strncmp(argv[i], "--destination=", 15) == 0) {
+                    destination = argv[i] + 15;
+                } else if (fossil_io_cstring_compare(argv[i], "--compress") == 0) {
+                    compress = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--encrypt") == 0) {
+                    encrypt = 1;
+                }
+            }
+            shark_backup(destination, compress, encrypt);
+        } else if (fossil_io_cstring_compare(argv[i], "size") == 0) {
+            int human_readable = 0, total = 0, summarize = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (fossil_io_cstring_compare(argv[i], "--human-readable") == 0) {
+                    human_readable = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--total") == 0) {
+                    total = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--summarize") == 0) {
+                    summarize = 1;
+                }
+            }
+            shark_size(human_readable, total, summarize);
+        } else if (fossil_io_cstring_compare(argv[i], "disk") == 0) {
+            int all = 0, free = 0, used = 0, inodes = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (fossil_io_cstring_compare(argv[i], "--all") == 0) {
+                    all = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--free") == 0) {
+                    free = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--used") == 0) {
+                    used = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--inodes") == 0) {
+                    inodes = 1;
+                }
+            }
+            shark_disk(all, free, used, inodes);
+        } else if (fossil_io_cstring_compare(argv[i], "tree") == 0) {
+            int depth = -1, all = 0, dirs_only = 0, files_only = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (strncmp(argv[i], "--depth=", 8) == 0) {
+                    depth = atoi(argv[i] + 8);
+                } else if (fossil_io_cstring_compare(argv[i], "--all") == 0) {
+                    all = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--dirs-only") == 0) {
+                    dirs_only = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--files-only") == 0) {
+                    files_only = 1;
+                }
+            }
+            shark_tree(depth, all, dirs_only, files_only);
+        } else if (fossil_io_cstring_compare(argv[i], "compare") == 0) {
+            int ignore_case = 0, binary = 0, diff = 0, hash = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (fossil_io_cstring_compare(argv[i], "--ignore-case") == 0) {
+                    ignore_case = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--binary") == 0) {
+                    binary = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--diff") == 0) {
+                    diff = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--hash") == 0) {
+                    hash = 1;
+                }
+            }
+            shark_compare(ignore_case, binary, diff, hash);
+        } else if (fossil_io_cstring_compare(argv[i], "info") == 0) {
+            int details = 0, stat = 0, checksum = 0;
+            const char *type = cnullptr;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (fossil_io_cstring_compare(argv[i], "--details") == 0) {
+                    details = 1;
+                } else if (strncmp(argv[i], "--type=", 7) == 0) {
+                    type = argv[i] + 7;
+                } else if (fossil_io_cstring_compare(argv[i], "--stat") == 0) {
+                    stat = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--checksum") == 0) {
+                    checksum = 1;
+                }
+            }
+            shark_info(details, type, stat, checksum);
+        } else if (fossil_io_cstring_compare(argv[i], "clean") == 0) {
+            int temp = 0, cache = 0, logs = 0, dry_run = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (fossil_io_cstring_compare(argv[i], "--temp") == 0) {
+                    temp = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--cache") == 0) {
+                    cache = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--logs") == 0) {
+                    logs = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--dry-run") == 0) {
+                    dry_run = 1;
+                }
+            }
+            shark_clean(temp, cache, logs, dry_run);
+        } else if (fossil_io_cstring_compare(argv[i], "file") == 0) {
+            int create = 0, modify = 0, delete_op = 0;
+            const char *split = cnullptr, *join = cnullptr, *output = cnullptr;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (fossil_io_cstring_compare(argv[i], "--create") == 0) {
+                    create = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--modify") == 0) {
+                    modify = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--delete") == 0) {
+                    delete_op = 1;
+                } else if (strncmp(argv[i], "--split=", 8) == 0) {
+                    split = argv[i] + 8;
+                } else if (strncmp(argv[i], "--join=", 7) == 0) {
+                    join = argv[i] + 7;
+                } else if (strncmp(argv[i], "--output=", 9) == 0) {
+                    output = argv[i] + 9;
+                }
+            }
+            shark_file(create, modify, delete_op, split, join, output);
+        } else if (fossil_io_cstring_compare(argv[i], "ask") == 0) {
+            const char *exists = cnullptr, *type = cnullptr;
+            int not_exist = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (strncmp(argv[i], "--exists=", 9) == 0) {
+                    exists = argv[i] + 9;
+                } else if (fossil_io_cstring_compare(argv[i], "--not-exist") == 0) {
+                    not_exist = 1;
+                } else if (strncmp(argv[i], "--type=", 7) == 0) {
+                    type = argv[i] + 7;
+                }
+            }
+            shark_ask(exists, not_exist, type);
+        } else if (fossil_io_cstring_compare(argv[i], "change") == 0) {
+            const char *target = cnullptr, *value = cnullptr;
+            int owner = 0, mode = 0;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (strncmp(argv[i], "--target=", 9) == 0) {
+                    target = argv[i] + 9;
+                } else if (strncmp(argv[i], "--value=", 8) == 0) {
+                    value = argv[i] + 8;
+                } else if (fossil_io_cstring_compare(argv[i], "--owner") == 0) {
+                    owner = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--mode") == 0) {
+                    mode = 1;
+                }
+            }
+            shark_change(target, value, owner, mode);
+        } else if (fossil_io_cstring_compare(argv[i], "diff") == 0) {
+            int unified = 0, side_by_side = 0, ignore_case = 0, context = -1;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (fossil_io_cstring_compare(argv[i], "--unified") == 0) {
+                    unified = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--side-by-side") == 0) {
+                    side_by_side = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--ignore-case") == 0) {
+                    ignore_case = 1;
+                } else if (strncmp(argv[i], "--context=", 10) == 0) {
+                    context = atoi(argv[i] + 10);
+                }
+            }
+            shark_diff(unified, side_by_side, ignore_case, context);
+        } else if (fossil_io_cstring_compare(argv[i], "archive") == 0) {
+            int create = 0, extract = 0;
+            const char *format = cnullptr, *output = cnullptr;
+            for (++i; i < argc && argv[i] != cnullptr; ++i) {
+                if (fossil_io_cstring_compare(argv[i], "--create") == 0) {
+                    create = 1;
+                } else if (fossil_io_cstring_compare(argv[i], "--extract") == 0) {
+                    extract = 1;
+                } else if (strncmp(argv[i], "--format=", 9) == 0) {
+                    format = argv[i] + 9;
+                } else if (strncmp(argv[i], "--output=", 9) == 0) {
+                    output = argv[i] + 9;
+                }
+            }
+            shark_archive(create, extract, format, output);
+        } else {
+            fossil_io_printf("{red}Unknown command: %s{reset}\n", argv[i]);
+            return false;
         }
     }
     return 0;
