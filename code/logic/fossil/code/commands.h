@@ -21,6 +21,8 @@
 extern "C" {
 #endif
 
+extern int FOSSIL_IO_VERBOSE;
+
 /**
  * Create new files or directories with specific type and permissions.
  * Options:
@@ -210,26 +212,6 @@ void shark_ask(const char *exists, int not_exist, const char *type);
  *   --mode
  */
 void shark_change(const char *target, const char *value, int owner, int mode);
-
-/**
- * Show textual differences between files. Supports unified and side-by-side views.
- * Options:
- *   --unified
- *   --side-by-side
- *   --ignore-case
- *   --context=<n>
- */
-void shark_diff(const char *file1, const char *file2, int unified, int side_by_side, int ignore_case, int context);
-
-/**
- * Create or extract archive files in supported formats.
- * Options:
- *   --create
- *   --extract
- *   --format=zip/tar/gz
- *   --output=<file>
- */
-void shark_archive(const char *source, const char *destination, int create, int extract, const char *format, const char *output);
 
 #ifdef __cplusplus
 }

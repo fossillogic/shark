@@ -14,6 +14,8 @@
 #include "fossil/code/app.h"
 #include <unistd.h>
 
+int FOSSIL_IO_VERBOSE = 0;
+
 void show_commands(char* app_name) {
     fossil_io_printf("{blue}Usage: {cyan}%s{blue} <options>{reset}\n", app_name);
     fossil_io_printf("{blue}Options:{reset}\n");
@@ -89,7 +91,7 @@ bool app_entry(int argc, char** argv) {
                     permissions = argv[i] + 14;
                 }
             }
-            shark_create(type, permissions);
+            shark_create(argv[i], type, permissions, 0); // Overwrite default to false
         } else if (fossil_io_cstring_compare(argv[i], "delete") == 0) {
             int recursive = 0, force = 0, trash = 0;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
@@ -101,7 +103,7 @@ bool app_entry(int argc, char** argv) {
                     trash = 1;
                 }
             }
-            shark_delete(recursive, force, trash);
+            shark_delete(argv[i], recursive, force, trash);
         } else if (fossil_io_cstring_compare(argv[i], "move") == 0) {
             const char *source = cnullptr, *destination = cnullptr;
             int force = 0, backup = 0, overwrite = 0;
@@ -389,43 +391,6 @@ bool app_entry(int argc, char** argv) {
                 }
             }
             shark_change(target_path, value, owner, mode);
-        } else if (fossil_io_cstring_compare(argv[i], "diff") == 0) {
-            const char *file1 = cnullptr, *file2 = cnullptr;
-            int unified = 0, side_by_side = 0, ignore_case = 0, context = -1;
-            for (++i; i < argc && argv[i] != cnullptr; ++i) {
-                if (fossil_io_cstring_compare(argv[i], "--unified") == 0) {
-                    unified = 1;
-                } else if (fossil_io_cstring_compare(argv[i], "--side-by-side") == 0) {
-                    side_by_side = 1;
-                } else if (fossil_io_cstring_compare(argv[i], "--ignore-case") == 0) {
-                    ignore_case = 1;
-                } else if (strncmp(argv[i], "--context=", 10) == 0) {
-                    context = atoi(argv[i] + 10);
-                } else if (file1 == cnullptr) {
-                    file1 = argv[i];
-                } else if (file2 == cnullptr) {
-                    file2 = argv[i];
-                }
-            }
-            shark_diff(file1, file2, unified, side_by_side, ignore_case, context);
-        } else if (fossil_io_cstring_compare(argv[i], "archive") == 0) {
-            const char *action = cnullptr, *format = cnullptr, *output_file = cnullptr;
-            for (++i; i < argc && argv[i] != cnullptr; ++i) {
-                if (strncmp(argv[i], "--create", 8) == 0) {
-                    action = "create";
-                } else if (strncmp(argv[i], "--extract", 9) == 0) {
-                    action = "extract";
-                } else if (strncmp(argv[i], "--format=", 9) == 0) {
-                    format = argv[i] + 9;
-                } else if (strncmp(argv[i], "--output=", 9) == 0) {
-                    output_file = argv[i] + 9;
-                }
-            }
-            if (action == cnullptr || format == cnullptr || output_file == cnullptr) {
-                fossil_io_printf("{red}Error: --create, --extract, --format, and --output are required for archive command.{reset}\n");
-                return false;
-            }
-            shark_archive(action, format, output_file);
         } else {
             fossil_io_printf("{red}Unknown command: %s{reset}\n", argv[i]);
             return false;

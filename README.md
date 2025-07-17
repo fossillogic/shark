@@ -41,8 +41,6 @@ With consistent syntax, powerful subcommands, and rich flag support, Shark strea
 | `shark file`       | `--create`, `--modify`, `--delete`, `--split=<lines/bytes>`, `--join=<file1,file2,...>`, `--output=<file>` | Perform basic file operations. Includes splitting and joining files.            |
 | `shark ask`        | `--exists=<path>`, `--not-exist`, `--type=<file/dir>`                     | Check for file/directory existence or type.                                    |
 | `shark change`     | `--target=<path>`, `--value=<new>`, `--owner`, `--mode`                   | Modify file properties like permissions or ownership.                          |
-| `shark diff`       | `--unified`, `--side-by-side`, `--ignore-case`, `--context=<n>`           | Show textual differences between files. Supports unified and side-by-side views. |
-| `shark archive`    | `--create`, `--extract`, `--format=zip/tar/gz`, `--output=<file>`         | Create or extract archive files in supported formats.                          |
 
 ## **Prerequisites**
 
