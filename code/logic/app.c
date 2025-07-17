@@ -103,54 +103,72 @@ bool app_entry(int argc, char** argv) {
             }
             shark_delete(recursive, force, trash);
         } else if (fossil_io_cstring_compare(argv[i], "move") == 0) {
+            const char *source = cnullptr, *destination = cnullptr;
             int force = 0, backup = 0, overwrite = 0;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
-                if (fossil_io_cstring_compare(argv[i], "--force") == 0) {
+                if (strncmp(argv[i], "--force=", 8) == 0) {
                     force = 1;
-                } else if (fossil_io_cstring_compare(argv[i], "--backup") == 0) {
+                } else if (strncmp(argv[i], "--backup=", 9) == 0) {
                     backup = 1;
-                } else if (fossil_io_cstring_compare(argv[i], "--overwrite") == 0) {
+                } else if (strncmp(argv[i], "--overwrite=", 12) == 0) {
                     overwrite = 1;
+                } else if (source == cnullptr) {
+                    source = argv[i];
+                } else if (destination == cnullptr) {
+                    destination = argv[i];
                 }
             }
-            shark_move(force, backup, overwrite);
+            shark_move(source, destination, force, backup, overwrite);
         } else if (fossil_io_cstring_compare(argv[i], "rename") == 0) {
+            const char *old_name = cnullptr, *new_name = cnullptr;
             int force = 0, backup = 0;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
-                if (fossil_io_cstring_compare(argv[i], "--force") == 0) {
+                if (strncmp(argv[i], "--force=", 8) == 0) {
                     force = 1;
-                } else if (fossil_io_cstring_compare(argv[i], "--backup") == 0) {
+                } else if (strncmp(argv[i], "--backup=", 9) == 0) {
                     backup = 1;
+                } else if (old_name == cnullptr) {
+                    old_name = argv[i];
+                } else if (new_name == cnullptr) {
+                    new_name = argv[i];
                 }
             }
-            shark_rename(force, backup);
+            shark_rename(old_name, new_name, force, backup);
         } else if (fossil_io_cstring_compare(argv[i], "copy") == 0) {
+            const char *source = cnullptr, *destination = cnullptr;
             int recursive = 0, preserve = 0, symlinks = 0, hard = 0;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
-                if (fossil_io_cstring_compare(argv[i], "--recursive") == 0) {
+                if (strncmp(argv[i], "--recursive=", 12) == 0) {
                     recursive = 1;
-                } else if (fossil_io_cstring_compare(argv[i], "--preserve") == 0) {
+                } else if (strncmp(argv[i], "--preserve=", 11) == 0) {
                     preserve = 1;
-                } else if (fossil_io_cstring_compare(argv[i], "--symlinks") == 0) {
+                } else if (strncmp(argv[i], "--symlinks=", 11) == 0) {
                     symlinks = 1;
-                } else if (fossil_io_cstring_compare(argv[i], "--hard") == 0) {
+                } else if (strncmp(argv[i], "--hard=", 7) == 0) {
                     hard = 1;
+                } else if (source == cnullptr) {
+                    source = argv[i];
+                } else if (destination == cnullptr) {
+                    destination = argv[i];
                 }
             }
-            shark_copy(recursive, preserve, symlinks, hard);
+            shark_copy(source, destination, recursive, preserve, symlinks, hard);
         } else if (fossil_io_cstring_compare(argv[i], "list") == 0) {
-            const char *what = cnullptr, *sort = cnullptr, *format = cnullptr;
+            const char *what = "files";
+            int sort = 0;
+            const char *format = cnullptr;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (strncmp(argv[i], "--what=", 7) == 0) {
                     what = argv[i] + 7;
                 } else if (strncmp(argv[i], "--sort=", 7) == 0) {
-                    sort = argv[i] + 7;
+                    sort = 1;
                 } else if (strncmp(argv[i], "--format=", 9) == 0) {
                     format = argv[i] + 9;
                 }
             }
             shark_list(what, sort, format);
         } else if (fossil_io_cstring_compare(argv[i], "show") == 0) {
+            const char *path = cnullptr;
             int lines = -1, offset = -1, tail = 0, head = 0;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (strncmp(argv[i], "--lines=", 8) == 0) {
@@ -161,31 +179,36 @@ bool app_entry(int argc, char** argv) {
                     tail = 1;
                 } else if (fossil_io_cstring_compare(argv[i], "--head") == 0) {
                     head = 1;
+                } else if (path == cnullptr) {
+                    path = argv[i];
                 }
             }
-            shark_show(lines, offset, tail, head);
+            shark_show(path, lines, offset, tail, head);
         } else if (fossil_io_cstring_compare(argv[i], "find") == 0) {
-            const char *name = cnullptr, *size = cnullptr, *type = cnullptr;
+            const char *name_pattern = cnullptr;
+            const char *size_condition = cnullptr;
+            const char *type_filter = cnullptr;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (strncmp(argv[i], "--name=", 7) == 0) {
-                    name = argv[i] + 7;
+                    name_pattern = argv[i] + 7;
                 } else if (strncmp(argv[i], "--size=", 7) == 0) {
-                    size = argv[i] + 7;
+                    size_condition = argv[i] + 7;
                 } else if (strncmp(argv[i], "--type=", 7) == 0) {
-                    type = argv[i] + 7;
+                    type_filter = argv[i] + 7;
                 }
             }
-            shark_find(name, size, type);
+            shark_find(argv[i], name_pattern, size_condition, type_filter);
         } else if (fossil_io_cstring_compare(argv[i], "where") == 0) {
-            const char *name = cnullptr, *path = cnullptr;
+            const char *name_pattern = cnullptr;
+            const char *path_regex = cnullptr;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (strncmp(argv[i], "--name=", 7) == 0) {
-                    name = argv[i] + 7;
+                    name_pattern = argv[i] + 7;
                 } else if (strncmp(argv[i], "--path=", 7) == 0) {
-                    path = argv[i] + 7;
+                    path_regex = argv[i] + 7;
                 }
             }
-            shark_where(name, path);
+            shark_where(argv[i], name_pattern, path_regex);
         } else if (fossil_io_cstring_compare(argv[i], "search") == 0) {
             const char *pattern = cnullptr;
             int ignore_case = 0, whole_word = 0;
@@ -198,7 +221,7 @@ bool app_entry(int argc, char** argv) {
                     whole_word = 1;
                 }
             }
-            shark_search(pattern, ignore_case, whole_word);
+            shark_search(argv[i], pattern, ignore_case, whole_word);
         } else if (fossil_io_cstring_compare(argv[i], "backup") == 0) {
             const char *destination = cnullptr;
             int compress = 0, encrypt = 0;
@@ -211,8 +234,9 @@ bool app_entry(int argc, char** argv) {
                     encrypt = 1;
                 }
             }
-            shark_backup(destination, compress, encrypt);
+            shark_backup(argv[i], destination, compress, encrypt);
         } else if (fossil_io_cstring_compare(argv[i], "size") == 0) {
+            const char *path = cnullptr;
             int human_readable = 0, total = 0, summarize = 0;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (fossil_io_cstring_compare(argv[i], "--human-readable") == 0) {
@@ -221,10 +245,13 @@ bool app_entry(int argc, char** argv) {
                     total = 1;
                 } else if (fossil_io_cstring_compare(argv[i], "--summarize") == 0) {
                     summarize = 1;
+                } else if (path == cnullptr) {
+                    path = argv[i];
                 }
             }
-            shark_size(human_readable, total, summarize);
+            shark_size(path, human_readable, total, summarize);
         } else if (fossil_io_cstring_compare(argv[i], "disk") == 0) {
+            const char *path = cnullptr;
             int all = 0, free = 0, used = 0, inodes = 0;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (fossil_io_cstring_compare(argv[i], "--all") == 0) {
@@ -235,10 +262,13 @@ bool app_entry(int argc, char** argv) {
                     used = 1;
                 } else if (fossil_io_cstring_compare(argv[i], "--inodes") == 0) {
                     inodes = 1;
+                } else if (path == cnullptr) {
+                    path = argv[i];
                 }
             }
-            shark_disk(all, free, used, inodes);
+            shark_disk(path, all, free, used, inodes);
         } else if (fossil_io_cstring_compare(argv[i], "tree") == 0) {
+            const char *directory = cnullptr;
             int depth = -1, all = 0, dirs_only = 0, files_only = 0;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (strncmp(argv[i], "--depth=", 8) == 0) {
@@ -249,10 +279,13 @@ bool app_entry(int argc, char** argv) {
                     dirs_only = 1;
                 } else if (fossil_io_cstring_compare(argv[i], "--files-only") == 0) {
                     files_only = 1;
+                } else if (directory == cnullptr) {
+                    directory = argv[i];
                 }
             }
-            shark_tree(depth, all, dirs_only, files_only);
+            shark_tree(directory, depth, all, dirs_only, files_only);
         } else if (fossil_io_cstring_compare(argv[i], "compare") == 0) {
+            const char *path1 = cnullptr, *path2 = cnullptr;
             int ignore_case = 0, binary = 0, diff = 0, hash = 0;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (fossil_io_cstring_compare(argv[i], "--ignore-case") == 0) {
@@ -263,10 +296,15 @@ bool app_entry(int argc, char** argv) {
                     diff = 1;
                 } else if (fossil_io_cstring_compare(argv[i], "--hash") == 0) {
                     hash = 1;
+                } else if (path1 == cnullptr) {
+                    path1 = argv[i];
+                } else if (path2 == cnullptr) {
+                    path2 = argv[i];
                 }
             }
-            shark_compare(ignore_case, binary, diff, hash);
+            shark_compare(path1, path2, ignore_case, binary, diff, hash);
         } else if (fossil_io_cstring_compare(argv[i], "info") == 0) {
+            const char *path = cnullptr;
             int details = 0, stat = 0, checksum = 0;
             const char *type = cnullptr;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
@@ -278,10 +316,13 @@ bool app_entry(int argc, char** argv) {
                     stat = 1;
                 } else if (fossil_io_cstring_compare(argv[i], "--checksum") == 0) {
                     checksum = 1;
+                } else if (path == cnullptr) {
+                    path = argv[i];
                 }
             }
-            shark_info(details, type, stat, checksum);
+            shark_info(path, details, type, stat, checksum);
         } else if (fossil_io_cstring_compare(argv[i], "clean") == 0) {
+            const char *directory = cnullptr;
             int temp = 0, cache = 0, logs = 0, dry_run = 0;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (fossil_io_cstring_compare(argv[i], "--temp") == 0) {
@@ -292,11 +333,14 @@ bool app_entry(int argc, char** argv) {
                     logs = 1;
                 } else if (fossil_io_cstring_compare(argv[i], "--dry-run") == 0) {
                     dry_run = 1;
+                } else if (directory == cnullptr) {
+                    directory = argv[i];
                 }
             }
-            shark_clean(temp, cache, logs, dry_run);
+            shark_clean(directory, temp, cache, logs, dry_run);
         } else if (fossil_io_cstring_compare(argv[i], "file") == 0) {
-            int create = 0, modify = 0, delete_op = 0;
+            const char *path = cnullptr;
+            int create = 0, modify = 0, delete = 0;
             const char *split = cnullptr, *join = cnullptr, *output = cnullptr;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (fossil_io_cstring_compare(argv[i], "--create") == 0) {
@@ -304,35 +348,38 @@ bool app_entry(int argc, char** argv) {
                 } else if (fossil_io_cstring_compare(argv[i], "--modify") == 0) {
                     modify = 1;
                 } else if (fossil_io_cstring_compare(argv[i], "--delete") == 0) {
-                    delete_op = 1;
+                    delete = 1;
                 } else if (strncmp(argv[i], "--split=", 8) == 0) {
                     split = argv[i] + 8;
                 } else if (strncmp(argv[i], "--join=", 7) == 0) {
                     join = argv[i] + 7;
                 } else if (strncmp(argv[i], "--output=", 9) == 0) {
                     output = argv[i] + 9;
+                } else if (path == cnullptr) {
+                    path = argv[i];
                 }
             }
-            shark_file(create, modify, delete_op, split, join, output);
+            shark_file(path, create, modify, delete, split, join, output);
         } else if (fossil_io_cstring_compare(argv[i], "ask") == 0) {
-            const char *exists = cnullptr, *type = cnullptr;
+            const char *exists_path = cnullptr;
             int not_exist = 0;
+            const char *type = cnullptr;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (strncmp(argv[i], "--exists=", 9) == 0) {
-                    exists = argv[i] + 9;
+                    exists_path = argv[i] + 9;
                 } else if (fossil_io_cstring_compare(argv[i], "--not-exist") == 0) {
                     not_exist = 1;
                 } else if (strncmp(argv[i], "--type=", 7) == 0) {
                     type = argv[i] + 7;
                 }
             }
-            shark_ask(exists, not_exist, type);
+            shark_ask(exists_path, not_exist, type);
         } else if (fossil_io_cstring_compare(argv[i], "change") == 0) {
-            const char *target = cnullptr, *value = cnullptr;
+            const char *target_path = cnullptr, *value = cnullptr;
             int owner = 0, mode = 0;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (strncmp(argv[i], "--target=", 9) == 0) {
-                    target = argv[i] + 9;
+                    target_path = argv[i] + 9;
                 } else if (strncmp(argv[i], "--value=", 8) == 0) {
                     value = argv[i] + 8;
                 } else if (fossil_io_cstring_compare(argv[i], "--owner") == 0) {
@@ -341,8 +388,9 @@ bool app_entry(int argc, char** argv) {
                     mode = 1;
                 }
             }
-            shark_change(target, value, owner, mode);
+            shark_change(target_path, value, owner, mode);
         } else if (fossil_io_cstring_compare(argv[i], "diff") == 0) {
+            const char *file1 = cnullptr, *file2 = cnullptr;
             int unified = 0, side_by_side = 0, ignore_case = 0, context = -1;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (fossil_io_cstring_compare(argv[i], "--unified") == 0) {
@@ -353,24 +401,31 @@ bool app_entry(int argc, char** argv) {
                     ignore_case = 1;
                 } else if (strncmp(argv[i], "--context=", 10) == 0) {
                     context = atoi(argv[i] + 10);
+                } else if (file1 == cnullptr) {
+                    file1 = argv[i];
+                } else if (file2 == cnullptr) {
+                    file2 = argv[i];
                 }
             }
-            shark_diff(unified, side_by_side, ignore_case, context);
+            shark_diff(file1, file2, unified, side_by_side, ignore_case, context);
         } else if (fossil_io_cstring_compare(argv[i], "archive") == 0) {
-            int create = 0, extract = 0;
-            const char *format = cnullptr, *output = cnullptr;
+            const char *action = cnullptr, *format = cnullptr, *output_file = cnullptr;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
-                if (fossil_io_cstring_compare(argv[i], "--create") == 0) {
-                    create = 1;
-                } else if (fossil_io_cstring_compare(argv[i], "--extract") == 0) {
-                    extract = 1;
+                if (strncmp(argv[i], "--create", 8) == 0) {
+                    action = "create";
+                } else if (strncmp(argv[i], "--extract", 9) == 0) {
+                    action = "extract";
                 } else if (strncmp(argv[i], "--format=", 9) == 0) {
                     format = argv[i] + 9;
                 } else if (strncmp(argv[i], "--output=", 9) == 0) {
-                    output = argv[i] + 9;
+                    output_file = argv[i] + 9;
                 }
             }
-            shark_archive(create, extract, format, output);
+            if (action == cnullptr || format == cnullptr || output_file == cnullptr) {
+                fossil_io_printf("{red}Error: --create, --extract, --format, and --output are required for archive command.{reset}\n");
+                return false;
+            }
+            shark_archive(action, format, output_file);
         } else {
             fossil_io_printf("{red}Unknown command: %s{reset}\n", argv[i]);
             return false;
