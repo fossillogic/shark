@@ -15,20 +15,20 @@ With consistent syntax, powerful subcommands, and rich flag support, Shark strea
 | `shark --name`      | Display app name.                                           |
 | `shark --verbose`   | Enable verbose output for all commands.                     |
 | `shark --color`     | Set color output mode: `enable`, `disable`, or `auto`.      |
-| `shark clear`       | Clear terminal or console output.                           |
+| `shark --clear`     | Clear terminal or console output.                           |
 
 ### Commands
 
 | **Command**        | **Flags**                                                                 | **Description**                                                                 |
 |--------------------|---------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| `shark create`     | `--type=<file|dir>`, `--permissions=<rwx>`                                | Create new files or directories with specific type and permissions.            |
+| `shark create`     | `--type=<file/dir>`, `--permissions=<rwx>`                                | Create new files or directories with specific type and permissions.            |
 | `shark delete`     | `--recursive`, `--force`, `--trash`                                       | Delete files or directories. Optionally move to trash instead of hard delete.  |
 | `shark move`       | `--force`, `--backup`, `--overwrite`                                      | Move or rename files and directories with overwrite and backup options.        |
 | `shark rename`     | `--force`, `--backup`                                                     | Rename files or directories with conflict resolution.                          |
 | `shark copy`       | `--recursive`, `--preserve`, `--symlinks`, `--hard`                       | Copy files or directories with control over attributes and link types.         |
-| `shark list`       | `--what=<files|devices|modules|hardware>`, `--sort`, `--format`           | List system information. Defaults to file listing. Supports devices, kernel modules, and hardware info. |
+| `shark list`       | `--what=<files/devices/modules/hardware>`, `--sort`, `--format`           | List system information. Defaults to file listing. Supports devices, kernel modules, and hardware info. |
 | `shark show`       | `--lines=<n>`, `--offset=<n>`, `--tail`, `--head`                         | Show file contents with pagination and range options.                         |
-| `shark find`       | `--name=<pattern>`, `--size=<gt|lt>:<value>`, `--type`                    | Find items by name, size, or type.                                             |
+| `shark find`       | `--name=<pattern>`, `--size=<gt/lt>:<value>`, `--type`                    | Find items by name, size, or type.                                             |
 | `shark where`      | `--name=<pattern>`, `--path=<regex>`                                      | Locate files or directories by name or full path pattern.                      |
 | `shark search`     | `--pattern=<regex>`, `--ignore-case`, `--whole-word`                      | Search inside files with advanced pattern matching.                            |
 | `shark backup`     | `--destination=<path>`, `--compress`, `--encrypt`                         | Backup files or directories with optional compression and encryption.          |
@@ -38,11 +38,11 @@ With consistent syntax, powerful subcommands, and rich flag support, Shark strea
 | `shark compare`    | `--ignore-case`, `--binary`, `--diff`, `--hash`                           | Compare files or directories using various strategies.                         |
 | `shark info`       | `--details`, `--type`, `--stat`, `--checksum`                             | Display metadata and statistics about a file or directory.                     |
 | `shark clean`      | `--temp`, `--cache`, `--logs`, `--dry-run`                                | Clean up generated or temporary files, with optional preview.                  |
-| `shark file`       | `--create`, `--modify`, `--delete`, `--split=<lines|bytes>`, `--join=<file1,file2,...>`, `--output=<file>` | Perform basic file operations. Includes splitting and joining files.            |
-| `shark ask`        | `--exists=<path>`, `--not-exist`, `--type=<file|dir>`                     | Check for file/directory existence or type.                                    |
+| `shark file`       | `--create`, `--modify`, `--delete`, `--split=<lines/bytes>`, `--join=<file1,file2,...>`, `--output=<file>` | Perform basic file operations. Includes splitting and joining files.            |
+| `shark ask`        | `--exists=<path>`, `--not-exist`, `--type=<file/dir>`                     | Check for file/directory existence or type.                                    |
 | `shark change`     | `--target=<path>`, `--value=<new>`, `--owner`, `--mode`                   | Modify file properties like permissions or ownership.                          |
 | `shark diff`       | `--unified`, `--side-by-side`, `--ignore-case`, `--context=<n>`           | Show textual differences between files. Supports unified and side-by-side views. |
-| `shark archive`    | `--create`, `--extract`, `--format=zip|tar|gz`, `--output=<file>`         | Create or extract archive files in supported formats.                          |
+| `shark archive`    | `--create`, `--extract`, `--format=zip/tar/gz`, `--output=<file>`         | Create or extract archive files in supported formats.                          |
 
 ## **Prerequisites**
 

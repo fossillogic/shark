@@ -22,124 +22,212 @@ extern "C" {
 #endif
 
 /**
- * Create new files or directories.
+ * Create new files or directories with specific type and permissions.
  * Options:
- *   --type, --permissions
+ *   --type=<file/dir>
+ *   --permissions=<rwx>
  */
 void shark_create(const char *type, const char *permissions);
 
 /**
- * Delete files or directories.
+ * Delete files or directories. Optionally move to trash instead of hard delete.
  * Options:
- *   --recursive, --force
+ *   --recursive
+ *   --force
+ *   --trash
  */
-void shark_delete(bool recursive, bool force);
+void shark_delete(int recursive, int force, int trash);
 
 /**
- * Move or rename files and directories.
+ * Move or rename files and directories with overwrite and backup options.
  * Options:
- *   --force, --backup
+ *   --force
+ *   --backup
+ *   --overwrite
  */
-void shark_move(bool force, bool backup);
+void shark_move(int force, int backup, int overwrite);
 
 /**
- * Rename files or directories.
+ * Rename files or directories with conflict resolution.
  * Options:
- *   --force, --backup
+ *   --force
+ *   --backup
  */
-void shark_rename(bool force, bool backup);
+void shark_rename(int force, int backup);
 
 /**
- * Copy files or directories.
+ * Copy files or directories with control over attributes and link types.
  * Options:
- *   --recursive, --preserve
+ *   --recursive
+ *   --preserve
+ *   --symlinks
+ *   --hard
  */
-void shark_copy(bool recursive, bool preserve);
+void shark_copy(int recursive, int preserve, int symlinks, int hard);
 
 /**
- * List files and directories.
- * Customize output using sort and format.
+ * List system information. Defaults to file listing. Supports devices, kernel modules, and hardware info.
  * Options:
- *   --sort, --format
+ *   --what=<files/devices/modules/hardware>
+ *   --sort
+ *   --format
  */
-void shark_list(const char *sort, const char *format);
+void shark_list(const char *what, int sort, const char *format);
 
 /**
- * Display contents of a file, with options for viewing parts of it.
+ * Show file contents with pagination and range options.
  * Options:
- *   --lines, --offset
+ *   --lines=<n>
+ *   --offset=<n>
+ *   --tail
+ *   --head
  */
-void shark_show(int lines, int offset);
+void shark_show(int lines, int offset, int tail, int head);
 
 /**
- * Find files or directories matching specific criteria (name, size, type, etc.).
+ * Find items by name, size, or type.
  * Options:
- *   --name, --size, --type
+ *   --name=<pattern>
+ *   --size=<gt/lt>:<value>
+ *   --type
  */
 void shark_find(const char *name, const char *size, const char *type);
 
 /**
- * Locate files or directories by name or path.
+ * Locate files or directories by name or full path pattern.
  * Options:
- *   --name, --path
+ *   --name=<pattern>
+ *   --path=<regex>
  */
 void shark_where(const char *name, const char *path);
 
 /**
- * Search file contents for patterns.
+ * Search inside files with advanced pattern matching.
  * Options:
- *   --pattern, --ignore-case
+ *   --pattern=<regex>
+ *   --ignore-case
+ *   --whole-word
  */
-void shark_search(const char *pattern, bool ignore_case);
+void shark_search(const char *pattern, int ignore_case, int whole_word);
 
 /**
- * Create backups of files or directories with optional compression.
+ * Backup files or directories with optional compression and encryption.
  * Options:
- *   --destination, --compress
+ *   --destination=<path>
+ *   --compress
+ *   --encrypt
  */
-void shark_backup(const char *destination, bool compress);
+void shark_backup(const char *destination, int compress, int encrypt);
 
 /**
- * Display size of files or directories.
+ * Display size of items with formatting and summary options.
  * Options:
- *   --human-readable, --total
+ *   --human-readable
+ *   --total
+ *   --summarize
  */
-void shark_size(bool human_readable, bool total);
+void shark_size(int human_readable, int total, int summarize);
 
 /**
- * Display disk usage and free space.
+ * Show disk statistics including inode usage.
  * Options:
- *   --all, --free
+ *   --all
+ *   --free
+ *   --used
+ *   --inodes
  */
-void shark_disk(bool all, bool free);
+void shark_disk(int all, int free, int used, int inodes);
 
 /**
- * Display directory structure as a tree.
+ * Print directory tree with control over depth and content.
  * Options:
- *   --depth, --all
+ *   --depth=<n>
+ *   --all
+ *   --dirs-only
+ *   --files-only
  */
-void shark_tree(int depth, bool all);
+void shark_tree(int depth, int all, int dirs_only, int files_only);
 
 /**
- * Compare two files or directories.
+ * Compare files or directories using various strategies.
  * Options:
- *   --ignore-case, --binary
+ *   --ignore-case
+ *   --binary
+ *   --diff
+ *   --hash
  */
-void shark_compare(bool ignore_case, bool binary);
+void shark_compare(int ignore_case, int binary, int diff, int hash);
 
 /**
- * Set color output mode.
+ * Display metadata and statistics about a file or directory.
  * Options:
- *   enable, disable, auto
+ *   --details
+ *   --type
+ *   --stat
+ *   --checksum
  */
-void shark_color(const char *mode);
+void shark_info(int details, const char *type, int stat, int checksum);
 
 /**
- * Get detailed information about a file or directory.
+ * Clean up generated or temporary files, with optional preview.
  * Options:
- *   --details, --type
+ *   --temp
+ *   --cache
+ *   --logs
+ *   --dry-run
  */
-void shark_info(const char *details, const char *type);
+void shark_clean(int temp, int cache, int logs, int dry_run);
+
+/**
+ * Perform basic file operations. Includes splitting and joining files.
+ * Options:
+ *   --create
+ *   --modify
+ *   --delete
+ *   --split=<lines/bytes>
+ *   --join=<file1,file2,...>
+ *   --output=<file>
+ */
+void shark_file(int create, int modify, int delete, const char *split, const char *join, const char *output);
+
+/**
+ * Check for file/directory existence or type.
+ * Options:
+ *   --exists=<path>
+ *   --not-exist
+ *   --type=<file/dir>
+ */
+void shark_ask(const char *exists, int not_exist, const char *type);
+
+/**
+ * Modify file properties like permissions or ownership.
+ * Options:
+ *   --target=<path>
+ *   --value=<new>
+ *   --owner
+ *   --mode
+ */
+void shark_change(const char *target, const char *value, int owner, int mode);
+
+/**
+ * Show textual differences between files. Supports unified and side-by-side views.
+ * Options:
+ *   --unified
+ *   --side-by-side
+ *   --ignore-case
+ *   --context=<n>
+ */
+void shark_diff(int unified, int side_by_side, int ignore_case, int context);
+
+/**
+ * Create or extract archive files in supported formats.
+ * Options:
+ *   --create
+ *   --extract
+ *   --format=zip/tar/gz
+ *   --output=<file>
+ */
+void shark_archive(int create, int extract, const char *format, const char *output);
 
 #ifdef __cplusplus
 }
