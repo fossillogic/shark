@@ -12,12 +12,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#ifdef _WIN32
-    
-#else
-    #include <sys/stat.h> // mkdir
-    
-#endif
+
 #ifdef _WIN32
     #include <windows.h>
     #include <io.h>       // _chmod, _utime
