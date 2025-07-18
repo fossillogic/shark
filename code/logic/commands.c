@@ -101,28 +101,60 @@ void shark_rename(const char *old_name, const char *new_name, bool force, bool b
  * @param file_link The type of link to create (hard/sym).
  */
 void shark_copy(const char *source, const char *destination, bool preserve, const char *file_link) {
+    // Handle symbolic or hard links
     if (file_link && strcmp(file_link, "sym") == 0) {
+#ifdef _WIN32
+        // Windows symlink requires privileges + needs to know if it's a file or dir
+        DWORD attrs = GetFileAttributesA(source);
+        if (attrs == INVALID_FILE_ATTRIBUTES) {
+            perror("GetFileAttributes failed");
+            return;
+        }
+
+        int is_dir = (attrs & FILE_ATTRIBUTE_DIRECTORY) != 0;
+        if (CreateSymbolicLinkA(destination, source, is_dir ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0) == 0) {
+            fprintf(stderr, "CreateSymbolicLink failed: %lu\n", GetLastError());
+        }
+#else
         if (symlink(source, destination) != 0) {
             perror("symlink failed");
         }
+#endif
         return;
     } else if (file_link && strcmp(file_link, "hard") == 0) {
+#ifdef _WIN32
+        if (!CreateHardLinkA(destination, source, NULL)) {
+            fprintf(stderr, "CreateHardLink failed: %lu\n", GetLastError());
+        }
+#else
         if (link(source, destination) != 0) {
             perror("link failed");
         }
+#endif
         return;
     }
 
-    // Default: copy contents
+    // Default copy
     fossil_fstream_copy(source, destination);
 
     if (preserve) {
+#ifdef _WIN32
+        struct _stat src_stat;
+        if (_stat(source, &src_stat) == 0) {
+            _chmod(destination, src_stat.st_mode);
+
+            struct _utimbuf times;
+            times.actime = src_stat.st_atime;
+            times.modtime = src_stat.st_mtime;
+            _utime(destination, &times);
+        } else {
+            perror("_stat failed on source for preserve");
+        }
+#else
         struct stat src_stat;
         if (stat(source, &src_stat) == 0) {
-            // Preserve permissions
             chmod(destination, src_stat.st_mode);
 
-            // Preserve timestamps
             struct utimbuf times;
             times.actime = src_stat.st_atime;
             times.modtime = src_stat.st_mtime;
@@ -130,6 +162,7 @@ void shark_copy(const char *source, const char *destination, bool preserve, cons
         } else {
             perror("stat failed on source for preserve");
         }
+#endif
     }
 }
 
