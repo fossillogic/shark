@@ -26,12 +26,12 @@ void show_commands(char* app_name) {
     fossil_io_printf("{cyan}  --color          {reset}| Set color output mode: {yellow}enable{cyan}, {yellow}disable{cyan}, or {yellow}auto{cyan}.\n");
     fossil_io_printf("{cyan}  --clear          {reset}| Clear terminal or console output.\n");
     fossil_io_printf("{blue}Commands:{reset}\n");
-    fossil_io_printf("{cyan}  create            {reset}| {yellow}--type=<file/dir>, --name=<file_name>{reset}                  | Create new files or directories with specified type and name.\n");
+    fossil_io_printf("{cyan}  create            {reset}| {yellow}--type=<file/dir>{reset}                                      | Create new files or directories with specified type and name.\n");
     fossil_io_printf("{cyan}  delete            {reset}| {yellow}--force{reset}                                                | Remove files or directories. Optionally move them to trash instead of permanent deletion.\n");
     fossil_io_printf("{cyan}  move              {reset}| {yellow}--force, --backup{reset}                                      | Move or rename files and directories with options to overwrite or create backups.\n");
     fossil_io_printf("{cyan}  rename            {reset}| {yellow}--force, --backup{reset}                                      | Rename files or directories with conflict handling options.\n");
     fossil_io_printf("{cyan}  copy              {reset}| {yellow}--preserve, --link=<hard/sym>{reset}                          | Duplicate files or directories while preserving attributes or creating links.\n");
-    fossil_io_printf("{cyan}  list              {reset}| {yellow}--as=<list/tree>, --sort=<disc/asc>{reset}                    | Display files or directories in a list or tree format with sorting options.\n");
+    fossil_io_printf("{cyan}  list              {reset}| {yellow}--as=<list/tree>{reset}                                       | Display files or directories in a list or tree format with sorting options.\n");
     fossil_io_printf("{cyan}  show              {reset}| {yellow}--lines=<n>, --offset=<n>{reset}                              | View file contents with support for pagination and line offsets.\n");
     fossil_io_printf("{cyan}  find              {reset}| {yellow}--name=<pattern>, --type{reset}                               | Search for files or directories by name, type, or other criteria.\n");
     fossil_io_printf("{cyan}  size              {reset}| {yellow}--human-readable{reset}                                       | Show the size of files or directories with optional human-readable formatting.\n");
@@ -79,17 +79,15 @@ bool app_entry(int argc, char** argv) {
         } else if (fossil_io_cstring_compare(argv[i], "--clear") == 0) {
             fossil_io_printf("\033[H\033[J"); // ANSI escape sequence to clear screen
         } else if (fossil_io_cstring_compare(argv[i], "create") == 0) {
-            const char *type = cnullptr, *name = cnullptr;
+            const char *type = cnullptr;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (fossil_io_cstring_starts_with(argv[i], "--type=")) {
                     type = argv[i] + 7;
-                } else if (fossil_io_cstring_starts_with(argv[i], "--name=")) {
-                    name = argv[i] + 7;
                 } else {
                     break;
                 }
             }
-            shark_create(argv[0], type, name);
+            shark_create(argv[0], type);
         } else if (fossil_io_cstring_compare(argv[i], "delete") == 0) {
             bool force = false;
             const char *file = cnullptr;
@@ -147,17 +145,15 @@ bool app_entry(int argc, char** argv) {
             }
             shark_copy(source, destination, preserve, file_link);
         } else if (fossil_io_cstring_compare(argv[i], "list") == 0) {
-            const char *path = cnullptr, *as = cnullptr, *sort = cnullptr;
+            const char *path = cnullptr, *as = cnullptr;
             for (++i; i < argc && argv[i] != cnullptr; ++i) {
                 if (fossil_io_cstring_starts_with(argv[i], "--as=")) {
                     as = argv[i] + 5;
-                } else if (fossil_io_cstring_starts_with(argv[i], "--sort=")) {
-                    sort = argv[i] + 7;
                 } else {
                     path = argv[i];
                 }
             }
-            shark_list(path, as, sort);
+            shark_list(path, as);
         } else if (fossil_io_cstring_compare(argv[i], "show") == 0) {
             const char *file = cnullptr;
             int lines = 0, offset = 0;
