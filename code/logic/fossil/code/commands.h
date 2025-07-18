@@ -24,10 +24,9 @@ extern "C" {
 /**
  * @brief Create new files or directories with specified type and name.
  * @param type The type of the entity to create (file/dir).
- * @param name The name of the file or directory to create.
  * @param file The path where the file or directory should be created.
  */
-void shark_create(const char *file, const char *type, const char *name);
+void shark_create(const char *file, const char *type);
 
 /**
  * @brief Remove files or directories. Optionally move them to trash instead of permanent deletion.
@@ -67,9 +66,8 @@ void shark_copy(const char *source, const char *destination, bool preserve, cons
  * @brief Display files or directories in a list or tree format with sorting options.
  * @param path The path of the directory to display.
  * @param as The format to display (list/tree).
- * @param sort The sorting order (disc/asc).
  */
-void shark_list(const char *path, const char *as, const char *sort);
+void shark_list(const char *path, const char *as);
 
 /**
  * @brief View file contents with support for pagination and line offsets.
