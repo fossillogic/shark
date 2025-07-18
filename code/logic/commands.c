@@ -12,9 +12,24 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <unistd.h>     // symlink, link
-#include <sys/stat.h>   // stat, chmod
-#include <utime.h>      // utime
+#ifdef _WIN32
+    
+#else
+    #include <sys/stat.h> // mkdir
+    
+#endif
+#ifdef _WIN32
+    #include <windows.h>
+    #include <io.h>       // _chmod, _utime
+    #include <sys/stat.h> // _stat
+    #include <utime.h>    // _utime
+    #include <direct.h>   // _mkdir
+#else
+    #include <unistd.h>   // symlink, link, stat, utime
+    #include <sys/stat.h> // chmod
+    #include <utime.h>    // utime
+#endif
+
 #include <string.h>     // strcmp
 #include <stdbool.h>    // bool
 #include <errno.h>      // errno
@@ -32,7 +47,11 @@ void shark_create(const char *file, const char *type) {
             fossil_fstream_close(&stream);
         }
     } else if (strcmp(type, "dir") == 0) {
-        mkdir(file, 0755); // POSIX-style directory creation
+#ifdef _WIN32
+        _mkdir(file);  // Windows version: no mode
+#else
+        mkdir(file, 0755);  // POSIX version: includes mode
+#endif
     }
 }
 
