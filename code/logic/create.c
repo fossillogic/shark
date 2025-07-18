@@ -16,15 +16,30 @@
 
 /**
  * Create new files or directories with specific type and permissions.
- * Options:
- *   --type=<file/dir>
- *   --permissions=<rwx>
- *   --path=<location>
- *   --overwrite
+ * Flags: --type=<file/dir>, --permissions=<rwx>
  */
-void shark_create(const char *path, const char *type, const char *permissions, int overwrite) {
-    cunused(path); // Placeholder for path usage, if needed
-    cunused(type); // Placeholder for type usage, if needed
-    cunused(permissions); // Placeholder for permissions usage, if needed
-    cunused(overwrite); // Placeholder for overwrite usage, if needed
+void shark_create(const char *path, const char *type, const char *permissions) {
+    if (type == cnullptr || path == cnullptr) {
+        fossil_io_printf("{red}Error: Type and path must be specified.{reset}\n");
+        return;
+    }
+
+    if (fossil_io_cstring_compare(type, "file") == 0) {
+        fossil_fstream_t stream;
+        if (fossil_fstream_open(&stream, path, "w") == 0) {
+            fossil_fstream_set_permissions(path, strtol(permissions, cnullptr, 8));
+            fossil_fstream_close(&stream);
+            fossil_io_printf("{green}Created file at %s with permissions %s.{reset}\n", path, permissions);
+        } else {
+            fossil_io_printf("{red}Error: Failed to create file at %s.{reset}\n", path);
+        }
+    } else if (fossil_io_cstring_compare(type, "dir") == 0) {
+        if (mkdir(path, strtol(permissions, cnullptr, 8)) == 0) {
+            fossil_io_printf("{green}Created directory at %s with permissions %s.{reset}\n", path, permissions);
+        } else {
+            fossil_io_printf("{red}Error: Failed to create directory at %s.{reset}\n", path);
+        }
+    } else {
+        fossil_io_printf("{red}Error: Invalid type specified. Use 'file' or 'dir'.{reset}\n");
+    }
 }
