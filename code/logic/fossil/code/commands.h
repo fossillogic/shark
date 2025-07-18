@@ -22,122 +22,102 @@ extern "C" {
 #endif
 
 /**
- * Create new files or directories with specific type and permissions.
- * Flags: --type=<file/dir>, --permissions=<rwx>
+ * @brief Create new files or directories with specified type and name.
+ * @param type The type of the entity to create (file/dir).
+ * @param name The name of the file or directory to create.
+ * @param file The path where the file or directory should be created.
  */
-void shark_create(const char *path, const char *type, const char *permissions);
+void shark_create(const char *file, const char *type, const char *name);
 
 /**
- * Delete files or directories. Optionally move to trash instead of hard delete.
- * Flags: --recursive, --force, --trash
+ * @brief Remove files or directories. Optionally move them to trash instead of permanent deletion.
+ * @param force If true, force deletion without confirmation.
+ * @param file The path of the file or directory to delete.
  */
-void shark_delete(const char *path, bool recursive, bool force, bool trash);
+void shark_delete(const char *file, bool force);
 
 /**
- * Move or rename files and directories with overwrite and backup options.
- * Flags: --force, --backup, --overwrite
+ * @brief Move or rename files and directories with options to overwrite or create backups.
+ * @param source The source path of the file or directory to move.
+ * @param destination The destination path where the file or directory should be moved.
+ * @param force If true, overwrite existing files.
+ * @param backup If true, create backups of overwritten files.
  */
-void shark_move(const char *source, const char *destination, bool force, bool backup, bool overwrite);
+void shark_move(const char *source, const char *destination, bool force, bool backup);
 
 /**
- * Rename files or directories with conflict resolution.
- * Flags: --force, --backup
+ * @brief Rename files or directories with conflict handling options.
+ * @param old_name The current name of the file or directory.
+ * @param new_name The new name for the file or directory.
+ * @param force If true, overwrite existing files.
+ * @param backup If true, create backups of overwritten files.
  */
 void shark_rename(const char *old_name, const char *new_name, bool force, bool backup);
 
 /**
- * Copy files or directories with control over attributes and link types.
- * Flags: --recursive, --preserve, --symlinks, --hard
+ * @brief Duplicate files or directories while preserving attributes or creating links.
+ * @param source The source path of the file or directory to copy.
+ * @param destination The destination path where the copy should be created.
+ * @param preserve If true, preserve file attributes.
+ * @param file_link The type of link to create (hard/sym).
  */
-void shark_copy(const char *source, const char *destination, bool recursive, bool preserve, bool symlinks, bool hard);
+void shark_copy(const char *source, const char *destination, bool preserve, const char *file_link);
 
 /**
- * List system information. Defaults to file listing. Supports devices, kernel modules, and hardware info.
- * Flags: --what=<files/devices/modules/hardware>, --sort, --format
+ * @brief Display files or directories in a list or tree format with sorting options.
+ * @param path The path of the directory to display.
+ * @param as The format to display (list/tree).
+ * @param sort The sorting order (disc/asc).
  */
-void shark_list(const char *path, const char *what, bool sort, const char *format);
+void shark_list(const char *path, const char *as, const char *sort);
 
 /**
- * Show file contents with pagination and range options.
- * Flags: --lines=<n>, --offset=<n>, --tail, --head
+ * @brief View file contents with support for pagination and line offsets.
+ * @param file The path of the file to view.
+ * @param lines The number of lines to display.
+ * @param offset The line offset to start displaying from.
  */
-void shark_show(const char *file, int lines, int offset, bool tail, bool head);
+void shark_show(const char *file, int lines, int offset);
 
 /**
- * Find items by name, size, or type.
- * Flags: --name=<pattern>, --size=<gt/lt>:<value>, --type
+ * @brief Search for files or directories by name, type, or other criteria.
+ * @param path The path to search within.
+ * @param name The name pattern to search for.
+ * @param type The type of entity to search for (file/dir).
  */
-void shark_find(const char *path, const char *name, const char *size, const char *type);
+void shark_find(const char *path, const char *name, const char *type);
 
 /**
- * Locate files or directories by name or full path pattern.
- * Flags: --name=<pattern>, --path=<regex>
+ * @brief Show the size of files or directories with optional human-readable formatting.
+ * @param path The path of the file or directory to check.
+ * @param human_readable If true, format sizes in a human-readable way.
  */
-void shark_where(const char *path, const char *name, const char *regex_path);
+void shark_size(const char *path, bool human_readable);
 
 /**
- * Search inside files with advanced pattern matching.
- * Flags: --pattern=<regex>, --ignore-case, --whole-word
+ * @brief Compare files or directories using binary, diff, or hash methods.
+ * @param path1 The path of the first file or directory to compare.
+ * @param path2 The path of the second file or directory to compare.
+ * @param binary If true, perform a binary comparison.
+ * @param diff If true, perform a diff comparison.
+ * @param hash If true, perform a hash comparison.
  */
-void shark_search(const char *file, const char *pattern, bool ignore_case, bool whole_word);
+void shark_compare(const char *path1, const char *path2, bool binary, bool diff, bool hash);
 
 /**
- * Backup files or directories with optional compression and encryption.
- * Flags: --destination=<path>, --compress, --encrypt
+ * @brief Verify the existence or type of files or directories.
+ * @param exists Path to check for existence.
+ * @param not_exist Path to check for non-existence.
+ * @param type The type of entity to verify (file/dir).
  */
-void shark_backup(const char *source, const char *destination, bool compress, bool encrypt);
+void shark_ask(const char *exists, const char *not_exist, const char *type);
 
 /**
- * Display size of items with formatting and summary options.
- * Flags: --human-readable, --total, --summarize
- */
-void shark_size(const char *path, bool human_readable, bool total, bool summarize);
-
-/**
- * Show disk statistics including inode usage.
- * Flags: --all, --free, --used, --inodes
- */
-void shark_disk(const char *path, bool all, bool free, bool used, bool inodes);
-
-/**
- * Print directory tree with control over depth and content.
- * Flags: --depth=<n>, --all, --dirs-only, --files-only
- */
-void shark_tree(const char *path, int depth, bool all, bool dirs_only, bool files_only);
-
-/**
- * Compare files or directories using various strategies.
- * Flags: --ignore-case, --binary, --diff, --hash
- */
-void shark_compare(const char *source, const char *target, bool ignore_case, bool binary, bool diff, bool hash);
-
-/**
- * Display metadata and statistics about a file or directory.
- * Flags: --details, --type, --stat, --checksum
- */
-void shark_info(const char *path, bool details, const char *type, bool stat, bool checksum);
-
-/**
- * Clean up generated or temporary files, with optional preview.
- * Flags: --temp, --cache, --logs, --dry-run
- */
-void shark_clean(const char *path, bool temp, bool cache, bool logs, bool dry_run);
-
-/**
- * Perform basic file operations. Includes splitting and joining files.
- * Flags: --create, --modify, --delete, --split=<lines/bytes>, --join=<file1,file2,...>, --output=<file>
- */
-void shark_file(const char *path, bool create, bool modify, bool delete_op, const char *split, const char *join, const char *output);
-
-/**
- * Check for file/directory existence or type.
- * Flags: --exists=<path>, --not-exist, --type=<file/dir>
- */
-void shark_ask(const char *path, const char *exists, bool not_exist, const char *type);
-
-/**
- * Modify file properties like permissions or ownership.
- * Flags: --target=<path>, --value=<new>, --owner, --mode
+ * @brief Update file properties such as permissions, ownership, or mode.
+ * @param target The path of the file or directory to modify.
+ * @param value The new value to set.
+ * @param owner If true, update ownership.
+ * @param mode If true, update permissions/mode.
  */
 void shark_change(const char *target, const char *value, bool owner, bool mode);
 

@@ -19,28 +19,20 @@ With consistent syntax, powerful subcommands, and rich flag support, Shark strea
 
 ### Commands
 
-| **Command**        | **Flags**                                                                 | **Description**                                                                 |
-|--------------------|---------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| `shark create`     | `--type=<file/dir>`, `--permissions=<rwx>`                                | Create new files or directories with specific type and permissions.            |
-| `shark delete`     | `--recursive`, `--force`, `--trash`                                       | Delete files or directories. Optionally move to trash instead of hard delete.  |
-| `shark move`       | `--force`, `--backup`, `--overwrite`                                      | Move or rename files and directories with overwrite and backup options.        |
-| `shark rename`     | `--force`, `--backup`                                                     | Rename files or directories with conflict resolution.                          |
-| `shark copy`       | `--recursive`, `--preserve`, `--symlinks`, `--hard`                       | Copy files or directories with control over attributes and link types.         |
-| `shark list`       | `--what=<files/devices/modules/hardware>`, `--sort`, `--format`           | List system information. Defaults to file listing. Supports devices, kernel modules, and hardware info. |
-| `shark show`       | `--lines=<n>`, `--offset=<n>`, `--tail`, `--head`                         | Show file contents with pagination and range options.                         |
-| `shark find`       | `--name=<pattern>`, `--size=<gt/lt>:<value>`, `--type`                    | Find items by name, size, or type.                                             |
-| `shark where`      | `--name=<pattern>`, `--path=<regex>`                                      | Locate files or directories by name or full path pattern.                      |
-| `shark search`     | `--pattern=<regex>`, `--ignore-case`, `--whole-word`                      | Search inside files with advanced pattern matching.                            |
-| `shark backup`     | `--destination=<path>`, `--compress`, `--encrypt`                         | Backup files or directories with optional compression and encryption.          |
-| `shark size`       | `--human-readable`, `--total`, `--summarize`                              | Display size of items with formatting and summary options.                     |
-| `shark disk`       | `--all`, `--free`, `--used`, `--inodes`                                   | Show disk statistics including inode usage.                                    |
-| `shark tree`       | `--depth=<n>`, `--all`, `--dirs-only`, `--files-only`                     | Print directory tree with control over depth and content.                      |
-| `shark compare`    | `--ignore-case`, `--binary`, `--diff`, `--hash`                           | Compare files or directories using various strategies.                         |
-| `shark info`       | `--details`, `--type`, `--stat`, `--checksum`                             | Display metadata and statistics about a file or directory.                     |
-| `shark clean`      | `--temp`, `--cache`, `--logs`, `--dry-run`                                | Clean up generated or temporary files, with optional preview.                  |
-| `shark file`       | `--create`, `--modify`, `--delete`, `--split=<lines/bytes>`, `--join=<file1,file2,...>`, `--output=<file>` | Perform basic file operations. Includes splitting and joining files.            |
-| `shark ask`        | `--exists=<path>`, `--not-exist`, `--type=<file/dir>`                     | Check for file/directory existence or type.                                    |
-| `shark change`     | `--target=<path>`, `--value=<new>`, `--owner`, `--mode`                   | Modify file properties like permissions or ownership.                          |
+| **Command**        | **Flags**                                                    | **Description**                                                                 |
+|--------------------|--------------------------------------------------------------|---------------------------------------------------------------------------------|
+| `shark create`     | `--type=<file/dir>`, `--name=<file_name>`                    | Create new files or directories with specified type and name.                  |
+| `shark delete`     | `--force`                                                    | Remove files or directories. Optionally move them to trash instead of permanent deletion. |
+| `shark move`       | `--force`, `--backup`                                        | Move or rename files and directories with options to overwrite or create backups. |
+| `shark rename`     | `--force`, `--backup`                                        | Rename files or directories with conflict handling options.                    |
+| `shark copy`       | `--preserve`, `--link=<hard/sym>`                            | Duplicate files or directories while preserving attributes or creating links.  |
+| `shark list`       | `--as=<list/tree>`, `--sort=<disc/asc>`                      | Display files or directories in a list or tree format with sorting options.    |
+| `shark show`       | `--lines=<n>`, `--offset=<n>`                                | View file contents with support for pagination and line offsets.               |
+| `shark find`       | `--name=<pattern>`, `--type`                                 | Search for files or directories by name, type, or other criteria.              |
+| `shark size`       | `--human-readable`                                           | Show the size of files or directories with optional human-readable formatting. |
+| `shark compare`    | `--binary`, `--diff`, `--hash`                               | Compare files or directories using binary, diff, or hash methods.              |
+| `shark ask`        | `--exists=<path>`, `--not-exist=<path>`, `--type=<file/dir>` | Verify the existence or type of files or directories.                          |
+| `shark change`     | `--target=<path>`, `--value=<new>`, `--owner`, `--mode`      | Update file properties such as permissions, ownership, or mode.                |
 
 ## **Prerequisites**
 
