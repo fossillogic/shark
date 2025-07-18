@@ -32,7 +32,7 @@ void shark_create(const char *file, const char *type) {
             fossil_fstream_close(&stream);
         }
     } else if (strcmp(type, "dir") == 0) {
-        mkdir(file); // POSIX-style directory creation
+        mkdir(file, 0755); // POSIX-style directory creation
     }
 }
 
