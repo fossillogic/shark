@@ -33,6 +33,7 @@
 #include <errno.h>      // errno
 #include <stdio.h>      // perror
 
+
 /**
  * @brief Create new files or directories with specified type and name.
  * @param type The type of the entity to create (file/dir).
