@@ -16,10 +16,9 @@
 /**
  * @brief Create new files or directories with specified type and name.
  * @param type The type of the entity to create (file/dir).
- * @param name The name of the file or directory to create.
  * @param file The path where the file or directory should be created.
  */
-void shark_create(const char *file, const char *type, const char *name) {
+void shark_create(const char *file, const char *type) {
     if (strcmp(type, "file") == 0) {
         fossil_fstream_t stream;
         if (fossil_fstream_open(&stream, file, "w") == 0) {
@@ -84,7 +83,7 @@ void shark_copy(const char *source, const char *destination, bool preserve, cons
     if (file_link && strcmp(file_link, "sym") == 0) {
         symlink(source, destination);
     } else if (file_link && strcmp(file_link, "hard") == 0) {
-        link(source, destination);
+        unlink(source, destination);
     } else {
         fossil_fstream_copy(source, destination);
     }
@@ -94,9 +93,8 @@ void shark_copy(const char *source, const char *destination, bool preserve, cons
  * @brief Display files or directories in a list or tree format with sorting options.
  * @param path The path of the directory to display.
  * @param as The format to display (list/tree).
- * @param sort The sorting order (disc/asc).
  */
-void shark_list(const char *path, const char *as, const char *sort) {
+void shark_list(const char *path, const char *as) {
     fossil_fstream_t stream;
     if (fossil_fstream_open(&stream, path, "r") == 0) {
         char buffer[1024];
