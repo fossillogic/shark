@@ -20,6 +20,7 @@
     #include <utime.h>    // _utime
     #include <direct.h>   // _mkdir
 #else
+    #define _POSIX_C_SOURCE 200809L
     #include <unistd.h>   // symlink, link, stat, utime
     #include <sys/stat.h> // chmod
     #include <utime.h>    // utime
