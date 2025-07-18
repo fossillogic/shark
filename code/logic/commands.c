@@ -34,6 +34,10 @@
 #include <errno.h>      // errno
 #include <stdio.h>      // perror
 
+#ifndef _WIN32
+extern int symlink(const char *target, const char *linkpath);
+#endif
+
 
 /**
  * @brief Create new files or directories with specified type and name.
@@ -98,34 +102,6 @@ void shark_rename(const char *old_name, const char *new_name, bool force, bool b
     shark_move(old_name, new_name, force, backup);
 }
 
-int custom_symlink(const char *target, const char *linkpath) {
-#ifdef _WIN32
-    DWORD attrs = GetFileAttributesA(target);
-    if (attrs == INVALID_FILE_ATTRIBUTES) {
-        fprintf(stderr, "custom_symlink: invalid target '%s' (GetFileAttributes failed: %lu)\n", target, GetLastError());
-        return -1;
-    }
-
-    DWORD flags = (attrs & FILE_ATTRIBUTE_DIRECTORY)
-                    ? SYMBOLIC_LINK_FLAG_DIRECTORY
-                    : 0;
-
-    if (CreateSymbolicLinkA(linkpath, target, flags) == 0) {
-        DWORD err = GetLastError();
-        fprintf(stderr, "custom_symlink: CreateSymbolicLinkA failed with error %lu\n", err);
-        return -1;
-    }
-
-    return 0;
-#else
-    if (symlink(target, linkpath) != 0) {
-        perror("custom_symlink: symlink failed");
-        return -1;
-    }
-    return 0;
-#endif
-}
-
 /**
  * @brief Duplicate files or directories while preserving attributes or creating links.
  * @param source The source path of the file or directory to copy.
@@ -149,7 +125,7 @@ void shark_copy(const char *source, const char *destination, bool preserve, cons
             fprintf(stderr, "CreateSymbolicLink failed: %lu\n", GetLastError());
         }
 #else
-        if (custom_symlink(source, destination) != 0) {
+        if (symlink(source, destination) != 0) {
             perror("symlink failed");
         }
 #endif
