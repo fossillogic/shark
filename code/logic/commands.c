@@ -12,6 +12,8 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
+#include <sys/stat.h>  // for mkdir
+#include <unistd.h>    // for symlink, unlink
 
 /**
  * @brief Create new files or directories with specified type and name.
