@@ -12,8 +12,13 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <sys/stat.h>  // for mkdir
-#include <unistd.h>    // for symlink, unlink
+#include <unistd.h>     // symlink, link
+#include <sys/stat.h>   // stat, chmod
+#include <utime.h>      // utime
+#include <string.h>     // strcmp
+#include <stdbool.h>    // bool
+#include <errno.h>      // errno
+#include <stdio.h>      // perror
 
 /**
  * @brief Create new files or directories with specified type and name.
@@ -83,11 +88,34 @@ void shark_rename(const char *old_name, const char *new_name, bool force, bool b
  */
 void shark_copy(const char *source, const char *destination, bool preserve, const char *file_link) {
     if (file_link && strcmp(file_link, "sym") == 0) {
-        symlink(source, destination);
+        if (symlink(source, destination) != 0) {
+            perror("symlink failed");
+        }
+        return;
     } else if (file_link && strcmp(file_link, "hard") == 0) {
-        unlink(source, destination);
-    } else {
-        fossil_fstream_copy(source, destination);
+        if (link(source, destination) != 0) {
+            perror("link failed");
+        }
+        return;
+    }
+
+    // Default: copy contents
+    fossil_fstream_copy(source, destination);
+
+    if (preserve) {
+        struct stat src_stat;
+        if (stat(source, &src_stat) == 0) {
+            // Preserve permissions
+            chmod(destination, src_stat.st_mode);
+
+            // Preserve timestamps
+            struct utimbuf times;
+            times.actime = src_stat.st_atime;
+            times.modtime = src_stat.st_mtime;
+            utime(destination, &times);
+        } else {
+            perror("stat failed on source for preserve");
+        }
     }
 }
 
