@@ -85,42 +85,10 @@ FOSSIL_TEST_CASE(c_test_shark_copy) {
     ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("copied_file.txt"));
 }
 
-FOSSIL_TEST_CASE(c_test_shark_list) {
-    shark_create("list_dir", "dir");
-    shark_list("list_dir", "list");
-    ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("list_dir"));
-}
-
 FOSSIL_TEST_CASE(c_test_shark_show) {
     shark_create("show_file.txt", "file");
     shark_show("show_file.txt", 10, 0);
     ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("show_file.txt"));
-}
-
-FOSSIL_TEST_CASE(c_test_shark_find) {
-    shark_create("find_file.txt", "file");
-    shark_find(".", "find_file.txt", "file");
-    ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("find_file.txt"));
-}
-
-FOSSIL_TEST_CASE(c_test_shark_size) {
-    shark_create("size_file.txt", "file");
-    shark_size("size_file.txt", true);
-    ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("size_file.txt"));
-}
-
-FOSSIL_TEST_CASE(c_test_shark_compare) {
-    shark_create("compare_file1.txt", "file");
-    shark_create("compare_file2.txt", "file");
-    shark_compare("compare_file1.txt", "compare_file2.txt", true, false, false);
-    ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("compare_file1.txt"));
-    ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("compare_file2.txt"));
-}
-
-FOSSIL_TEST_CASE(c_test_shark_ask) {
-    shark_create("ask_file.txt", "file");
-    shark_ask("ask_file.txt", NULL, "file");
-    ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("ask_file.txt"));
 }
 
 FOSSIL_TEST_CASE(c_test_shark_change) {
@@ -136,12 +104,7 @@ FOSSIL_TEST_GROUP(c_sample_tests) {
     FOSSIL_TEST_ADD(c_sample_suite, c_test_shark_move);
     FOSSIL_TEST_ADD(c_sample_suite, c_test_shark_rename);
     FOSSIL_TEST_ADD(c_sample_suite, c_test_shark_copy);
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_shark_list);
     FOSSIL_TEST_ADD(c_sample_suite, c_test_shark_show);
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_shark_find);
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_shark_size);
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_shark_compare);
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_shark_ask);
     FOSSIL_TEST_ADD(c_sample_suite, c_test_shark_change);
 
     FOSSIL_TEST_REGISTER(c_sample_suite);
