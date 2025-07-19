@@ -122,7 +122,7 @@ void shark_copy(const char *source, const char *destination, bool preserve, cons
 
         int is_dir = (attrs & FILE_ATTRIBUTE_DIRECTORY) != 0;
         if (CreateSymbolicLinkA(destination, source, is_dir ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0) == 0) {
-            fprintf(stderr, "CreateSymbolicLink failed: %lu\n", GetLastError());
+            fossil_io_fprintf(FOSSIL_STDERR, "{red}CreateSymbolicLink failed: %lu{reset}\n", GetLastError());
         }
 #else
         if (symlink(source, destination) != 0) {
@@ -133,7 +133,7 @@ void shark_copy(const char *source, const char *destination, bool preserve, cons
     } else if (file_link && strcmp(file_link, "hard") == 0) {
 #ifdef _WIN32
         if (!CreateHardLinkA(destination, source, NULL)) {
-            fprintf(stderr, "CreateHardLink failed: %lu\n", GetLastError());
+            fossil_io_fprintf(FOSSIL_STDERR, "{red}CreateHardLink failed: %lu{reset}\n", GetLastError());
         }
 #else
         if (link(source, destination) != 0) {
@@ -194,7 +194,7 @@ void shark_list(const char *path, const char *as) {
         }
         fossil_fstream_close(&stream);
     } else {
-        printf("Error: Unable to open path %s\n", path);
+        fossil_io_printf("{red}Error: Unable to open path %s{reset}\n", path);
     }
 }
 
@@ -232,13 +232,13 @@ void shark_find(const char *path, const char *name, const char *type) {
         while (fossil_fstream_read(&stream, buffer, 1, sizeof(buffer)) > 0) {
             if (strstr(buffer, name) != NULL) {
                 if (type == NULL || strcmp(type, "file") == 0 || strcmp(type, "dir") == 0) {
-                    printf("Found: %s\n", buffer);
+                    printf("{cyan}Found: %s{reset}\n", buffer);
                 }
             }
         }
         fossil_fstream_close(&stream);
     } else {
-        printf("Error: Unable to open path %s\n", path);
+        fossil_io_printf("{red}Error: Unable to open path %s{reset}\n", path);
     }
 }
 
@@ -252,9 +252,9 @@ void shark_size(const char *path, bool human_readable) {
     if (fossil_fstream_open(&stream, path, "r") == 0) {
         int32_t size = fossil_fstream_get_size(&stream);
         if (human_readable) {
-            printf("Size: %.2f KB\n", size / 1024.0);
+            fossil_io_printf("{cyan}Size: %.2f KB{reset}\n", size / 1024.0);
         } else {
-            printf("Size: %d bytes\n", size);
+            fossil_io_printf("{cyan}Size: %d bytes{reset}\n", size);
         }
         fossil_fstream_close(&stream);
     }
@@ -286,26 +286,96 @@ void shark_compare(const char *path1, const char *path2, bool binary, bool diff,
 
             if (are_equal && fossil_fstream_read(&stream1, buffer1, 1, sizeof(buffer1)) == 0 &&
                 fossil_fstream_read(&stream2, buffer2, 1, sizeof(buffer2)) == 0) {
-                printf("Files are identical (binary comparison).\n");
+                    fossil_io_printf("{cyan}Files are identical (binary comparison).{reset}\n");
             } else {
-                printf("Files differ (binary comparison).\n");
+                fossil_io_printf("{cyan}Files differ (binary comparison).{reset}\n");
             }
 
             fossil_fstream_close(&stream1);
             fossil_fstream_close(&stream2);
         } else {
-            printf("Error opening files for binary comparison.\n");
+            fossil_io_printf("{red}Error opening files for binary comparison.{reset}\n");
         }
     }
 
     if (diff) {
-        // Placeholder for diff comparison logic
-        printf("Diff comparison is not implemented yet.\n");
+        fossil_fstream_t stream1, stream2;
+        if (fossil_fstream_open(&stream1, path1, "r") != 0 || fossil_fstream_open(&stream2, path2, "r") != 0) {
+            fossil_io_printf("{red}Error opening files for diff comparison.{reset}\n");
+            if (fossil_fstream_is_open(&stream1)) fossil_fstream_close(&stream1);
+            if (fossil_fstream_is_open(&stream2)) fossil_fstream_close(&stream2);
+            return;
+        }
+
+        char line1[1024], line2[1024];
+        int line_number = 1;
+        bool differences_found = false;
+
+        while (fossil_fstream_read(&stream1, line1, 1, sizeof(line1)) > 0 &&
+               fossil_fstream_read(&stream2, line2, 1, sizeof(line2)) > 0) {
+            if (strcmp(line1, line2) != 0) {
+                fossil_io_printf("{cyan}Difference at line %d:{reset}\n", line_number);
+                fossil_io_printf("{cyan}File1: %s{reset}\n", line1);
+                fossil_io_printf("{cyan}File2: %s{reset}\n", line2);
+                differences_found = true;
+            }
+            line_number++;
+        }
+
+        // Check for remaining lines in either file
+        while (fossil_fstream_read(&stream1, line1, 1, sizeof(line1)) > 0) {
+            fossil_io_printf("{cyan}Extra line in File1 at line %d: %s{reset}\n", line_number, line1);
+            differences_found = true;
+            line_number++;
+        }
+
+        while (fossil_fstream_read(&stream2, line2, 1, sizeof(line2)) > 0) {
+            fossil_io_printf("{cyan}Extra line in File2 at line %d: %s{reset}\n", line_number, line2);
+            differences_found = true;
+            line_number++;
+        }
+
+        if (!differences_found) {
+            fossil_io_printf("{cyan}Files are identical (diff comparison).{reset}\n");
+        }
+
+        fossil_fstream_close(&stream1);
+        fossil_fstream_close(&stream2);
     }
 
     if (hash) {
-        // Placeholder for hash comparison logic
-        printf("Hash comparison is not implemented yet.\n");
+        fossil_fstream_t stream1, stream2;
+        if (fossil_fstream_open(&stream1, path1, "rb") != 0 || fossil_fstream_open(&stream2, path2, "rb") != 0) {
+            fossil_io_printf("{red}Error opening files for hash comparison.{reset}\n");
+            if (fossil_fstream_is_open(&stream1)) fossil_fstream_close(&stream1);
+            if (fossil_fstream_is_open(&stream2)) fossil_fstream_close(&stream2);
+            return;
+        }
+
+        unsigned long hash1 = 0, hash2 = 0;
+        char buffer[1024];
+        size_t bytes_read;
+
+        while ((bytes_read = fossil_fstream_read(&stream1, buffer, 1, sizeof(buffer))) > 0) {
+            for (size_t i = 0; i < bytes_read; i++) {
+                hash1 = (hash1 * 31) + buffer[i];
+            }
+        }
+
+        while ((bytes_read = fossil_fstream_read(&stream2, buffer, 1, sizeof(buffer))) > 0) {
+            for (size_t i = 0; i < bytes_read; i++) {
+                hash2 = (hash2 * 31) + buffer[i];
+            }
+        }
+
+        fossil_fstream_close(&stream1);
+        fossil_fstream_close(&stream2);
+
+        if (hash1 == hash2) {
+            fossil_io_printf("{cyan}Files are identical (hash comparison).{reset}\n");
+        } else {
+            fossil_io_printf("{cyan}Files differ (hash comparison).{reset}\n");
+        }
     }
 }
 
@@ -317,19 +387,19 @@ void shark_compare(const char *path1, const char *path2, bool binary, bool diff,
  */
 void shark_ask(const char *exists, const char *not_exist, const char *type) {
     if (fossil_fstream_file_exists(exists)) {
-        printf("%s exists.\n", exists);
+        fossil_io_printf("{cyan}%s exists.{reset}\n", exists);
     } else if (!fossil_fstream_file_exists(not_exist)) {
-        printf("%s does not exist.\n", not_exist);
+        fossil_io_printf("{red}%s does not exist.{reset}\n", not_exist);
     } else {
-        printf("Neither %s nor %s exist.\n", exists, not_exist);
+        fossil_io_printf("{red}Neither %s nor %s exist.{reset}\n", exists, not_exist);
     }
 
     if (strcmp(type, "file") == 0) {
-        printf("%s is a file.\n", exists);
+        fossil_io_printf("{cyan}%s is a file.{reset}\n", exists);
     } else if (strcmp(type, "dir") == 0) {
-        printf("%s is a directory.\n", exists);
+        fossil_io_printf("{cyan}%s is a directory.{reset}\n", exists);
     } else {
-        printf("Unknown type for %s.\n", exists);
+        fossil_io_printf("{red}Unknown type for %s.{reset}\n", exists);
     }
 }
 
@@ -346,6 +416,13 @@ void shark_change(const char *target, const char *value, bool owner, bool mode) 
         fossil_fstream_set_permissions(target, permissions);
     }
     if (owner) {
-        // Implement ownership change logic, possibly using chown or similar system calls
+        #ifdef _WIN32
+            // Windows does not have a direct API for changing ownership
+            fossil_io_printf("{red}Changing ownership is not supported on Windows.{reset}\n");
+        #else
+            if (chown(target, -1, atoi(value)) != 0) {
+                perror("chown failed");
+            }
+        #endif
     }
 }
