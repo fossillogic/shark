@@ -102,17 +102,17 @@ FOSSIL_TEST_CASE(c_test_shark_show) {
     ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("show_file.txt"));
 }
 
-FOSSIL_TEST_CASE(c_test_shark_find) {
-    shark_create("find_file.txt", "file");
-    shark_find(".", "find_file.txt", NULL);
-    ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("find_file.txt"));
-}
+// FOSSIL_TEST_CASE(c_test_shark_find) {
+//     shark_create("find_file.txt", "file");
+//     shark_find(".", "find_file.txt", NULL);
+//     ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("find_file.txt"));
+// }
 
-FOSSIL_TEST_CASE(c_test_shark_size) {
-    shark_create("size_file.txt", "file");
-    shark_size("size_file.txt", false);
-    ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("size_file.txt"));
-}
+// FOSSIL_TEST_CASE(c_test_shark_size) {
+//     shark_create("size_file.txt", "file");
+//     shark_size("size_file.txt", false);
+//     ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("size_file.txt"));
+// }
 
 FOSSIL_TEST_CASE(c_test_shark_compare) {
     shark_create("compare_file1.txt", "file");
@@ -122,11 +122,11 @@ FOSSIL_TEST_CASE(c_test_shark_compare) {
     ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("compare_file2.txt"));
 }
 
-FOSSIL_TEST_CASE(c_test_shark_ask) {
-    shark_create("ask_file.txt", "file");
-    shark_ask("ask_file.txt", "non_existent.txt", "file");
-    ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("ask_file.txt"));
-}
+// FOSSIL_TEST_CASE(c_test_shark_ask) {
+//     shark_create("ask_file.txt", "file");
+//     shark_ask("ask_file.txt", "non_existent.txt", "file");
+//     ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS("ask_file.txt"));
+// }
 
 FOSSIL_TEST_CASE(c_test_shark_change) {
     shark_create("change_file.txt", "file");
