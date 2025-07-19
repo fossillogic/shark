@@ -273,10 +273,15 @@ void shark_find(const char *path, const char *name, const char *type) {
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
         if (strstr(entry->d_name, name) != NULL) {
-            if ((type == NULL) ||
-                (strcmp(type, "file") == 0 && entry->d_type != DT_DIR) ||
-                (strcmp(type, "dir") == 0 && entry->d_type == DT_DIR)) {
-                printf("{cyan}Found: %s{reset}\n", entry->d_name);
+            char full_path[1024];
+            snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
+            struct stat entry_stat;
+            if (stat(full_path, &entry_stat) == 0) {
+                if ((type == NULL) ||
+                    (strcmp(type, "file") == 0 && !S_ISDIR(entry_stat.st_mode)) ||
+                    (strcmp(type, "dir") == 0 && S_ISDIR(entry_stat.st_mode))) {
+                    printf("{cyan}Found: %s{reset}\n", entry->d_name);
+                }
             }
         }
     }
