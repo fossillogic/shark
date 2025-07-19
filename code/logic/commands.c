@@ -183,30 +183,36 @@ void shark_copy(const char *source, const char *destination, bool preserve, cons
  */
 void shark_list(const char *path, const char *as) {
 #ifdef _WIN32
-    WIN32_FIND_DATA find_data;
+    WIN32_FIND_DATAA find_data;
     char mutable_path[MAX_PATH];
     snprintf(mutable_path, sizeof(mutable_path), "%s\\*", path);
-    HANDLE hFind = FindFirstFile(mutable_path, &find_data);
+    HANDLE hFind = FindFirstFileA(mutable_path, &find_data);
     if (hFind == INVALID_HANDLE_VALUE) {
         fossil_io_printf("{red}Error: Unable to open path %s{reset}\n", path);
         return;
     }
     do {
+        // Skip "." and ".."
+        if (strcmp(find_data.cFileName, ".") == 0 || strcmp(find_data.cFileName, "..") == 0)
+            continue;
         if (strcmp(as, "list") == 0) {
             fossil_io_printf("{cyan}%s{reset}\n", find_data.cFileName);
         } else if (strcmp(as, "tree") == 0) {
             fossil_io_printf("{cyan}|-- %s{reset}\n", find_data.cFileName);
         }
-    } while (FindNextFile(hFind, &find_data) != 0);
+    } while (FindNextFileA(hFind, &find_data) != 0);
     FindClose(hFind);
 #else
     DIR *dir = opendir(path);
     if (!dir) {
-        perror("{red}opendir failed{reset}");
+        perror("opendir failed");
         return;
     }
     struct dirent *entry;
     while ((entry = readdir(dir)) != cnullptr) {
+        // Skip "." and ".."
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            continue;
         if (strcmp(as, "list") == 0) {
             fossil_io_printf("{cyan}%s{reset}\n", entry->d_name);
         } else if (strcmp(as, "tree") == 0) {
@@ -246,23 +252,26 @@ void shark_show(const char *file, int lines, int offset) {
  */
 void shark_find(const char *path, const char *name, const char *type) {
 #ifdef _WIN32
-    WIN32_FIND_DATA find_data;
+    WIN32_FIND_DATAA find_data;
     char search_path[MAX_PATH];
     snprintf(search_path, sizeof(search_path), "%s\\*", path);
-    HANDLE hFind = FindFirstFile(search_path, &find_data);
+    HANDLE hFind = FindFirstFileA(search_path, &find_data);
     if (hFind == INVALID_HANDLE_VALUE) {
         fossil_io_printf("{red}Error: Unable to open path %s{reset}\n", path);
         return;
     }
     do {
-        if (strstr(find_data.cFileName, name) != cnullptr) {
-            if ((type == cnullptr) ||
-                (strcmp(type, "file") == 0 && !(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) ||
-                (strcmp(type, "dir") == 0 && (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))) {
-                fossil_io_printf("{cyan}Found: %s{reset}\n", find_data.cFileName);
-            }
+        // Skip "." and ".."
+        if (strcmp(find_data.cFileName, ".") == 0 || strcmp(find_data.cFileName, "..") == 0)
+            continue;
+        if (name && strstr(find_data.cFileName, name) == NULL)
+            continue;
+        if ((type == NULL) ||
+            (strcmp(type, "file") == 0 && !(find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) ||
+            (strcmp(type, "dir") == 0 && (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))) {
+            fossil_io_printf("{cyan}Found: %s{reset}\n", find_data.cFileName);
         }
-    } while (FindNextFile(hFind, &find_data) != 0);
+    } while (FindNextFileA(hFind, &find_data) != 0);
     FindClose(hFind);
 #else
     DIR *dir = opendir(path);
@@ -272,17 +281,20 @@ void shark_find(const char *path, const char *name, const char *type) {
     }
     struct dirent *entry;
     while ((entry = readdir(dir)) != cnullptr) {
-        if (strstr(entry->d_name, name) != cnullptr) {
-            char full_path[1024];
-            snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
-            struct stat entry_stat;
-            if (stat(full_path, &entry_stat) == 0) {
-                if ((type == cnullptr) ||
-                    (strcmp(type, "file") == 0 && !S_ISDIR(entry_stat.st_mode)) ||
-                    (strcmp(type, "dir") == 0 && S_ISDIR(entry_stat.st_mode))) {
-                    fossil_io_printf("{cyan}Found: %s{reset}\n", entry->d_name);
-                }
-            }
+        // Skip "." and ".."
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            continue;
+        if (name && strstr(entry->d_name, name) == NULL)
+            continue;
+        char full_path[1024];
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
+        struct stat entry_stat;
+        if (stat(full_path, &entry_stat) != 0)
+            continue;
+        if ((type == NULL) ||
+            (strcmp(type, "file") == 0 && S_ISREG(entry_stat.st_mode)) ||
+            (strcmp(type, "dir") == 0 && S_ISDIR(entry_stat.st_mode))) {
+            fossil_io_printf("{cyan}Found: %s{reset}\n", entry->d_name);
         }
     }
     closedir(dir);
@@ -298,13 +310,21 @@ void shark_size(const char *path, bool human_readable) {
     struct stat file_stat;
     if (stat(path, &file_stat) == 0) {
         off_t size = file_stat.st_size;
+#ifdef _WIN32
         if (human_readable) {
-            fossil_io_printf("{cyan}Size: %.2f KB{reset}\n", size / 1024.0);
+            fossil_io_printf("{cyan}Size: %.2f KB{reset}\n", (double)size / 1024.0);
         } else {
             fossil_io_printf("{cyan}Size: %lld bytes{reset}\n", (long long)size);
         }
+#else
+        if (human_readable) {
+            fossil_io_printf("{cyan}Size: %.2f KB{reset}\n", (double)size / 1024.0);
+        } else {
+            fossil_io_printf("{cyan}Size: %lld bytes{reset}\n", (long long)size);
+        }
+#endif
     } else {
-        perror("stat failed");
+        fossil_io_printf("{red}Error: stat failed for %s{reset}\n", path);
     }
 }
 
@@ -435,18 +455,27 @@ void shark_compare(const char *path1, const char *path2, bool binary, bool diff,
  */
 void shark_ask(const char *exists, const char *not_exist, const char *type) {
     struct stat exists_stat, not_exist_stat;
-    bool exists_found = (stat(exists, &exists_stat) == 0);
-    bool not_exist_found = (stat(not_exist, &not_exist_stat) == 0);
+    bool exists_found = (exists && stat(exists, &exists_stat) == 0);
+    bool not_exist_found = (not_exist && stat(not_exist, &not_exist_stat) == 0);
 
     if (exists_found) {
         fossil_io_printf("{cyan}%s exists.{reset}\n", exists);
-    } else if (!not_exist_found) {
+    } else if (!not_exist_found && not_exist) {
         fossil_io_printf("{red}%s does not exist.{reset}\n", not_exist);
     } else {
-        fossil_io_printf("{red}Neither %s nor %s exist.{reset}\n", exists, not_exist);
+        fossil_io_printf("{red}Neither %s nor %s exist.{reset}\n", exists ? exists : "(null)", not_exist ? not_exist : "(null)");
     }
 
-    if (exists_found) {
+    if (exists_found && type && strlen(type) > 0) {
+#ifdef _WIN32
+        if (strcmp(type, "file") == 0 && !(exists_stat.st_mode & _S_IFDIR)) {
+            fossil_io_printf("{cyan}%s is a file.{reset}\n", exists);
+        } else if (strcmp(type, "dir") == 0 && (exists_stat.st_mode & _S_IFDIR)) {
+            fossil_io_printf("{cyan}%s is a directory.{reset}\n", exists);
+        } else {
+            fossil_io_printf("{red}Unknown type for %s.{reset}\n", exists);
+        }
+#else
         if (strcmp(type, "file") == 0 && S_ISREG(exists_stat.st_mode)) {
             fossil_io_printf("{cyan}%s is a file.{reset}\n", exists);
         } else if (strcmp(type, "dir") == 0 && S_ISDIR(exists_stat.st_mode)) {
@@ -454,6 +483,7 @@ void shark_ask(const char *exists, const char *not_exist, const char *type) {
         } else {
             fossil_io_printf("{red}Unknown type for %s.{reset}\n", exists);
         }
+#endif
     }
 }
 
