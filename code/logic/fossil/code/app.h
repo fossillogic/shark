@@ -26,6 +26,8 @@
 extern "C" {
 #endif
 
+extern int FOSSIL_IO_VERBOSE; // Verbose output flag
+
 /**
  * @brief Custom application entry point.
  * This function is the main entry point for the custom application.
