@@ -117,6 +117,35 @@ bool app_entry(int argc, char** argv) {
         handle_create(argv[2]);
     } else if (fossil_io_cstring_compare(command, "clear") == 0) {
         fossil_io_clear_screen();
+    } else if (fossil_io_cstring_compare(command, "ask") == 0) {
+        if (argc < 3) {
+            fossil_io_printf("{blue}Usage:{cyan} shark ask <prompt>{reset}\n");
+            return EXIT_FAILURE;
+        }
+        const char *response = handle_ask(argv[2]);
+        if (response != cnull) {
+            fossil_io_printf("{cyan}You responded: %s{reset}\n", response);
+        } else {
+            fossil_io_printf("{red}No response received.{reset}\n");
+        }
+    } else if (fossil_io_cstring_compare(command, "edit") == 0) {
+        if (argc < 3) {
+            fossil_io_printf("{blue}Usage:{cyan} shark edit <file>{reset}\n");
+            return EXIT_FAILURE;
+        }
+        handle_edit(argv[2]);
+    } else if (fossil_io_cstring_compare(command, "rename") == 0) {
+        if (argc < 4) {
+            fossil_io_printf("{blue}Usage:{cyan} shark rename <old_name> <new_name>{reset}\n");
+            return EXIT_FAILURE;
+        }
+        handle_rename(argv[2], argv[3]);
+    } else if (fossil_io_cstring_compare(command, "where") == 0) {
+        handle_where();
+    } else if (fossil_io_cstring_compare(command, "version") == 0) {
+        handle_version();
+    } else if (fossil_io_cstring_compare(command, "name") == 0) {
+        handle_name();
     } else if (fossil_io_cstring_compare(command, "color=") == 0) {
         if (argc < 3) {
             fossil_io_printf("{blue}Usage:{cyan} shark color=<enable|disable|auto>{reset}\n");

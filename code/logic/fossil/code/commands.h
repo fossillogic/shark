@@ -130,6 +130,34 @@ void handle_compare(const char *path1, const char *path2);
  */
 void handle_create(const char *target);
 
+/**
+ * Prompts the user for input or confirmation.
+ *
+ * @param prompt The prompt message to display.
+ * @return The user's response.
+ */
+const char *handle_ask(const char *prompt);
+
+/**
+ * Renames a file or directory.
+ *
+ * @param old_name The current name.
+ * @param new_name The new name.
+ */
+void handle_rename(const char *old_name, const char *new_name);
+
+/**
+ * Displays the current working directory.
+ */
+void handle_where(void);
+
+/**
+ * Opens a file for editing.
+ *
+ * @param file The file path to edit.
+ */
+void handle_edit(const char *file);
+
 #ifdef __cplusplus
 }
 #endif

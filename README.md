@@ -11,12 +11,16 @@
 | `shark --name`    | Display app name.                                                  |
 | `shark --verbose` | Enable verbose output.                                             |
 | `shark move`      | Move or rename files and directories.                              |
+| `shark rename`    | Rename files or directories.                                       |
 | `shark copy`      | Copy files or directories.                                         |
 | `shark delete`    | Delete files or directories.                                       |
 | `shark list`      | List files and directories. Customize output using sort and format.|
 | `shark show`      | Display contents of a file, with options for viewing parts of it.  |
 | `shark find`      | Find files matching specific criteria (name, size, type, etc.).    |
+| `shark where`     | Show the location of files or directories matching criteria.       |
 | `shark search`    | Search file contents for patterns.                                 |
+| `shark ask`       | Prompt for user input or confirmation before performing actions.   |
+| `shark edit`      | Edit files directly from the command line.                         |
 | `shark size`      | Display size of files or directories.                              |
 | `shark disk`      | Display disk usage and free space.                                 |
 | `shark tree`      | Display directory structure as a tree.                             |

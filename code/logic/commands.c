@@ -41,12 +41,16 @@ void handle_help(void) {
 
     const char *commands[] = {
         "move                Move or rename files and directories",
+        "rename              Rename files or directories",
         "copy                Copy files or directories",
         "delete              Delete files or directories",
         "list                List files and directories",
         "show                Display contents of a file",
         "find                Find files matching specific criteria",
+        "where               Locate files or directories by name",
         "search              Search file contents for patterns",
+        "ask                 Prompt for user input",
+        "edit                Edit files interactively",
         "size                Display size of files or directories",
         "disk                Display disk usage and free space",
         "tree                Display directory structure as a tree",
@@ -399,5 +403,69 @@ void handle_create(const char *target) {
 
     if (ENABLE_VERBOSE) {
         fossil_io_printf("{cyan}Finished creating '%s'.{reset}\n", target);
+    }
+}
+
+/**
+ * Prompts the user for input or confirmation.
+ *
+ * @param prompt The prompt message to display.
+ * @return The user's response.
+ */
+const char *handle_ask(const char *prompt) {
+    static char response[256];
+    fossil_io_printf("%s ", prompt);
+    if (fossil_io_gets(response, sizeof(response)) == cnull) {
+        return cnull;
+    }
+    // Check if file exists
+    struct stat st;
+    if (stat(response, &st) == 0) {
+        fossil_io_printf("{green}File '%s' exists.{reset}\n", response);
+    } else {
+        fossil_io_printf("{red}File '%s' does not exist.{reset}\n", response);
+    }
+    return response;
+}
+
+void handle_rename(const char *old_name, const char *new_name) {
+    if (ENABLE_VERBOSE) {
+        fossil_io_printf("{cyan}Renaming '%s' to '%s'...{reset}\n", old_name, new_name);
+    }
+    if (fossil_fstream_rename(old_name, new_name) != 0) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error renaming file: %s to %s{reset}\n", old_name, new_name);
+    } else {
+        if (ENABLE_VERBOSE) {
+            fossil_io_printf("{cyan}Renamed '%s' to '%s' successfully.{reset}\n", old_name, new_name);
+        }
+    }
+}
+
+void handle_where(void) {
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != cnull) {
+        fossil_io_printf("{cyan}Current working directory: %s{reset}\n", cwd);
+    } else {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting current working directory: %s{reset}\n", strerror(errno));
+    }
+}
+
+void handle_edit(const char *file) {
+    if (ENABLE_VERBOSE) {
+        fossil_io_printf("{cyan}Opening file '%s' for editing...{reset}\n", file);
+    }
+#if defined(_WIN32) || defined(_WIN64)
+    // On Windows, try to open with notepad
+    char command[1024];
+    snprintf(command, sizeof(command), "notepad \"%s\"", file);
+    system(command);
+#else
+    // On Unix-like systems, use nano editor
+    char command[1024];
+    snprintf(command, sizeof(command), "nano \"%s\"", file);
+    system(command);
+#endif
+    if (ENABLE_VERBOSE) {
+        fossil_io_printf("{cyan}Finished editing file '%s'.{reset}\n", file);
     }
 }
