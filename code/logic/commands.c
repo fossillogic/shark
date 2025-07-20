@@ -84,8 +84,18 @@ void handle_move(const char *source, const char *destination) {
     if (ENABLE_VERBOSE) {
         fossil_io_printf("{cyan}Moving from '%s' to '%s'...{reset}\n", source, destination);
     }
+    // Check if source exists
+    struct stat st;
+    if (stat(source, &st) != 0) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Source file does not exist: %s{reset}\n", source);
+        return;
+    }
+    // Check if destination exists; if not, do not create a new file
+    if (stat(destination, &st) != 0) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Destination does not exist: %s{reset}\n", destination);
+        return;
+    }
     if (fossil_fstream_rename(source, destination) != 0) {
-        perror("Error moving file");
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error moving file: %s{reset}\n", source);
     } else {
         if (ENABLE_VERBOSE) {
