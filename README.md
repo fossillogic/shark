@@ -22,7 +22,7 @@
 | `shark tree`      | Display directory structure as a tree.                             |
 | `shark compare`   | Compare two files or directories.                                  |
 | `shark create`    | Create new files or directories.                                   |
-| `shark color`     | <enable|disable|auto> Set color output mode                        |
+| `shark color`     | <enable/disable/auto> Set color output mode                        |
 | `shark clear`     | Clear output from console                                          |
 
 ## **Prerequisites**
