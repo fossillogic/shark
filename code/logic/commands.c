@@ -18,6 +18,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <unistd.h> // For getcwd
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <direct.h>
@@ -409,8 +410,13 @@ void handle_create(const char *target) {
 const char *handle_ask(const char *prompt) {
     static char response[256];
     fossil_io_printf("%s ", prompt);
-    if (fossil_io_gets(response, sizeof(response)) == cnull) {
-        return cnull;
+    if (fossil_io_gets_from_stdin(response, sizeof(response)) == NULL) {
+        return NULL;
+    }
+    // Remove trailing newline if present
+    size_t len = strlen(response);
+    if (len > 0 && response[len - 1] == '\n') {
+        response[len - 1] = '\0';
     }
     // Check if file exists
     struct stat st;
@@ -429,15 +435,13 @@ void handle_rename(const char *old_name, const char *new_name) {
     if (fossil_fstream_rename(old_name, new_name) != 0) {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error renaming file: %s to %s{reset}\n", old_name, new_name);
     } else {
-        if (ENABLE_VERBOSE) {
-            fossil_io_printf("{cyan}Renamed '%s' to '%s' successfully.{reset}\n", old_name, new_name);
-        }
+        fossil_io_printf("{cyan}Renamed '%s' to '%s' successfully.{reset}\n", old_name, new_name);
     }
 }
 
 void handle_where(void) {
     char cwd[1024];
-    if (getcwd(cwd, sizeof(cwd)) != cnull) {
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
         fossil_io_printf("{cyan}Current working directory: %s{reset}\n", cwd);
     } else {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Error getting current working directory: %s{reset}\n", strerror(errno));
