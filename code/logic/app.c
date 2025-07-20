@@ -38,6 +38,8 @@ bool app_entry(int argc, char** argv) {
         ENABLE_VERBOSE = true;
         fossil_io_printf("{cyan}Verbose mode enabled.{reset}\n");
         return EXIT_SUCCESS;
+    } else if (fossil_io_cstring_compare(command, "--clear") == 0) {
+        fossil_io_printf("\033[H\033[J"); // ANSI escape sequence to clear screen
     }
 
     // Parse the command
