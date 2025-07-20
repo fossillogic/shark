@@ -76,16 +76,13 @@ FOSSIL_TEST_CASE(c_test_handle_move_success) {
 }
 
 FOSSIL_TEST_CASE(c_test_handle_move_failure) {
-    const char *source = "non_existent_file.txt";
+    const char *source = "non_existent_source.txt";
     const char *destination = "test_destination.txt";
 
-    // Ensure the source file does not exist
-    ASSUME_ITS_EQUAL_I32(0, FOSSIL_SANITY_SYS_FILE_EXISTS(source));
-
-    // Call the function to test
+    // Call the function to test with a non-existent source
     handle_move(source, destination);
 
-    // Ensure the destination file does not exist
+    // Check if the destination file was not created
     ASSUME_ITS_EQUAL_I32(0, FOSSIL_SANITY_SYS_FILE_EXISTS(destination));
 }
 
