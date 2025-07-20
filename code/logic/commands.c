@@ -36,6 +36,7 @@ void handle_help(void) {
         "--name              Show the name of the application",
         "--version           Prints the current version number",
         "--verbose           Enable verbose output"
+        "--clear             Clear the console screen"
     };
 
     const char *commands[] = {
