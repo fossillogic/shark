@@ -1,33 +1,36 @@
 # **Shark File Tool**
-
-**Shark** is a powerful, all-in-one command-line tool designed to simplify and centralize file operations. Instead of juggling multiple utilities for tasks like copying, moving, deleting, listing, and searching for files, **Shark** consolidates them into a single, easy-to-use tool. With modern, intuitive commands, **Shark** streamlines your workflow, allowing you to manage files, search file contents, compare directories, adjust permissions, display disk usage, and much more—all with one tool. **Shark** handles it with speed and efficiency. Say goodbye to the clutter of multiple command-line tools—**Shark** does it all in one bite.
+**Shark** is the all-in-one command-line tool for admins and power users, designed to simplify and centralize file operations. Instead of juggling multiple utilities for tasks like copying, moving, deleting, listing, and searching for files, **Shark** consolidates them into a single, easy-to-use solution. With modern, intuitive commands, **Shark** streamlines your workflow—manage files, search file contents, compare directories, adjust permissions, display disk usage, and much more, all with speed and efficiency. Say goodbye to the clutter of multiple command-line tools—**Shark** does it all in one bite.
 
 ## 🦈 **shark** CLI Command Reference
 
-| **Command**       | **Description**                                                    |
+| **Flags**         | **Description**                                                    |
 |-------------------|--------------------------------------------------------------------|
 | `shark --version` | Display the current version of the Shark tool.                     |
 | `shark --help`    | Display help information for the Shark tool.                       |
 | `shark --name`    | Display app name.                                                  |
 | `shark --verbose` | Enable verbose output.                                             |
-| `shark move`      | Move or rename files and directories.                              |
-| `shark rename`    | Rename files or directories.                                       |
-| `shark copy`      | Copy files or directories.                                         |
-| `shark delete`    | Delete files or directories.                                       |
-| `shark list`      | List files and directories. Customize output using sort and format.|
-| `shark show`      | Display contents of a file, with options for viewing parts of it.  |
-| `shark find`      | Find files matching specific criteria (name, size, type, etc.).    |
-| `shark where`     | Show the location of files or directories matching criteria.       |
-| `shark search`    | Search file contents for patterns.                                 |
-| `shark ask`       | Prompt for user input or confirmation before performing actions.   |
-| `shark edit`      | Edit files directly from the command line.                         |
-| `shark size`      | Display size of files or directories.                              |
-| `shark disk`      | Display disk usage and free space.                                 |
-| `shark tree`      | Display directory structure as a tree.                             |
-| `shark compare`   | Compare two files or directories.                                  |
-| `shark create`    | Create new files or directories.                                   |
-| `shark color`     | <enable/disable/auto> Set color output mode                        |
-| `shark clear`     | Clear output from console                                          |
+| `shark --clear`   | Clear output from the console.                                     |
+
+| **Command**       | **Flags**                                   | **Description**                                                    |
+|-------------------|---------------------------------------------|--------------------------------------------------------------------|
+| `shark move`      | `--force`, `--interactive`                  | Move or rename files and directories.                              |
+| `shark rename`    | `--force`                                   | Rename files or directories.                                       |
+| `shark copy`      | `--force`, `--recursive`                    | Copy files or directories.                                         |
+| `shark delete`    | `--force`, `--recursive`, `--interactive`   | Delete files or directories.                                       |
+| `shark list`      | `--sort`, `--format`, `--all`, `--long`     | List files and directories. Customize output using sort and format.|
+| `shark show`      | `--head`, `--tail`, `--lines`               | Display contents of a file, with options for viewing parts of it.  |
+| `shark find`      | `--name`, `--size`, `--type`, `--hidden`    | Find files matching specific criteria (name, size, type, etc.).    |
+| `shark where`     | `--name`, `--type`                          | Show the location of files or directories matching criteria.       |
+| `shark search`    | `--pattern`, `--ignore-case`, `--count`     | Search file contents for patterns.                                 |
+| `shark ask`       | `--message`, `--default`, `--timeout`       | Prompt for user input or confirmation before performing actions.   |
+| `shark edit`      | `--editor`, `--backup`                      | Edit files directly from the command line.                         |
+| `shark size`      | `--human-readable`, `--total`               | Display size of files or directories.                              |
+| `shark disk`      | `--all`, `--human-readable`                 | Display disk usage and free space.                                 |
+| `shark tree`      | `--depth`, `--all`, `--color`               | Display directory structure as a tree.                             |
+| `shark compare`   | `--recursive`, `--brief`, `--ignore-case`   | Compare two files or directories.                                  |
+| `shark create`    | `--directory`, `--parents`                  | Create new files or directories.                                   |
+| `shark color`     | `enable`, `disable`, `auto`                 | <enable/disable/auto> Set color output mode                        |
+| `shark clear`     | `--force`                                   | Clear output from console                                          |
 
 ## **Prerequisites**
 
