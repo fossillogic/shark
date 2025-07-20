@@ -406,12 +406,6 @@ void handle_create(const char *target) {
     }
 }
 
-/**
- * Prompts the user for input or confirmation.
- *
- * @param prompt The prompt message to display.
- * @return The user's response.
- */
 const char *handle_ask(const char *prompt) {
     static char response[256];
     fossil_io_printf("%s ", prompt);
