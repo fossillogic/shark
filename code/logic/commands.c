@@ -35,7 +35,7 @@ void handle_help(void) {
         "--help              Show usage and available subcommands",
         "--name              Show the name of the application",
         "--version           Prints the current version number",
-        "--verbose           Enable verbose output"
+        "--verbose           Enable verbose output",
         "--clear             Clear the console screen"
     };
 
