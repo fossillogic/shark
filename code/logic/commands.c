@@ -32,44 +32,33 @@ int ENABLE_VERBOSE = 0; // Global variable to control verbose output
 
 // Handler function definitions
 void handle_help(void) {
-    const char *flags[] = {
-        "--help              Show usage and available subcommands",
-        "--name              Show the name of the application",
-        "--version           Prints the current version number",
-        "--verbose           Enable verbose output",
-        "--clear             Clear the console screen"
-    };
-
-    const char *commands[] = {
-        "move                Move or rename files and directories",
-        "rename              Rename files or directories",
-        "copy                Copy files or directories",
-        "delete              Delete files or directories",
-        "list                List files and directories",
-        "show                Display contents of a file",
-        "find                Find files matching specific criteria",
-        "where               Locate files or directories by name",
-        "search              Search file contents for patterns",
-        "ask                 Prompt for user input",
-        "edit                Edit files interactively",
-        "size                Display size of files or directories",
-        "disk                Display disk usage and free space",
-        "tree                Display directory structure as a tree",
-        "compare             Compare two files or directories",
-        "create              Create a new file or directory",
-        "color=<enable|disable|auto> Set color output mode"
-    };
-
-    fossil_io_printf("{blue,bold}Usage: shark <command> [options]{reset}\n");
-    fossil_io_printf("{blue,bold}Flags:{reset}\n");
-    for (size_t i = 0; i < sizeof(flags) / sizeof(flags[0]); i++) {
-        fossil_io_printf("{cyan} > %s{reset}\n", flags[i]);
-    }
-
-    fossil_io_printf("{blue,bold}Commands:{reset}\n");
-    for (size_t i = 0; i < sizeof(commands) / sizeof(commands[0]); i++) {
-        fossil_io_printf("{cyan} > %s{reset}\n", commands[i]);
-    }
+    fossil_io_printf("{blue}Usage: shark <command> [options]{reset}\n");
+    fossil_io_printf("{blue}Available commands and flags:{reset}\n");
+    fossil_io_printf("  {cyan}move{reset}      --force, --interactive      Move or rename files and directories\n");
+    fossil_io_printf("  {cyan}rename{reset}    --force                   Rename files or directories\n");
+    fossil_io_printf("  {cyan}copy{reset}      --force, --recursive      Copy files or directories\n");
+    fossil_io_printf("  {cyan}delete{reset}    --force, --recursive, --interactive   Delete files or directories\n");
+    fossil_io_printf("  {cyan}list{reset}      --sort, --format, --all, --long       List files and directories\n");
+    fossil_io_printf("  {cyan}show{reset}      --head, --tail, --lines               Display contents of a file\n");
+    fossil_io_printf("  {cyan}find{reset}      --name, --size, --type, --hidden      Find files matching criteria\n");
+    fossil_io_printf("  {cyan}where{reset}     --name, --type                        Show location of files or directories\n");
+    fossil_io_printf("  {cyan}search{reset}    --pattern, --ignore-case, --count     Search file contents for patterns\n");
+    fossil_io_printf("  {cyan}ask{reset}       --message, --default, --timeout       Prompt for user input\n");
+    fossil_io_printf("  {cyan}edit{reset}      --editor, --backup                    Edit files from the command line\n");
+    fossil_io_printf("  {cyan}size{reset}      --human-readable, --total             Display size of files or directories\n");
+    fossil_io_printf("  {cyan}disk{reset}      --all, --human-readable               Display disk usage and free space\n");
+    fossil_io_printf("  {cyan}tree{reset}      --depth, --all, --color               Display directory structure as a tree\n");
+    fossil_io_printf("  {cyan}compare{reset}   --recursive, --brief, --ignore-case   Compare two files or directories\n");
+    fossil_io_printf("  {cyan}create{reset}    --directory, --parents                Create new files or directories\n");
+    fossil_io_printf("  {cyan}color{reset}     enable, disable, auto                 Set color output mode\n");
+    fossil_io_printf("  {cyan}clear{reset}     --force                               Clear output from console\n");
+    fossil_io_printf("\n{blue}Global flags:{reset}\n");
+    fossil_io_printf("  {cyan}--version{reset}   Display the current version\n");
+    fossil_io_printf("  {cyan}--help{reset}      Display help information\n");
+    fossil_io_printf("  {cyan}--name{reset}      Display app name\n");
+    fossil_io_printf("  {cyan}--verbose{reset}   Enable verbose output\n");
+    fossil_io_printf("  {cyan}--clear{reset}     Clear output from the console\n");
+    fossil_io_flush();
 }
 
 void handle_version(void) {
