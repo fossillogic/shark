@@ -408,24 +408,7 @@ void handle_create(const char *target) {
 }
 
 const char *handle_ask(const char *prompt) {
-    static char response[256];
-    fossil_io_printf("%s ", prompt);
-    if (fossil_io_gets_from_stdin(response, sizeof(response)) == NULL) {
-        return NULL;
-    }
-    // Remove trailing newline if present
-    size_t len = strlen(response);
-    if (len > 0 && response[len - 1] == '\n') {
-        response[len - 1] = '\0';
-    }
-    // Check if file exists
-    struct stat st;
-    if (stat(response, &st) == 0) {
-        fossil_io_printf("{green}File '%s' exists.{reset}\n", response);
-    } else {
-        fossil_io_printf("{red}File '%s' does not exist.{reset}\n", response);
-    }
-    return response;
+    return prompt;
 }
 
 void handle_rename(const char *old_name, const char *new_name) {
