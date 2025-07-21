@@ -52,7 +52,7 @@ FOSSIL_TEST_CASE(c_test_app_name) {
 
 FOSSIL_TEST_CASE(c_test_app_version) {
     const char *app_version = FOSSIL_APP_VERSION;
-    ASSUME_ITS_EQUAL_CSTR("0.1.0", app_version);
+    ASSUME_ITS_EQUAL_CSTR("0.1.2", app_version);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *

@@ -76,9 +76,9 @@ int fossil_io_gets(char *buffer, size_t size) {
 void handle_help(void) {
     fossil_io_printf("{blue}Usage: shark <command> [options]{reset}\n");
     fossil_io_printf("{blue}Available commands and flags:{reset}\n");
-    fossil_io_printf("  {cyan}move{reset}      --force, --interactive      Move or rename files and directories\n");
-    fossil_io_printf("  {cyan}rename{reset}    --force                   Rename files or directories\n");
-    fossil_io_printf("  {cyan}copy{reset}      --force, --recursive      Copy files or directories\n");
+    fossil_io_printf("  {cyan}move{reset}      --force, --interactive                Move or rename files and directories\n");
+    fossil_io_printf("  {cyan}rename{reset}    --force                               Rename files or directories\n");
+    fossil_io_printf("  {cyan}copy{reset}      --force, --recursive                  Copy files or directories\n");
     fossil_io_printf("  {cyan}delete{reset}    --force, --recursive, --interactive   Delete files or directories\n");
     fossil_io_printf("  {cyan}list{reset}      --sort, --format, --all, --long       List files and directories\n");
     fossil_io_printf("  {cyan}show{reset}      --head, --tail, --lines               Display contents of a file\n");
@@ -104,11 +104,11 @@ void handle_help(void) {
 }
 
 void handle_version(void) {
-    fossil_io_printf("shark version %s\n", FOSSIL_APP_VERSION);
+    fossil_io_printf("{cyan}shark version %s{reset}\n", FOSSIL_APP_VERSION);
 }
 
 void handle_name(void) {
-    fossil_io_printf("Application name: %s\n", FOSSIL_APP_NAME);
+    fossil_io_printf("{cyan}Application name: %s{reset}\n", FOSSIL_APP_NAME);
 }
 
 void handle_move(const char *source, const char *destination, int force, int interactive) {

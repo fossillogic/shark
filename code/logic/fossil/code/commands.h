@@ -18,7 +18,7 @@
 #include <fossil/io/framework.h>
 
 #define FOSSIL_APP_NAME "Shark Tool"
-#define FOSSIL_APP_VERSION "0.1.0"
+#define FOSSIL_APP_VERSION "0.1.2"
 
 #ifdef __cplusplus
 extern "C" {
