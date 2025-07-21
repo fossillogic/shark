@@ -993,7 +993,7 @@ void handle_where(const char *name, const char *type) {
                 if (strcmp(entry->d_name, name) == 0) {
                     char path[1024];
                     int written = snprintf(path, sizeof(path), "%s/%s", cwd, entry->d_name);
-                    if (written < 0 || written >= sizeof(path)) {
+                    if (written < 0 || written >= (int)sizeof(path)) {
                         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Path too long, skipping: %s/%s{reset}\n", cwd, entry->d_name);
                         continue;
                     }
