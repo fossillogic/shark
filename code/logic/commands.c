@@ -29,7 +29,6 @@
 
 int ENABLE_VERBOSE = 0; // Global variable to control verbose output
 
-
 // Handler function definitions
 void handle_help(void) {
     fossil_io_printf("{blue}Usage: shark <command> [options]{reset}\n");
