@@ -8,7 +8,9 @@ if get_option('with_test').enabled()
         'copy',
         'delete',
         'list',
-        'search'
+        'search',
+        'rename',
+        'compare',
     ]
 
     foreach cases : test_cases
