@@ -19,6 +19,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h> // For getcwd
+#include <limits.h>
+#include <ctype.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <direct.h>
