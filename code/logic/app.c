@@ -40,6 +40,7 @@ bool app_entry(int argc, char** argv) {
         return EXIT_SUCCESS;
     } else if (fossil_io_cstring_compare(command, "--clear") == 0) {
         fossil_io_printf("\033[H\033[J"); // ANSI escape sequence to clear screen
+        return EXIT_SUCCESS;
     }
 
     // Parse the command
