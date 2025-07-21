@@ -57,8 +57,8 @@ FOSSIL_TEST_CASE(c_test_handle_move_success) {
     fprintf(file, "Test content");
     fclose(file);
 
-    // Call the function to test
-    handle_move(source, destination);
+    // Call the function to test (force = 1, interactive = 0)
+    handle_move(source, destination, 1, 0);
 
     // Check if the destination file exists and contains the expected content
     ASSUME_ITS_EQUAL_I32(1, FOSSIL_SANITY_SYS_FILE_EXISTS(destination));
@@ -73,14 +73,15 @@ FOSSIL_TEST_CASE(c_test_handle_move_success) {
 
     // Cleanup
     remove(destination);
+    remove(source);
 }
 
 FOSSIL_TEST_CASE(c_test_handle_move_failure) {
     const char *source = "non_existent_source.txt";
     const char *destination = "test_destination.txt";
 
-    // Call the function to test with a non-existent source
-    handle_move(source, destination);
+    // Call the function to test with a non-existent source (force = 1, interactive = 0)
+    handle_move(source, destination, 1, 0);
 
     // Check if the destination file was not created
     ASSUME_ITS_EQUAL_I32(0, FOSSIL_SANITY_SYS_FILE_EXISTS(destination));

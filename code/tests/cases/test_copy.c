@@ -57,8 +57,8 @@ FOSSIL_TEST_CASE(c_test_handle_copy_success) {
     fprintf(file, "Copy test content");
     fclose(file);
 
-    // Call the function to test
-    handle_copy(source, destination);
+    // Call the function to test (force = 1, recursive = 0)
+    handle_copy(source, destination, 1, 0);
 
     // Check if the destination file exists and contains the expected content
     ASSUME_ITS_EQUAL_I32(1, FOSSIL_SANITY_SYS_FILE_EXISTS(destination));
@@ -80,8 +80,8 @@ FOSSIL_TEST_CASE(c_test_handle_copy_failure) {
     const char *source = "non_existent_copy_file.txt";
     const char *destination = "test_destination_copy.txt";
 
-    // Call the function to test
-    handle_copy(source, destination);
+    // Call the function to test (force = 1, recursive = 0)
+    handle_copy(source, destination, 1, 0);
 
     // Ensure the destination file does not exist
     ASSUME_ITS_EQUAL_I32(0, FOSSIL_SANITY_SYS_FILE_EXISTS(destination));
