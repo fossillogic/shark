@@ -302,7 +302,7 @@ void handle_list(const char *directory, const char *sort, const char *format, in
         // Skip "." and ".." unless 'all' is set
         if (!all && (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0))
             continue;
-        names[count++] = strdup(entry->d_name);
+        names[count++] = fossil_io_cstring_dup(entry->d_name);
         if (count >= 1024) break;
     }
     closedir(dir);
