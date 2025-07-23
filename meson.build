@@ -4,4 +4,5 @@ project('Shark Tool', 'c',
     version: '0.1.2',
     default_options: ['c_std=c17,c18'])
 
+
 subdir('code')
