@@ -24,16 +24,15 @@
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 // Define the test suite and add test cases
-FOSSIL_TEST_SUITE(c_sample_suite);
-fossil_fstream_t c_string;
+FOSSIL_TEST_SUITE(c_compare_suite);
 
 // Setup function for the test suite
-FOSSIL_SETUP(c_sample_suite) {
+FOSSIL_SETUP(c_compare_suite) {
     // Setup code here
 }
 
 // Teardown function for the test suite
-FOSSIL_TEARDOWN(c_sample_suite) {
+FOSSIL_TEARDOWN(c_compare_suite) {
     // Teardown code here
 }
 
@@ -45,23 +44,57 @@ FOSSIL_TEARDOWN(c_sample_suite) {
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-FOSSIL_TEST_CASE(c_test_app_name) {
-    const char *app_name = FOSSIL_APP_NAME;
-    ASSUME_ITS_EQUAL_CSTR("Shark Tool", app_name);
+FOSSIL_TEST_CASE(c_test_handle_compare_success) {
+    const char *file1 = "test_compare_file1.txt";
+    const char *file2 = "test_compare_file2.txt";
+
+    // Create two identical files
+    FILE *f1 = fopen(file1, "w");
+    FILE *f2 = fopen(file2, "w");
+    ASSUME_NOT_CNULL(f1);
+    ASSUME_NOT_CNULL(f2);
+    fprintf(f1, "Compare test content");
+    fprintf(f2, "Compare test content");
+    fclose(f1);
+    fclose(f2);
+
+    // Call the function to test (recursive = 0, brief = 0, ignore_case = 0)
+    handle_compare(file1, file2, 0, 0, 0);
+
+    // Cleanup
+    remove(file1);
+    remove(file2);
 }
 
-FOSSIL_TEST_CASE(c_test_app_version) {
-    const char *app_version = FOSSIL_APP_VERSION;
-    ASSUME_ITS_EQUAL_CSTR("0.1.2", app_version);
+FOSSIL_TEST_CASE(c_test_handle_compare_failure) {
+    const char *file1 = "test_compare_file1.txt";
+    const char *file2 = "test_compare_file2.txt";
+
+    // Create two different files
+    FILE *f1 = fopen(file1, "w");
+    FILE *f2 = fopen(file2, "w");
+    ASSUME_NOT_CNULL(f1);
+    ASSUME_NOT_CNULL(f2);
+    fprintf(f1, "Compare test content A");
+    fprintf(f2, "Compare test content B");
+    fclose(f1);
+    fclose(f2);
+
+    // Call the function to test (recursive = 0, brief = 0, ignore_case = 0)
+    handle_compare(file1, file2, 0, 0, 0);
+
+    // Cleanup
+    remove(file1);
+    remove(file2);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-FOSSIL_TEST_GROUP(c_sample_tests) {
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_app_name);
-    FOSSIL_TEST_ADD(c_sample_suite, c_test_app_version);
+FOSSIL_TEST_GROUP(c_compare_command_tests) {
+    FOSSIL_TEST_ADD(c_compare_suite, c_test_handle_compare_success);
+    FOSSIL_TEST_ADD(c_compare_suite, c_test_handle_compare_failure);
 
-    FOSSIL_TEST_REGISTER(c_sample_suite);
+    FOSSIL_TEST_REGISTER(c_compare_suite);
 }

@@ -46,6 +46,7 @@ FOSSIL_TEARDOWN(c_delete_suite) {
 
 FOSSIL_TEST_CASE(c_test_handle_delete_success) {
     const char *target = "test_file_to_delete.txt";
+    int force = 0, recursive = 0, interactive = 0;
 
     // Create a mock file to simulate the target
     int create_result = FOSSIL_SANITY_SYS_CREATE_FILE(target);
@@ -55,7 +56,7 @@ FOSSIL_TEST_CASE(c_test_handle_delete_success) {
     ASSUME_ITS_TRUE(FOSSIL_SANITY_SYS_FILE_EXISTS(target));
 
     // Call the function to test
-    handle_delete(target);
+    handle_delete(target, force, recursive, interactive);
 
     // Ensure the file no longer exists
     ASSUME_ITS_FALSE(FOSSIL_SANITY_SYS_FILE_EXISTS(target));
@@ -63,12 +64,13 @@ FOSSIL_TEST_CASE(c_test_handle_delete_success) {
 
 FOSSIL_TEST_CASE(c_test_handle_delete_failure) {
     const char *target = "non_existent_file_to_delete.txt";
+    int force = 0, recursive = 0, interactive = 0;
 
     // Ensure the file does not exist before deletion
     ASSUME_ITS_FALSE(FOSSIL_SANITY_SYS_FILE_EXISTS(target));
 
     // Call the function to test
-    handle_delete(target);
+    handle_delete(target, force, recursive, interactive);
 
     // Ensure the file still does not exist
     ASSUME_ITS_FALSE(FOSSIL_SANITY_SYS_FILE_EXISTS(target));

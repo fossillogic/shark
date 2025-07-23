@@ -1,6 +1,6 @@
 dir = include_directories('.')
 
-app_lib = library('app-code',
+app_lib = static_library('app-code',
     files('commands.c', 'app.c'),
     install: true,
     dependencies: [code_deps],

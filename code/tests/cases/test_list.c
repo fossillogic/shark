@@ -55,13 +55,14 @@ FOSSIL_TEARDOWN(c_list_suite) {
 
 FOSSIL_TEST_CASE(c_test_handle_list_success) {
     const char *directory = "test_directory";
+    const char *sort = "name";
+    const char *format = "columns";
+    int all = 0;
+    int long_format = 0;
 
     // Create a mock directory to simulate the listing
-    #if defined(_WIN32) || defined(_WIN64)
-    FOSSIL_SANITY_SYS_EXECUTE("_mkdir test_directory");
-    #else
-    FOSSIL_SANITY_SYS_EXECUTE("mkdir -p test_directory");
-    #endif
+    int dir_create_result = FOSSIL_SANITY_SYS_CREATE_DIR(directory);
+    ASSUME_ITS_EQUAL_I32(dir_create_result, 0);
 
     // Create a mock file inside the directory
     char file_path[256];
@@ -70,25 +71,29 @@ FOSSIL_TEST_CASE(c_test_handle_list_success) {
     ASSUME_ITS_EQUAL_I32(create_result, 0);
 
     // Call the function to test
-    handle_list(directory);
+    handle_list(directory, sort, format, all, long_format);
 
     // Cleanup
     FOSSIL_SANITY_SYS_EXECUTE("rm -f test_directory/test_file.txt");
-    #if defined(_WIN32) || defined(_WIN64)
-    FOSSIL_SANITY_SYS_EXECUTE("_rmdir test_directory");
-    #else
+#if defined(_WIN32) || defined(_WIN64)
     FOSSIL_SANITY_SYS_EXECUTE("rmdir test_directory");
-    #endif
+#else
+    FOSSIL_SANITY_SYS_EXECUTE("rmdir test_directory");
+#endif
 }
 
 FOSSIL_TEST_CASE(c_test_handle_list_failure) {
     const char *directory = "non_existent_directory";
+    const char *sort = "name";
+    const char *format = "columns";
+    int all = 0;
+    int long_format = 0;
 
     // Call the function to test
-    handle_list(directory);
+    handle_list(directory, sort, format, all, long_format);
 
     // Ensure no directory was created or modified
-    int dir_exists = FOSSIL_SANITY_SYS_FILE_EXISTS(directory);
+    int dir_exists = FOSSIL_SANITY_SYS_DIR_EXISTS(directory);
     ASSUME_ITS_EQUAL_I32(dir_exists, 0);
 }
 

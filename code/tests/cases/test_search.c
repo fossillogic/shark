@@ -47,6 +47,8 @@ FOSSIL_TEARDOWN(c_search_suite) {
 FOSSIL_TEST_CASE(c_test_handle_search_found) {
     const char *file = "test_file_search.txt";
     const char *pattern = "match";
+    int ignore_case = 0;
+    int count = 0;
 
     // Create a mock file to simulate the target
     int create_result = FOSSIL_SANITY_SYS_CREATE_FILE(file);
@@ -57,7 +59,7 @@ FOSSIL_TEST_CASE(c_test_handle_search_found) {
     fclose(mock_file);
 
     // Call the function to test
-    handle_search(file, pattern);
+    handle_search(file, pattern, ignore_case, count);
 
     // Cleanup
     remove(file);
@@ -66,6 +68,8 @@ FOSSIL_TEST_CASE(c_test_handle_search_found) {
 FOSSIL_TEST_CASE(c_test_handle_search_not_found) {
     const char *file = "test_file_search.txt";
     const char *pattern = "notfound";
+    int ignore_case = 0;
+    int count = 0;
 
     // Create a mock file to simulate the target
     int create_result = FOSSIL_SANITY_SYS_CREATE_FILE(file);
@@ -76,7 +80,7 @@ FOSSIL_TEST_CASE(c_test_handle_search_not_found) {
     fclose(mock_file);
 
     // Call the function to test
-    handle_search(file, pattern);
+    handle_search(file, pattern, ignore_case, count);
 
     // Cleanup
     remove(file);
@@ -85,13 +89,15 @@ FOSSIL_TEST_CASE(c_test_handle_search_not_found) {
 FOSSIL_TEST_CASE(c_test_handle_search_file_not_found) {
     const char *file = "non_existent_file.txt";
     const char *pattern = "anything";
+    int ignore_case = 0;
+    int count = 0;
 
     // Ensure the file does not exist
     int file_exists = FOSSIL_SANITY_SYS_FILE_EXISTS(file);
     ASSUME_ITS_EQUAL_I32(file_exists, 0);
 
     // Call the function to test
-    handle_search(file, pattern);
+    handle_search(file, pattern, ignore_case, count);
 
     // Ensure no file was created
     int file_still_exists = FOSSIL_SANITY_SYS_FILE_EXISTS(file);
