@@ -1,4 +1,4 @@
-project('Shark Tool', 'c',
+project('Shark', 'c',
     meson_version: '>=1.3.0',
     license: 'MPL-2.0',
     version: '0.1.2',
