@@ -1,6 +1,6 @@
-# **Fossil Project**
+# **Shark**
 
-This project template serves as a starting point for creating classic executable projects that can be published as applications on Docker or even via GitHub. It includes the necessary setup, compilation, installation, and running instructions to get your project up and running quickly.
+Shark is a powerful, all-in-one command-line utility built for administrators and power users. It streamlines and centralizes a wide range of file and system operations, making complex tasks faster, more efficient, and easier to manage from a single interface.
 
 ## **Prerequisites**
 
@@ -18,8 +18,8 @@ Ensure you have the following installed before starting:
 1. **Clone the Repository**:
 
     ```sh
-    git clone https://github.com/fossillogic/fossil-app.git
-    cd fossil-app
+    git clone https://github.com/fossillogic/shark.git
+    cd shark
     ```
 
 2. **Configure the Build**:
@@ -43,16 +43,16 @@ Ensure you have the following installed before starting:
 5. **Run the Project**:
 
     ```sh
-    <exe name>
+    shark --help
     ```
 
 ## **Contributing**
 
-Interested in contributing? Please open pull requests or create issues on the [GitHub repository](https://github.com/fossillogic/fossil-app).
+Interested in contributing? Please open pull requests or create issues on the [GitHub repository](https://github.com/fossillogic/shark).
 
 ## **Feedback and Support**
 
-For issues, questions, or feedback, open an issue on the [GitHub repository](https://github.com/fossillogic/fossil-app/issues).
+For issues, questions, or feedback, open an issue on the [GitHub repository](https://github.com/fossillogic/shark/issues).
 
 ## **License**
 
