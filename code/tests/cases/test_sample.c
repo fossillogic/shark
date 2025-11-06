@@ -47,7 +47,7 @@ FOSSIL_TEARDOWN(c_sample_suite) {
 
 FOSSIL_TEST_CASE(c_test_app_name) {
     const char *app_name = FOSSIL_APP_NAME;
-    ASSUME_ITS_EQUAL_CSTR("Sample App", app_name);
+    ASSUME_ITS_EQUAL_CSTR("Shark Tool", app_name);
 }
 
 FOSSIL_TEST_CASE(c_test_app_version) {
