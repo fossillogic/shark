@@ -4,3 +4,4 @@ revision = v0.1.4
 
 [provide]
 dependency_names = fossil-ai
+
