@@ -1,8 +1,7 @@
 # 🦈 Shark Tool
 ### A Command-Line Power Utility by **Fossil Logic**
 
-Shark Tool is a modern, **all-in-one command-line toolkit** designed for administrators, developers, and power users.  
-It streamlines complex file and system operations into a single, unified interface — combining traditional UNIX-style commands with **Jellyfish AI integration** for intelligent automation and analysis.
+Shark Tool is a modern, **all-in-one command-line toolkit** designed for administrators, developers, and power users. It streamlines complex file and system operations into a single, unified interface — combining traditional UNIX-style commands with **Jellyfish AI integration** for intelligent automation and analysis.
 
 ---
 
