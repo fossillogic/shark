@@ -9,7 +9,7 @@ It streamlines complex file and system operations into a single, unified interfa
 ## 🚀 Features
 
 - 🧰 Common file and directory operations (list, copy, move, delete, etc.)
-- 🧠 Integrated **Jellyfish AI** commands (`chat`, `ask`, `compare`, `help`)
+- 🧠 Integrated **Jellyfish AI** commands (`chat`, `ask`, `summary`)
 - 🗂 Archive creation and extraction
 - 🔍 Recursive search and content filtering
 - 🕒 Smart file timestamp management
@@ -58,7 +58,6 @@ It streamlines complex file and system operations into a single, unified interfa
 | `-v, --verbose` | Enable detailed output. |
 | `-q, --quiet` | Suppress standard output. |
 | `--dry-run` | Simulate actions without changes. |
-| `--ai` | Enable AI enhancement for command output. |
 | `--color` | Colorize output where applicable. |
 | `--time` | Display timestamps in output. |
 
