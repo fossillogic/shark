@@ -29,12 +29,11 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `remove` / `delete` | Delete files or directories. | `-r, --recursive` Delete contents<br>`-f, --force` No confirmation<br>`-i, --interactive` Confirm per file<br>`--trash` Move to system trash |
 | `rename` | Rename files or directories. | `-f, --force` Overwrite target<br>`-i, --interactive` Confirm before overwrite |
 | `create` | Create new directories. | `-p, --parents` Create parent dirs<br>`-t, --type` Creates either file or dir |
-| `touch` | Create or update file timestamps. | `-a` Update access time<br>`-m` Update modify time<br>`-t <timestamp>` Custom timestamp<br>`-c, --no-create` Skip missing files |
 | `search` | Find files by name or content. | `-r, --recursive` Include subdirs<br>`-n, --name` Match filename<br>`-c, --content` Search in file contents<br>`-i, --ignore-case` Case-insensitive |
 | `archive` | Create, extract, or list archives. | `-c, --create` New archive<br>`-x, --extract` Extract contents<br>`-l, --list` List archive<br>`-f <format>` Format: zip/tar/gz<br>`-p, --password` Encrypt archive |
-| `view` | Output file contents to terminal. | `-n, --number` Number all lines<br>`-b, --non-blank` Number non-empty lines<br>`-s, --squeeze` Remove blank lines<br>`-h, --head <n>` First *n* lines<br>`-t, --tail <n>` Last *n* lines<br>`--color` Highlight syntax<br>`--time` Show timestamps |
-| `compare` | Compare two files/directories (text, binary, or semantic AI diff). | `-t, --text` Line diff<br>`-b, --binary` Binary diff<br>`--ai` Semantic diff<br>`--context <n>` Show context lines<br>`--ignore-case` Ignore case differences |
-| `help` | Display help or ask AI for guidance. | `-a, --ask <query>` Ask Jellyfish AI<br>`-l, --list` List all commands<br>`--examples` Show usage examples<br>`--man` Full manual |
+| `view` | Output file contents to terminal. | `-n, --number` Number all lines<br>`-b, --non-blank` Number non-empty lines<br>`-s, --squeeze` Remove blank lines<br>`-h, --head <n>` First *n* lines<br>`-t, --tail <n>` Last *n* lines<br>`--time` Show timestamps |
+| `compare` | Compare two files/directories (text, or binary). | `-t, --text` Line diff<br>`-b, --binary` Binary diff<br>`--context <n>` Show context lines<br>`--ignore-case` Ignore case differences |
+| `help` | Display help or ask AI for guidance. | `--examples` Show usage examples<br>`--man` Full manual |
 
 ---
 
