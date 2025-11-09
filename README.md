@@ -69,11 +69,10 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `shark search -rc "config"` | Recursively search for “config” inside files. |
 | `shark archive -c -f zip project.zip src/` | Create a ZIP archive from the `src/` directory. |
 | `shark view -n --color --time file.txt` | View file content with line numbers, syntax highlighting, and timestamps. |
-| `shark ask -f logs.txt --analyze` | Ask Jellyfish AI to analyze a log file. |
 | `shark chat "Help me debug this error message"` | Start an interactive AI chat session in the terminal. |
 | `shark summery -f report.txt --depth 2 --color --time` | Generate a concise AI summary of a file, highlighting key points with timestamps. |
 | `shark compare main_v1.c main_v2.c --ai --context 5` | Compare two source files with semantic AI diff and show 5 lines of surrounding context. |
-| `shark help --ask "How do I safely delete directories?"` | Ask AI-powered help for guidance on safe file deletion. |
+| `shark ask "How do I safely delete directories?"` | Ask AI-powered help for guidance on safe file deletion. |
 
 ## **Prerequisites**
 
