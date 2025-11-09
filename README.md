@@ -25,10 +25,10 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 |--------------|-----------------|------------------|
 | `show` | Display files and directories. | `-a, --all` Show hidden files<br>`-l, --long` Detailed info<br>`-h, --human` Human-readable sizes<br>`-r, --recursive` Include subdirs<br>`--as` format options "list", tree, graph<br>`--time` Show timestamps |
 | `move` | Move or rename files/directories. | `-f, --force` Overwrite without prompt<br>`-i, --interactive` Ask before overwrite<br>`-b, --backup` Backup before move |
-| `copy` | Copy files or directories. | `-r, --recursive` Copy subdirectories<br>`-v, --verbose` Print each file<br>`-u, --update` Only copy newer<br>`-p, --preserve` Keep permissions/timestamps |
+| `copy` | Copy files or directories. | `-r, --recursive` Copy subdirectories<br>`-u, --update` Only copy newer<br>`-p, --preserve` Keep permissions/timestamps |
 | `remove` / `delete` | Delete files or directories. | `-r, --recursive` Delete contents<br>`-f, --force` No confirmation<br>`-i, --interactive` Confirm per file<br>`--trash` Move to system trash |
 | `rename` | Rename files or directories. | `-f, --force` Overwrite target<br>`-i, --interactive` Confirm before overwrite |
-| `create` | Create new directories. | `-p, --parents` Create parent dirs<br>`-v, --verbose` Print each dir |
+| `create` | Create new directories. | `-p, --parents` Create parent dirs<br>`-t, --type` Creates either file or dir |
 | `touch` | Create or update file timestamps. | `-a` Update access time<br>`-m` Update modify time<br>`-t <timestamp>` Custom timestamp<br>`-c, --no-create` Skip missing files |
 | `search` | Find files by name or content. | `-r, --recursive` Include subdirs<br>`-n, --name` Match filename<br>`-c, --content` Search in file contents<br>`-i, --ignore-case` Case-insensitive |
 | `archive` | Create, extract, or list archives. | `-c, --create` New archive<br>`-x, --extract` Extract contents<br>`-l, --list` List archive<br>`-f <format>` Format: zip/tar/gz<br>`-p, --password` Encrypt archive |
