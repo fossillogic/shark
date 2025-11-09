@@ -33,7 +33,7 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `archive` | Create, extract, or list archives. | `-c, --create` New archive<br>`-x, --extract` Extract contents<br>`-l, --list` List archive<br>`-f <format>` Format: zip/tar/gz<br>`-p, --password` Encrypt archive |
 | `view` | Output file contents to terminal. | `-n, --number` Number all lines<br>`-b, --non-blank` Number non-empty lines<br>`-s, --squeeze` Remove blank lines<br>`-h, --head <n>` First *n* lines<br>`-t, --tail <n>` Last *n* lines<br>`--time` Show timestamps |
 | `compare` | Compare two files/directories (text, or binary). | `-t, --text` Line diff<br>`-b, --binary` Binary diff<br>`--context <n>` Show context lines<br>`--ignore-case` Ignore case differences |
-| `help` | Display help or ask AI for guidance. | `--examples` Show usage examples<br>`--man` Full manual |
+| `help` | Display help for supported commands. | `--examples` Show usage examples<br>`--man` Full manual |
 
 ---
 
