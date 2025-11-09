@@ -7,7 +7,7 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 
 ## 🚀 Features
 
-- 🧰 Common file and directory operations (list, copy, move, delete, etc.)
+- 🧰 Common file and directory operations (show, copy, move, delete, etc.)
 - 🧠 Integrated **Jellyfish AI** commands (`chat`, `ask`, `summary`)
 - 🗂 Archive creation and extraction
 - 🔍 Recursive search and content filtering
@@ -64,7 +64,7 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 
 | **Example** | **Description** |
 |--------------|-----------------|
-| `shark list -lh --color --time` | List files in long, human-readable format with color highlighting and timestamps. |
+| `shark show -lh --as=graph --time` | Show files in long, human-readable format with as graph display and timestamps. |
 | `shark copy -rp src/ backup/` | Copy directory recursively, preserving attributes. |
 | `shark search -rc "config"` | Recursively search for “config” inside files. |
 | `shark archive -c -f zip project.zip src/` | Create a ZIP archive from the `src/` directory. |
