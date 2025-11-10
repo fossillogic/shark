@@ -14,6 +14,7 @@
 #include "fossil/code/app.h"
 #include <unistd.h>
 
+
 int FOSSIL_IO_VERBOSE = false; // Verbose output flag
 
 void show_commands(char* app_name) {
