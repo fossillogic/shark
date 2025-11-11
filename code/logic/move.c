@@ -12,6 +12,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
+#include <errno.h>
 
 static int create_backup(ccstring dest) {
     cstring backup_path = fossil_io_cstring_format("%s.bak", dest);
