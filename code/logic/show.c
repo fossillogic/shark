@@ -73,7 +73,7 @@ static void print_entry(ccstring path, ccstring name, struct stat *st,
 static int browse_directory_interactive(ccstring path) {
     DIR *dir = opendir(path);
     if (cunlikely(!dir)) {
-        fossil_io_fprintf(stderr, "Error opening directory: %s\n", path);
+        fossil_io_fprintf(FOSSIL_STDERR, "Error opening directory: %s\n", path);
         return errno;
     }
 
@@ -343,7 +343,7 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
                                                             1024, 
                                                             FOSSIL_CONTEXT_FILENAME);
     if (sanitize_result & (FOSSIL_SAN_PATH | FOSSIL_SAN_SCRIPT | FOSSIL_SAN_SHELL)) {
-        fossil_io_fprintf(stderr, "Suspicious path detected, using sanitized version\n");
+        fossil_io_fprintf(FOSSIL_STDERR, "Suspicious path detected, using sanitized version\n");
         path = sanitized_path;
     }
 
