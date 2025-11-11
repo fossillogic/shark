@@ -38,7 +38,8 @@ static void print_size(off_t size, bool human_readable) {
 static void print_entry(ccstring path, ccstring name, struct stat *st,
                         bool long_format, bool human_readable, bool show_time,
                         ccstring prefix) {
-    if (cnotnull(prefix)) fossil_io_printf("{blue}%s{normal}", prefix);
+    if (cnotnull(prefix))
+        fossil_io_printf("{blue}%s{normal}", prefix);
 
     if (long_format) {
         fossil_io_printf("{blue}%c{normal}", S_ISDIR(st->st_mode) ? 'd' : '-');
@@ -53,6 +54,7 @@ static void print_entry(ccstring path, ccstring name, struct stat *st,
                st->st_mode & S_IWOTH ? 'w' : '-',
                st->st_mode & S_IXOTH ? 'x' : '-');
         print_size(st->st_size, human_readable);
+
         if (show_time) {
             char *tbuf = fossil_sys_memory_alloc(64);
             if (cunlikely(!tbuf)) {
@@ -66,7 +68,12 @@ static void print_entry(ccstring path, ccstring name, struct stat *st,
             cnullify(tbuf);
         }
     }
-    fossil_io_printf("{blue}%s{normal}\n", name);
+
+    // Use the `path` parameter meaningfully
+    if (cnotnull(path) && *path != '\0')
+        fossil_io_printf("{blue}%s/%s{normal}\n", path, name);
+    else
+        fossil_io_printf("{blue}%s{normal}\n", name);
 }
 
 // Interactive file browser function
