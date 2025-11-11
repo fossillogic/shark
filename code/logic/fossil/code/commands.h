@@ -24,6 +24,149 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Command Palette - Comprehensive Command-Line Interface for Shark Tool
+ * 
+ * This header defines the complete command palette for the Shark Tool, providing
+ * a comprehensive set of file operations, AI-powered commands, and utility functions.
+ * The command palette is organized into three main categories:
+ * 
+ * ## 🗂 Core File Operations
+ * 
+ * ### show - Display files and directories
+ * Display files and directories with various formatting options.
+ * Common flags:
+ * - `-a, --all` Show hidden files
+ * - `-l, --long` Detailed info
+ * - `-h, --human` Human-readable sizes
+ * - `-r, --recursive` Include subdirs
+ * - `-d, --depth <n>` Limit recursion depth
+ * - `--as format` options "list", tree, graph
+ * - `--time` Show timestamps
+ * 
+ * ### move - Move or rename files/directories
+ * Move or rename files and directories with safety options.
+ * Common flags:
+ * - `-f, --force` Overwrite without prompt
+ * - `-i, --interactive` Ask before overwrite
+ * - `-b, --backup` Backup before move
+ * 
+ * ### copy - Copy files or directories
+ * Copy files or directories with preservation options.
+ * Common flags:
+ * - `-r, --recursive` Copy subdirectories
+ * - `-u, --update` Only copy newer
+ * - `-p, --preserve` Keep permissions/timestamps
+ * 
+ * ### remove/delete - Delete files or directories
+ * Delete files or directories with safety measures.
+ * Common flags:
+ * - `-r, --recursive` Delete contents
+ * - `-f, --force` No confirmation
+ * - `-i, --interactive` Confirm per file
+ * - `--trash` Move to system trash
+ * 
+ * ### rename - Rename files or directories
+ * Rename files or directories with collision handling.
+ * Common flags:
+ * - `-f, --force` Overwrite target
+ * - `-i, --interactive` Confirm before overwrite
+ * 
+ * ### create - Create new directories
+ * Create new directories with parent creation support.
+ * Common flags:
+ * - `-p, --parents` Create parent dirs
+ * - `-t, --type` Creates either file or dir
+ * 
+ * ### search - Find files by name or content
+ * Find files by name or content with pattern matching.
+ * Common flags:
+ * - `-r, --recursive` Include subdirs
+ * - `-n, --name` Match filename
+ * - `-c, --content` Search in file contents
+ * - `-i, --ignore-case` Case-insensitive
+ * 
+ * ### archive - Create, extract, or list archives
+ * Archive management with multiple format support.
+ * Common flags:
+ * - `-c, --create` New archive
+ * - `-x, --extract` Extract contents
+ * - `-l, --list` List archive
+ * - `-f <format>` Format: zip/tar/gz
+ * - `-p, --password` Encrypt archive
+ * 
+ * ### view - Output file contents to terminal
+ * Display file contents with formatting options.
+ * Common flags:
+ * - `-n, --number` Number all lines
+ * - `-b, --non-blank` Number non-empty lines
+ * - `-s, --squeeze` Remove blank lines
+ * - `-h, --head <n>` First n lines
+ * - `-t, --tail <n>` Last n lines
+ * - `--time` Show timestamps
+ * 
+ * ### compare - Compare two files/directories
+ * Compare files or directories (text or binary).
+ * Common flags:
+ * - `-t, --text` Line diff
+ * - `-b, --binary` Binary diff
+ * - `--context <n>` Show context lines
+ * - `--ignore-case` Ignore case differences
+ * 
+ * ### help - Display help for supported commands
+ * Display comprehensive help documentation.
+ * Common flags:
+ * - `--examples` Show usage examples
+ * - `--man` Full manual
+ * 
+ * ## 🤖 AI Commands (Jellyfish Integration)
+ * 
+ * ### chat - Start an interactive AI chat session
+ * Start an interactive AI chat session with context support.
+ * Common flags:
+ * - `-f, --file <path>` Use file content
+ * - `-m, --model <name>` Select model
+ * - `-s, --system <role>` AI persona
+ * - `--save <path>` Save chat transcript
+ * - `--context` Keep session history
+ * 
+ * ### ask - Ask Jellyfish AI a one-shot question
+ * Ask Jellyfish AI a single question with file context.
+ * Common flags:
+ * - `-f, --file <path>` Provide file context
+ * - `--explain` Force explanation
+ * - `--analyze` Deep analysis
+ * - `-q, --quiet` Minimal output
+ * 
+ * ### summery - Generate a concise AI summary
+ * Generate AI summaries of files or directories.
+ * Common flags:
+ * - `-f, --file <path>` Use file content
+ * - `--depth <level>` Summary depth
+ * - `-q, --quiet` Minimal output
+ * - `--color` Highlight key items
+ * - `--time` Include timestamps
+ * 
+ * ## 🌍 Global Flags (Available to All Commands)
+ * 
+ * These flags are available across all commands for consistent behavior:
+ * - `--help` Show command help
+ * - `--version` Display Shark Tool version
+ * - `-v, --verbose` Enable detailed output
+ * - `-q, --quiet` Suppress standard output
+ * - `--dry-run` Simulate actions without changes
+ * - `--color` Colorize output where applicable
+ * - `--time` Display timestamps in output
+ * 
+ * @note This command palette provides a unified interface for file operations,
+ *       AI-powered assistance, and system utilities, making the Shark Tool
+ *       a comprehensive command-line solution.
+ * 
+ * @see For implementation details, refer to the corresponding source files
+ *      in the commands/ directory.
+ */
+//
+
 // ========================================================
 // File and Directory Commands
 // ========================================================
