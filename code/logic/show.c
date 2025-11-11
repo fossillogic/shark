@@ -354,17 +354,20 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
         path = sanitized_path;
     }
 
+    // ✅ Use recursive parameter
+    int effective_depth = recursive ? depth : 1;
+
     int result = 0;
     if (cunlikely(!format) || fossil_io_cstring_equals(format, "list")) {
-        result = show_graph(path, show_all, long_format, human_readable, show_time, depth, 0, 0);
+        result = show_graph(path, show_all, long_format, human_readable, show_time, effective_depth, 0, 0);
     } else if (fossil_io_cstring_equals(format, "tree")) {
-        result = show_tree(path, show_all, long_format, human_readable, show_time, depth, 0, cempty);
+        result = show_tree(path, show_all, long_format, human_readable, show_time, effective_depth, 0, cempty);
     } else if (fossil_io_cstring_equals(format, "graph")) {
-        result = show_graph(path, show_all, long_format, human_readable, show_time, depth, 0, 0);
+        result = show_graph(path, show_all, long_format, human_readable, show_time, effective_depth, 0, 0);
     } else if (fossil_io_cstring_equals(format, "interactive")) {
         result = browse_directory_interactive(path);
     } else if (fossil_io_cstring_equals(format, "progress")) {
-        result = show_tree_with_progress(path, show_all, long_format, human_readable, show_time, depth, 0, cempty);
+        result = show_tree_with_progress(path, show_all, long_format, human_readable, show_time, effective_depth, 0, cempty);
     } else {
         fossil_io_fprintf(FOSSIL_STDERR, "{blue}Unknown format: %s{normal}\n", format);
         result = 1;
