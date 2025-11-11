@@ -56,7 +56,7 @@ static void print_entry(ccstring path, ccstring name, struct stat *st,
         if (show_time) {
             char *tbuf = fossil_sys_memory_alloc(64);
             if (cunlikely(!tbuf)) {
-                fossil_io_fprintf(stderr, "Memory allocation failed\n");
+                fossil_io_fprintf(FOSSIL_STDERR, "Memory allocation failed\n");
                 return;
             }
             struct tm *tm_info = localtime(&st->st_mtime);
@@ -341,7 +341,7 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
     
     int sanitize_result = fossil_io_validate_sanitize_string(path, sanitized_path, 
                                                             1024, 
-                                                            FOSSIL_CONTEXT_FILENAME);
+                                                            FOSSIL_CTX_FILENAME);
     if (sanitize_result & (FOSSIL_SAN_PATH | FOSSIL_SAN_SCRIPT | FOSSIL_SAN_SHELL)) {
         fossil_io_fprintf(FOSSIL_STDERR, "Suspicious path detected, using sanitized version\n");
         path = sanitized_path;
@@ -359,7 +359,7 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
     } else if (fossil_io_cstring_equals(format, "progress")) {
         result = show_tree_with_progress(path, show_all, long_format, human_readable, show_time, depth, 0, cempty);
     } else {
-        fossil_io_fprintf(stderr, "{blue}Unknown format: %s{normal}\n", format);
+        fossil_io_fprintf(FOSSIL_STDERR, "{blue}Unknown format: %s{normal}\n", format);
         result = 1;
     }
 
