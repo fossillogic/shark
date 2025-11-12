@@ -48,7 +48,7 @@ int fossil_shark_rename(ccstring old_name, ccstring new_name,
     ccstring safe_old = cunwrap_or(old_name, cempty);
     ccstring safe_new = cunwrap_or(new_name, cempty);
     
-    if (cunlikely(safe_old == cempty || safe_new == cempty)) {
+    if (cunlikely(safe_old == cnull || safe_new == cnull)) {
         fossil_io_printf("{red}Error: Invalid file names provided.{normal}\n");
         return 1;
     }
