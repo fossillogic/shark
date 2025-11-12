@@ -115,36 +115,86 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
             return errno; 
         }
 
-        cstring line1, line2;
-        size_t line_no = 1;
-        int differences = 0;
+        // Read all lines first
+        cstring *lines1 = cnull, *lines2 = cnull;
+        size_t count1 = 0, count2 = 0;
+        size_t capacity1 = 64, capacity2 = 64;
+        
+        lines1 = (cstring*)fossil_sys_memory_alloc(capacity1 * sizeof(cstring));
+        lines2 = (cstring*)fossil_sys_memory_alloc(capacity2 * sizeof(cstring));
+        
+        if (!cnotnull(lines1) || !cnotnull(lines2)) {
+            fossil_fstream_close(&f1);
+            fossil_fstream_close(&f2);
+            return 1;
+        }
 
-        while (1) {
-            line1 = read_line(&f1);
-            line2 = read_line(&f2);
-
-            if (!cnotnull(line1) && !cnotnull(line2)) break;
-
-            if (!cnotnull(line1) || !cnotnull(line2) || !line_equal(line1, line2, ignore_case)) {
-                fossil_io_printf("{blue}Difference at line %zu:{normal}\n", line_no);
-                if (cnotnull(line1)) fossil_io_printf("{cyan}< %s{normal}\n", line1);
-                if (cnotnull(line2)) fossil_io_printf("{cyan}> %s{normal}\n", line2);
-                differences++;
+        cstring line;
+        while ((line = read_line(&f1)) != cnull) {
+            if (count1 >= capacity1) {
+                capacity1 *= 2;
+                lines1 = (cstring*)fossil_sys_memory_realloc(lines1, capacity1 * sizeof(cstring));
             }
+            lines1[count1++] = line;
+        }
 
-            if (cnotnull(line1)) {
-                fossil_sys_memory_free(line1);
-                cdrop(line1);
+        while ((line = read_line(&f2)) != cnull) {
+            if (count2 >= capacity2) {
+                capacity2 *= 2;
+                lines2 = (cstring*)fossil_sys_memory_realloc(lines2, capacity2 * sizeof(cstring));
             }
-            if (cnotnull(line2)) {
-                fossil_sys_memory_free(line2);
-                cdrop(line2);
-            }
-            line_no++;
+            lines2[count2++] = line;
         }
 
         fossil_fstream_close(&f1);
         fossil_fstream_close(&f2);
+
+        int differences = 0;
+        size_t max_lines = count1 > count2 ? count1 : count2;
+        
+        for (size_t i = 0; i < max_lines; i++) {
+            cstring line1 = i < count1 ? lines1[i] : cnull;
+            cstring line2 = i < count2 ? lines2[i] : cnull;
+            
+            if (!cnotnull(line1) || !cnotnull(line2) || !line_equal(line1, line2, ignore_case)) {
+                // Print context lines before difference
+                int start_context = (int)i - context_lines;
+                if (start_context < 0) start_context = 0;
+                
+                for (int ctx = start_context; ctx < (int)i; ctx++) {
+                    if (ctx < (int)count1 && cnotnull(lines1[ctx])) {
+                        fossil_io_printf("  %d: %s\n", ctx + 1, lines1[ctx]);
+                    }
+                }
+                
+                fossil_io_printf("{blue}Difference at line %zu:{normal}\n", i + 1);
+                if (cnotnull(line1)) fossil_io_printf("{cyan}< %s{normal}\n", line1);
+                if (cnotnull(line2)) fossil_io_printf("{cyan}> %s{normal}\n", line2);
+                
+                // Print context lines after difference
+                int end_context = (int)i + context_lines + 1;
+                if (end_context > (int)max_lines) end_context = (int)max_lines;
+                
+                for (int ctx = (int)i + 1; ctx < end_context; ctx++) {
+                    if (ctx < (int)count1 && cnotnull(lines1[ctx])) {
+                        fossil_io_printf("  %d: %s\n", ctx + 1, lines1[ctx]);
+                    }
+                }
+                fossil_io_printf("\n");
+                differences++;
+            }
+        }
+
+        // Clean up
+        for (size_t i = 0; i < count1; i++) {
+            if (cnotnull(lines1[i])) fossil_sys_memory_free(lines1[i]);
+        }
+        for (size_t i = 0; i < count2; i++) {
+            if (cnotnull(lines2[i])) fossil_sys_memory_free(lines2[i]);
+        }
+        fossil_sys_memory_free(lines1);
+        fossil_sys_memory_free(lines2);
+        
         return differences > 0 ? 1 : 0;
     }
 
