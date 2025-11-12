@@ -67,7 +67,7 @@ static int remove_recursive(ccstring path, bool recursive, bool force,
     }
 
     struct stat st;
-    if (lstat(path, &st) != 0) {
+    if (stat(path, &st) != 0) {
         if (force) return 0;
         fossil_io_printf("{red}Error accessing '%s': %s{normal}\n", path, strerror(errno));
         return errno;
