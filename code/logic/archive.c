@@ -14,6 +14,21 @@
 #include "fossil/code/commands.h"
 #include <errno.h>
 
+// Helper function to convert string format to enum type
+static fossil_io_archive_type_t get_archive_type_from_format(ccstring format) {
+    if (!format) return FOSSIL_IO_ARCHIVE_UNKNOWN;
+    
+    if (fossil_io_cstring_equals(format, "zip")) return FOSSIL_IO_ARCHIVE_ZIP;
+    if (fossil_io_cstring_equals(format, "tar")) return FOSSIL_IO_ARCHIVE_TAR;
+    if (fossil_io_cstring_equals(format, "gz") || fossil_io_cstring_equals(format, "tar.gz")) return FOSSIL_IO_ARCHIVE_TARGZ;
+    if (fossil_io_cstring_equals(format, "bz2") || fossil_io_cstring_equals(format, "tar.bz2")) return FOSSIL_IO_ARCHIVE_TARBZ2;
+    if (fossil_io_cstring_equals(format, "xz") || fossil_io_cstring_equals(format, "tar.xz")) return FOSSIL_IO_ARCHIVE_TARXZ;
+    if (fossil_io_cstring_equals(format, "7z")) return FOSSIL_IO_ARCHIVE_7Z;
+    if (fossil_io_cstring_equals(format, "rar")) return FOSSIL_IO_ARCHIVE_RAR;
+    
+    return FOSSIL_IO_ARCHIVE_UNKNOWN;
+}
+
 /**
  * Perform archive operations (create, extract, list)
  */
@@ -94,21 +109,32 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         }
     }
 
-    cstring cmd = fossil_io_cstring_create_safe(cempty, 4096);
-    if (cunlikely(!cmd)) {
-        fossil_io_printf("{red}Error: Failed to allocate command buffer.{normal}\n");
+    // Determine archive type
+    fossil_io_archive_type_t archive_type = get_archive_type_from_format(sanitized_format);
+    if (archive_type == FOSSIL_IO_ARCHIVE_UNKNOWN && !list && !extract) {
+        fossil_io_printf("{red}Error: Unsupported format: %s{normal}\n", sanitized_format);
         fossil_sys_memory_free(sanitized_path);
         fossil_sys_memory_free(sanitized_format);
         fossil_sys_memory_free(sanitized_password);
         return 1;
     }
 
+    // For extract and list operations, auto-detect archive type if unknown
+    if ((extract || list) && archive_type == FOSSIL_IO_ARCHIVE_UNKNOWN) {
+        archive_type = fossil_io_archive_get_type(sanitized_path);
+        if (archive_type == FOSSIL_IO_ARCHIVE_UNKNOWN) {
+            fossil_io_printf("{red}Error: Cannot determine archive type for: %s{normal}\n", sanitized_path);
+            fossil_sys_memory_free(sanitized_path);
+            fossil_sys_memory_free(sanitized_format);
+            fossil_sys_memory_free(sanitized_password);
+            return 1;
+        }
+    }
+
     // Create a log file for the operation
-    fossil_fstream_t log_stream;
     char *log_filename = (char*)fossil_sys_memory_alloc(600);
     if (cunlikely(!log_filename)) {
         fossil_io_printf("{red}Error: Failed to allocate log filename buffer.{normal}\n");
-        fossil_io_cstring_free_safe(&cmd);
         fossil_sys_memory_free(sanitized_path);
         fossil_sys_memory_free(sanitized_format);
         fossil_sys_memory_free(sanitized_password);
@@ -118,6 +144,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     fossil_sys_memory_zero(log_filename, 600);
     snprintf(log_filename, 600, "%s.archive.log", sanitized_path);
     
+    fossil_fstream_t log_stream;
     COption log_option = cnone();
     if (fossil_fstream_open(&log_stream, log_filename, "w") == 0) {
         log_option = csome(&log_stream);
@@ -131,6 +158,9 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         }
     }
 
+    fossil_io_archive_t *archive = NULL;
+    int ret = 0;
+
     if (create) {
         // Interactive confirmation for create operation
         fossil_io_printf("{cyan}Creating archive: %s (format: %s){normal}\n", sanitized_path, sanitized_format);
@@ -139,7 +169,6 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         char *confirm = (char*)fossil_sys_memory_alloc(10);
         if (cunlikely(!confirm)) {
             fossil_io_printf("{red}Error: Failed to allocate confirmation buffer.{normal}\n");
-            fossil_io_cstring_free_safe(&cmd);
             fossil_sys_memory_free(log_filename);
             fossil_sys_memory_free(sanitized_path);
             fossil_sys_memory_free(sanitized_format);
@@ -155,7 +184,6 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             fossil_io_trim(confirm);
             if (confirm[0] != 'y' && confirm[0] != 'Y') {
                 fossil_io_printf("Operation cancelled.\n");
-                fossil_io_cstring_free_safe(&cmd);
                 fossil_sys_memory_free(confirm);
                 fossil_sys_memory_free(log_filename);
                 fossil_sys_memory_free(sanitized_path);
@@ -169,115 +197,74 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         }
         fossil_sys_memory_free(confirm);
         
-        if (fossil_io_cstring_equals(sanitized_format, "zip")) {
-            if (cnotnull(password)) {
-                cstring temp_cmd = fossil_io_cstring_format_safe(4096, "zip -P %s -r %s .", sanitized_password, sanitized_path);
-                if (cnotnull(temp_cmd)) {
-                    fossil_io_cstring_free_safe(&cmd);
-                    cmd = temp_cmd;
-                    fossil_io_printf("{blue}Using password protection{normal}\n");
-                }
-            } else {
-                cstring temp_cmd = fossil_io_cstring_format_safe(4096, "zip -r %s .", sanitized_path);
-                if (cnotnull(temp_cmd)) {
-                    fossil_io_cstring_free_safe(&cmd);
-                    cmd = temp_cmd;
-                }
-            }
-        } else if (fossil_io_cstring_equals(sanitized_format, "tar") || fossil_io_cstring_equals(sanitized_format, "gz")) {
-            cstring temp_cmd = fossil_io_cstring_format_safe(4096, "tar czf %s .", sanitized_path);
-            if (cnotnull(temp_cmd)) {
-                fossil_io_cstring_free_safe(&cmd);
-                cmd = temp_cmd;
-            }
+        // Create archive using new API
+        archive = fossil_io_archive_create(sanitized_path, archive_type, FOSSIL_IO_COMPRESSION_NORMAL);
+        if (!archive) {
+            fossil_io_printf("{red}Error: Failed to create archive{normal}\n");
+            ret = 1;
         } else {
-            fossil_io_printf("{red}Error: Unsupported format: %s{normal}\n", sanitized_format);
-            fossil_io_cstring_free_safe(&cmd);
-            fossil_sys_memory_free(log_filename);
-            fossil_sys_memory_free(sanitized_path);
-            fossil_sys_memory_free(sanitized_format);
-            fossil_sys_memory_free(sanitized_password);
-            if (log_option.is_some) {
-                fossil_fstream_close((fossil_fstream_t*)log_option.value);
+            // Add current directory contents
+            if (!fossil_io_archive_add_directory(archive, ".", "")) {
+                fossil_io_printf("{red}Error: Failed to add files to archive{normal}\n");
+                ret = 1;
+            } else {
+                fossil_io_printf("{blue}Archive created successfully{normal}\n");
             }
-            return 1;
         }
+        
     } else if (extract) {
-        fossil_io_printf("{cyan}Extracting archive: %s (format: %s){normal}\n", sanitized_path, sanitized_format);
+        fossil_io_printf("{cyan}Extracting archive: %s{normal}\n", sanitized_path);
         
         // Show progress during extraction
         fossil_io_show_progress(0);
         
-        if (fossil_io_cstring_equals(sanitized_format, "zip")) {
-            if (cnotnull(password)) {
-                cstring temp_cmd = fossil_io_cstring_format_safe(4096, "unzip -P %s %s", sanitized_password, sanitized_path);
-                if (cnotnull(temp_cmd)) {
-                    fossil_io_cstring_free_safe(&cmd);
-                    cmd = temp_cmd;
-                    fossil_io_printf("{blue}Using password for extraction{normal}\n");
-                }
-            } else {
-                cstring temp_cmd = fossil_io_cstring_format_safe(4096, "unzip %s", sanitized_path);
-                if (cnotnull(temp_cmd)) {
-                    fossil_io_cstring_free_safe(&cmd);
-                    cmd = temp_cmd;
-                }
-            }
-        } else if (fossil_io_cstring_equals(sanitized_format, "tar") || fossil_io_cstring_equals(sanitized_format, "gz")) {
-            cstring temp_cmd = fossil_io_cstring_format_safe(4096, "tar xzf %s", sanitized_path);
-            if (cnotnull(temp_cmd)) {
-                fossil_io_cstring_free_safe(&cmd);
-                cmd = temp_cmd;
-            }
+        // Open archive for reading
+        archive = fossil_io_archive_open(sanitized_path, archive_type, FOSSIL_IO_ARCHIVE_READ, FOSSIL_IO_COMPRESSION_NONE);
+        if (!archive) {
+            fossil_io_printf("{red}Error: Failed to open archive for extraction{normal}\n");
+            ret = 1;
         } else {
-            fossil_io_printf("{red}Error: Unsupported format: %s{normal}\n", sanitized_format);
-            fossil_io_cstring_free_safe(&cmd);
-            fossil_sys_memory_free(log_filename);
-            fossil_sys_memory_free(sanitized_path);
-            fossil_sys_memory_free(sanitized_format);
-            fossil_sys_memory_free(sanitized_password);
-            if (log_option.is_some) {
-                fossil_fstream_close((fossil_fstream_t*)log_option.value);
+            fossil_io_show_progress(50);
+            
+            // Extract all files to current directory
+            if (!fossil_io_archive_extract_all(archive, ".")) {
+                fossil_io_printf("{red}Error: Failed to extract archive{normal}\n");
+                ret = 1;
+            } else {
+                fossil_io_printf("{blue}Archive extracted successfully{normal}\n");
             }
-            return 1;
         }
         
-        fossil_io_show_progress(50);
+        fossil_io_show_progress(100);
+        fossil_io_printf("%c", cnewline);
         
     } else if (list) {
-        fossil_io_printf("{cyan}Listing contents of archive: %s (format: %s){normal}\n", sanitized_path, sanitized_format);
-        if (fossil_io_cstring_equals(sanitized_format, "zip")) {
-            cstring temp_cmd = fossil_io_cstring_format_safe(4096, "unzip -l %s", sanitized_path);
-            if (cnotnull(temp_cmd)) {
-                fossil_io_cstring_free_safe(&cmd);
-                cmd = temp_cmd;
-            }
-        } else if (fossil_io_cstring_equals(sanitized_format, "tar") || fossil_io_cstring_equals(sanitized_format, "gz")) {
-            cstring temp_cmd = fossil_io_cstring_format_safe(4096, "tar tzf %s", sanitized_path);
-            if (cnotnull(temp_cmd)) {
-                fossil_io_cstring_free_safe(&cmd);
-                cmd = temp_cmd;
-            }
+        fossil_io_printf("{cyan}Listing contents of archive: %s{normal}\n", sanitized_path);
+        
+        // Open archive for reading
+        archive = fossil_io_archive_open(sanitized_path, archive_type, FOSSIL_IO_ARCHIVE_READ, FOSSIL_IO_COMPRESSION_NONE);
+        if (!archive) {
+            fossil_io_printf("{red}Error: Failed to open archive for listing{normal}\n");
+            ret = 1;
         } else {
-            fossil_io_printf("{red}Error: Unsupported format: %s{normal}\n", sanitized_format);
-            fossil_io_cstring_free_safe(&cmd);
-            fossil_sys_memory_free(log_filename);
-            fossil_sys_memory_free(sanitized_path);
-            fossil_sys_memory_free(sanitized_format);
-            fossil_sys_memory_free(sanitized_password);
-            if (log_option.is_some) {
-                fossil_fstream_close((fossil_fstream_t*)log_option.value);
+            // Print archive contents
+            fossil_io_archive_print(archive);
+            
+            // Get and display archive statistics
+            fossil_io_archive_stats_t stats;
+            if (fossil_io_archive_get_stats(archive, &stats)) {
+                fossil_io_printf("\n{blue}Archive Statistics:{normal}\n");
+                fossil_io_printf("Total entries: %zu\n", stats.total_entries);
+                fossil_io_printf("Total size: %zu bytes\n", stats.total_size);
+                fossil_io_printf("Compressed size: %zu bytes\n", stats.compressed_size);
+                fossil_io_printf("Compression ratio: %.2f%%\n", stats.compression_ratio * 100);
             }
-            return 1;
         }
     }
 
-    int ret = system(cmd);
-    fossil_io_cstring_free_safe(&cmd);
-    
-    if (extract) {
-        fossil_io_show_progress(100);
-        fossil_io_printf("%c", cnewline);
+    // Close archive if opened
+    if (archive) {
+        fossil_io_archive_close(archive);
     }
     
     // Log the result
@@ -291,27 +278,6 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         }
         fossil_fstream_close((fossil_fstream_t*)log_option.value);
     }
-    
-    if (cunlikely(ret != 0)) {
-        fossil_io_printf("{red}Error: Archive command failed{normal}\n");
-        fossil_sys_memory_free(log_filename);
-        fossil_sys_memory_free(sanitized_path);
-        fossil_sys_memory_free(sanitized_format);
-        fossil_sys_memory_free(sanitized_password);
-        return ret;
-    }
-
-    // Verify the result for create operations
-    if (clikely(create) && fossil_fstream_file_exists(sanitized_path)) {
-        fossil_fstream_t created_file;
-        if (fossil_fstream_open(&created_file, sanitized_path, "r") == 0) {
-            int32_t size = fossil_fstream_get_size(&created_file);
-            fossil_io_printf("{blue}Archive created successfully (size: %d bytes){normal}\n", size);
-            fossil_fstream_close(&created_file);
-        }
-    } else {
-        fossil_io_printf("{blue}Archive operation completed successfully{normal}\n");
-    }
 
     // Clean up allocated memory
     fossil_sys_memory_free(log_filename);
@@ -319,5 +285,5 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     fossil_sys_memory_free(sanitized_format);
     fossil_sys_memory_free(sanitized_password);
     
-    return 0;
+    return ret;
 }
