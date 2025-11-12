@@ -70,7 +70,7 @@ int fossil_shark_chat(ccstring file_path, ccstring model_name,
 
         int sanitize_result = fossil_io_validate_sanitize_string(input_buffer, sanitized_input, 
                                                                1024, 
-                                                               FOSSIL_CONTEXT_GENERAL);
+                                                               FOSSIL_CTX_GENERIC);
         
         if (sanitize_result & FOSSIL_SAN_SCRIPT || sanitize_result & FOSSIL_SAN_SQL || 
             sanitize_result & FOSSIL_SAN_SHELL) {

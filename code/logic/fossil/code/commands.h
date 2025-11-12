@@ -305,7 +305,7 @@ int fossil_shark_compare(const char *path1, const char *path2,
  * @param full_manual Show complete manual instead of brief help
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_help(bool show_examples, bool full_manual);
+int fossil_shark_help(ccstring command, bool show_examples, bool full_manual);
 
 
 // ========================================================

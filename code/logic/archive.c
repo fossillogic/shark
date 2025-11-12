@@ -60,7 +60,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     fossil_sys_memory_zero(sanitized_format, 64);
     fossil_sys_memory_zero(sanitized_password, 256);
     
-    if (fossil_io_validate_sanitize_string(path, sanitized_path, 1024, FOSSIL_CONTEXT_FILESYSTEM) & 
+    if (fossil_io_validate_sanitize_string(path, sanitized_path, 1024, FOSSIL_CTX_FILENAME) & 
         (FOSSIL_SAN_SHELL | FOSSIL_SAN_PATH)) {
         fossil_io_printf("{red}Error: Suspicious path detected.{normal}\n");
         fossil_sys_memory_free(sanitized_path);
@@ -70,7 +70,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     }
     
     ccstring fmt = cunwrap_or(format, "tar");
-    if (fossil_io_validate_sanitize_string(fmt, sanitized_format, 64, FOSSIL_CONTEXT_ALPHANUMERIC) & 
+    if (fossil_io_validate_sanitize_string(fmt, sanitized_format, 64, FOSSIL_CTX_GENERIC) & 
         FOSSIL_SAN_SHELL) {
         fossil_io_printf("{red}Error: Invalid format specification.{normal}\n");
         fossil_sys_memory_free(sanitized_path);
@@ -84,7 +84,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     }
     
     if (cnotnull(password)) {
-        if (fossil_io_validate_sanitize_string(password, sanitized_password, 256, FOSSIL_CONTEXT_SAFE) & 
+        if (fossil_io_validate_sanitize_string(password, sanitized_password, 256, FOSSIL_CTX_GENERIC) & 
             FOSSIL_SAN_SHELL) {
             fossil_io_printf("{red}Error: Invalid characters in password.{normal}\n");
             fossil_sys_memory_free(sanitized_path);

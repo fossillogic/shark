@@ -151,7 +151,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan}--examples{normal}  Show usage examples\n");
             fossil_io_printf("  {cyan}--man{normal}       Show full manual\n");
         } else {
-            fossil_io_fprintf(stderr, "{red,bold}Unknown command: %s{normal}\n", command);
+            fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Unknown command: %s{normal}\n", command);
             return 1;
         }
 

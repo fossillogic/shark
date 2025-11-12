@@ -295,6 +295,7 @@ bool app_entry(int argc, char** argv) {
             
         } else if (fossil_io_cstring_compare(argv[i], "help") == 0) {
             // Parse help command arguments and call fossil_shark_help
+            const char *command = NULL;
             bool show_examples = false, full_manual = false;
             
             for (int j = i + 1; j < argc; j++) {
@@ -302,10 +303,12 @@ bool app_entry(int argc, char** argv) {
                 show_examples = true;
             } else if (fossil_io_cstring_compare(argv[j], "--man") == 0) {
                 full_manual = true;
+            } else if (!command && argv[j][0] != '-') {
+                command = argv[j];
             }
             i = j;
             }
-            fossil_shark_help(show_examples, full_manual);
+            fossil_shark_help(command, show_examples, full_manual);
         }
         // AI Commands
         else if (fossil_io_cstring_compare(argv[i], "chat") == 0) {
