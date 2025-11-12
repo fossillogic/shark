@@ -18,14 +18,102 @@
 int FOSSIL_IO_VERBOSE = false; // Verbose output flag
 
 void show_commands(char* app_name) {
-    fossil_io_printf("{blue}Usage: {cyan}%s{blue} <options>{reset}\n", app_name);
-    fossil_io_printf("{blue}Options:{reset}\n");
-    fossil_io_printf("{cyan}  --help           Display help information for the Shark tool.{reset}\n");
-    fossil_io_printf("{cyan}  --version        Display the current version of the Shark tool.{reset}\n");
-    fossil_io_printf("{cyan}  --name           Display app name.{reset}\n");
-    fossil_io_printf("{cyan}  --verbose        Enable verbose output for all commands.{reset}\n");
-    fossil_io_printf("{cyan}  --color          Set color output mode: {yellow}enable{cyan}, {yellow}disable{cyan}, or {yellow}auto{cyan}.{reset}\n");
-    fossil_io_printf("{cyan}  --clear          Clear terminal or console output.{reset}\n");
+    fossil_io_printf("{blue}Usage: {cyan}%s{blue} <command> [options]{reset}\n\n", app_name);
+    
+    fossil_io_printf("{blue}🗂 Core File Operations:{reset}\n");
+    fossil_io_printf("{cyan}  show             {reset}Display files and directories\n");
+    fossil_io_printf("{yellow}                   -a, --all         Show hidden files\n");
+    fossil_io_printf("                   -l, --long        Detailed info\n");
+    fossil_io_printf("                   -h, --human       Human-readable sizes\n");
+    fossil_io_printf("                   -r, --recursive   Include subdirs\n");
+    fossil_io_printf("                   -d, --depth <n>   Limit recursion depth\n");
+    fossil_io_printf("                   --as <format>     Format: list, tree, graph\n");
+    fossil_io_printf("                   --time            Show timestamps{reset}\n");
+    
+    fossil_io_printf("{cyan}  move             {reset}Move or rename files/directories\n");
+    fossil_io_printf("{yellow}                   -f, --force       Overwrite without prompt\n");
+    fossil_io_printf("                   -i, --interactive Ask before overwrite\n");
+    fossil_io_printf("                   -b, --backup      Backup before move{reset}\n");
+    
+    fossil_io_printf("{cyan}  copy             {reset}Copy files or directories\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   Copy subdirectories\n");
+    fossil_io_printf("                   -u, --update      Only copy newer\n");
+    fossil_io_printf("                   -p, --preserve    Keep permissions/timestamps{reset}\n");
+    
+    fossil_io_printf("{cyan}  remove/delete    {reset}Delete files or directories\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   Delete contents\n");
+    fossil_io_printf("                   -f, --force       No confirmation\n");
+    fossil_io_printf("                   -i, --interactive Confirm per file\n");
+    fossil_io_printf("                   --trash           Move to system trash{reset}\n");
+    
+    fossil_io_printf("{cyan}  rename           {reset}Rename files or directories\n");
+    fossil_io_printf("{yellow}                   -f, --force       Overwrite target\n");
+    fossil_io_printf("                   -i, --interactive Confirm before overwrite{reset}\n");
+    
+    fossil_io_printf("{cyan}  create           {reset}Create new directories or files\n");
+    fossil_io_printf("{yellow}                   -p, --parents     Create parent dirs\n");
+    fossil_io_printf("                   -t, --type        Creates either file or dir{reset}\n");
+    
+    fossil_io_printf("{cyan}  search           {reset}Find files by name or content\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   Include subdirs\n");
+    fossil_io_printf("                   -n, --name        Match filename\n");
+    fossil_io_printf("                   -c, --content     Search in file contents\n");
+    fossil_io_printf("                   -i, --ignore-case Case-insensitive{reset}\n");
+    
+    fossil_io_printf("{cyan}  archive          {reset}Create, extract, or list archives\n");
+    fossil_io_printf("{yellow}                   -c, --create      New archive\n");
+    fossil_io_printf("                   -x, --extract     Extract contents\n");
+    fossil_io_printf("                   -l, --list        List archive\n");
+    fossil_io_printf("                   -f <format>       Format: zip/tar/gz\n");
+    fossil_io_printf("                   -p, --password    Encrypt archive{reset}\n");
+    
+    fossil_io_printf("{cyan}  view             {reset}Output file contents to terminal\n");
+    fossil_io_printf("{yellow}                   -n, --number      Number all lines\n");
+    fossil_io_printf("                   -b, --non-blank   Number non-empty lines\n");
+    fossil_io_printf("                   -s, --squeeze     Remove blank lines\n");
+    fossil_io_printf("                   -h, --head <n>    First n lines\n");
+    fossil_io_printf("                   -t, --tail <n>    Last n lines\n");
+    fossil_io_printf("                   --time            Show timestamps{reset}\n");
+    
+    fossil_io_printf("{cyan}  compare          {reset}Compare two files/directories\n");
+    fossil_io_printf("{yellow}                   -t, --text        Line diff\n");
+    fossil_io_printf("                   -b, --binary      Binary diff\n");
+    fossil_io_printf("                   --context <n>     Show context lines\n");
+    fossil_io_printf("                   --ignore-case     Ignore case differences{reset}\n");
+    
+    fossil_io_printf("{cyan}  help             {reset}Display help for supported commands\n");
+    fossil_io_printf("{yellow}                   --examples        Show usage examples\n");
+    fossil_io_printf("                   --man             Full manual{reset}\n\n");
+    
+    fossil_io_printf("{blue}🤖 AI Commands (Jellyfish Integration):{reset}\n");
+    fossil_io_printf("{cyan}  chat             {reset}Start an interactive AI chat session\n");
+    fossil_io_printf("{yellow}                   -f, --file <path> Use file content\n");
+    fossil_io_printf("                   -m, --model <name> Select model\n");
+    fossil_io_printf("                   -s, --system <role> AI persona\n");
+    fossil_io_printf("                   --save <path>     Save chat transcript\n");
+    fossil_io_printf("                   --context         Keep session history{reset}\n");
+    
+    fossil_io_printf("{cyan}  ask              {reset}Ask Jellyfish AI a one-shot question\n");
+    fossil_io_printf("{yellow}                   -f, --file <path> Provide file context\n");
+    fossil_io_printf("                   --explain         Force explanation\n");
+    fossil_io_printf("                   --analyze         Deep analysis\n");
+    fossil_io_printf("                   -q, --quiet       Minimal output{reset}\n");
+    
+    fossil_io_printf("{cyan}  summery          {reset}Generate AI summary of file/directory\n");
+    fossil_io_printf("{yellow}                   -f, --file <path> Use file content\n");
+    fossil_io_printf("                   --depth <level>   Summary depth\n");
+    fossil_io_printf("                   -q, --quiet       Minimal output\n");
+    fossil_io_printf("                   --color           Highlight key items\n");
+    fossil_io_printf("                   --time            Include timestamps{reset}\n\n");
+    
+    fossil_io_printf("{blue}🌍 Global Options:{reset}\n");
+    fossil_io_printf("{cyan}  --help           {reset}Display help information\n");
+    fossil_io_printf("{cyan}  --version        {reset}Display current version\n");
+    fossil_io_printf("{cyan}  --name           {reset}Display app name\n");
+    fossil_io_printf("{cyan}  --verbose        {reset}Enable detailed output\n");
+    fossil_io_printf("{cyan}  --color          {reset}Set color mode: enable, disable, auto\n");
+    fossil_io_printf("{cyan}  --clear          {reset}Clear terminal screen\n");
+    
     exit(FOSSIL_IO_SUCCESS);
 }
 
