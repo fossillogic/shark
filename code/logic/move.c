@@ -14,6 +14,27 @@
 #include "fossil/code/commands.h"
 #include <errno.h>
 
+// Normalize file paths for cross-platform compatibility
+cstring fossil_fstream_path_normalize(ccstring path) {
+    if (!cnotnull(path)) return cnull;
+
+    cstring norm_path = (cstring)fossil_sys_memory_alloc(strlen(path) + 1);
+    if (cunlikely(!cnotnull(norm_path))) {
+        return cnull;
+    }
+
+    size_t len = strlen(path);
+    for (size_t i = 0; i < len; i++) {
+#ifdef _WIN32
+        norm_path[i] = (path[i] == '/') ? '\\' : path[i];
+#else
+        norm_path[i] = (path[i] == '\\') ? '/' : path[i];
+#endif
+    }
+    norm_path[len] = cterm;
+    return norm_path;
+}
+
 static int create_backup(ccstring dest) {
     cstring backup_path = fossil_io_cstring_format("%s.bak", dest);
     if (!cnotnull(backup_path)) {
