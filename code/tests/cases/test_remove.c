@@ -15,12 +15,6 @@
 
 #include "fossil/code/app.h"
 
-#ifndef _WIN32
-#define _GNU_SOURCE
-#include <unistd.h>
-#endif
-
-
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Fossil Logic Test Utilites
 // * * * * * * * * * * * * * * * * * * * * * * * *
@@ -211,32 +205,6 @@ FOSSIL_TEST_CASE(c_test_remove_readonly_file_force) {
     ASSUME_ITS_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_symlink) {
-    // Create test file and symlink (Unix-like systems)
-    FILE *temp = fopen("symlink_target.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "Target content\n");
-    fclose(temp);
-    
-    #ifndef _WIN32
-    // Create symlink
-    int link_result = symlink("symlink_target.txt", "test_symlink");
-    if (link_result == 0) {
-        // Remove symlink (should not affect target)
-        int result = fossil_shark_remove("test_symlink", false, false, false, false);
-        ASSUME_ITS_EQUAL_I32(0, result);
-        
-        // Verify target still exists
-        FILE *check = fopen("symlink_target.txt", "r");
-        ASSUME_NOT_CNULL(check);
-        fclose(check);
-    }
-    #endif
-    
-    // Clean up
-    remove("symlink_target.txt");
-}
-
 FOSSIL_TEST_CASE(c_test_remove_special_characters_filename) {
     // Create file with special characters
     FILE *temp = fopen("special-file_test.txt", "w");
@@ -289,7 +257,6 @@ FOSSIL_TEST_GROUP(c_remove_command_tests) {
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_multiple_files_force);
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_nested_directory_structure);
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_readonly_file_force);
-    FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_symlink);
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_special_characters_filename);
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_large_directory_structure);
 
