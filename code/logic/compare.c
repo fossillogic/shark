@@ -14,6 +14,9 @@
 #include "fossil/code/commands.h"
 #include <sys/stat.h>
 #include <errno.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 // Helper: read line from file, return dynamically allocated string
 static cstring read_line(fossil_fstream_t *stream) {
