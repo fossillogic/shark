@@ -43,7 +43,7 @@ static int fossil_fpath_create_path_safe(char *dest, size_t dest_size, ccstring 
     
     // Copy directory part if it exists
     if (dir_len > 0) {
-        fossil_sys_memory_copy(dest, base_path, dir_len);
+        fossil_sys_memory_copy(dest, (fossil_sys_memory_t)base_path, dir_len);
     }
     
     // Copy base filename (without extension if present)
@@ -56,10 +56,10 @@ static int fossil_fpath_create_path_safe(char *dest, size_t dest_size, ccstring 
     }
     
     size_t name_copy_len = dot ? (size_t)(dot - base_name) : base_name_len;
-    fossil_sys_memory_copy(dest + dir_len, base_name, name_copy_len);
+    fossil_sys_memory_copy(dest + dir_len, (fossil_sys_memory_t)base_name, name_copy_len);
     
     // Append suffix
-    fossil_sys_memory_copy(dest + dir_len + name_copy_len, suffix, suffix_len);
+    fossil_sys_memory_copy(dest + dir_len + name_copy_len, (fossil_sys_memory_t)suffix, suffix_len);
     
     return 0;
 }
