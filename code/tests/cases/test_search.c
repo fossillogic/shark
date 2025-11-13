@@ -55,7 +55,7 @@ FOSSIL_TEST_CASE(c_test_search_null_path) {
 FOSSIL_TEST_CASE(c_test_search_invalid_path) {
     // Should handle invalid path gracefully
     int result = fossil_shark_search("/nonexistent/path", false, cnull, cnull, false);
-    ASSUME_ITS_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST_CASE(c_test_search_by_name_pattern) {
