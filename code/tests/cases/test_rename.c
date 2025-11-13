@@ -231,6 +231,7 @@ FOSSIL_TEST_CASE(c_test_rename_large_filename) {
     
     // Try rename (may fail due to platform limits, that's okay)
     int result = fossil_shark_rename("short.txt", long_name, false, false);
+    (void)result; // Suppress unused variable warning
     
     // Clean up regardless of result
     remove("short.txt");
@@ -246,16 +247,17 @@ FOSSIL_TEST_CASE(c_test_rename_file_to_existing_directory_name) {
     ASSUME_NOT_CNULL(temp);
     fprintf(temp, "File content\n");
     fclose(temp);
-    
     // This test assumes current directory exists (which it should)
     // Try to rename file to an existing directory name (should handle gracefully)
     int result = fossil_shark_rename("file_to_dir.txt", ".", false, false);
+    (void)result; // Suppress unused variable warning
     // This should likely fail, but shouldn't crash
     
     // Clean up
     remove("file_to_dir.txt");
     
     // Test passes if it doesn't crash
+    ASSUME_ITS_TRUE(true);
     ASSUME_ITS_TRUE(true);
 }
 

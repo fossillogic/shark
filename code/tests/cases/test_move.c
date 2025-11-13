@@ -259,6 +259,8 @@ FOSSIL_TEST_CASE(c_test_move_same_source_and_dest) {
     // Try to move file to itself
     int result = fossil_shark_move("same_path.txt", "same_path.txt", false, false, false);
     // This might succeed (no-op) or fail depending on implementation
+    // We don't assert the result value since behavior may vary
+    (void)result; // Suppress unused variable warning
     
     // File should still exist
     ASSUME_ITS_TRUE(fossil_fstream_file_exists("same_path.txt"));

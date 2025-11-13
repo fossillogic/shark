@@ -15,6 +15,10 @@
 
 #include "fossil/code/app.h"
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Fossil Logic Test Utilites
