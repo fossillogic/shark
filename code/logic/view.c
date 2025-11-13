@@ -73,7 +73,12 @@ int fossil_shark_view(ccstring path, bool number_lines,
         if (tail_lines > 0) {
             if (count >= capacity) {
                 capacity = capacity ? capacity * 2 : 128;
-                cstring *new_lines = (cstring *)fossil_sys_memory_realloc(lines, capacity * sizeof(cstring));
+                cstring *new_lines;
+                if (lines == cnull) {
+                    new_lines = (cstring *)fossil_sys_memory_alloc(capacity * sizeof(cstring));
+                } else {
+                    new_lines = (cstring *)fossil_sys_memory_realloc(lines, capacity * sizeof(cstring));
+                }
                 if (new_lines == cnull) {
                     cpanic("Memory allocation failed for lines buffer");
                 }
