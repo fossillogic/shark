@@ -14,6 +14,57 @@
 #include "fossil/code/commands.h"
 #include <errno.h>
 
+// Helper function to safely create a path by combining directory and filename
+static int fossil_fpath_create_path_safe(char *dest, size_t dest_size, ccstring base_path, ccstring suffix) {
+    if (!dest || !base_path || !suffix || dest_size == 0) {
+        return -1;
+    }
+    
+    // Clear destination buffer
+    fossil_sys_memory_zero(dest, dest_size);
+    
+    // Find the last directory separator to get the directory part
+    ccstring last_sep = cnull;
+    for (ccstring p = base_path; *p; p++) {
+        if (*p == '/' || *p == '\\') {
+            last_sep = p;
+        }
+    }
+    
+    // Calculate required size
+    size_t dir_len = last_sep ? (size_t)(last_sep - base_path + 1) : 0;
+    size_t base_name_len = fossil_io_cstring_length(base_path) - dir_len;
+    size_t suffix_len = fossil_io_cstring_length(suffix);
+    size_t required_size = dir_len + base_name_len + suffix_len + 1;
+    
+    if (required_size > dest_size) {
+        return -1; // Buffer too small
+    }
+    
+    // Copy directory part if it exists
+    if (dir_len > 0) {
+        fossil_sys_memory_copy(dest, base_path, dir_len);
+    }
+    
+    // Copy base filename (without extension if present)
+    ccstring base_name = base_path + dir_len;
+    ccstring dot = cnull;
+    for (ccstring p = base_name; *p; p++) {
+        if (*p == '.') {
+            dot = p;
+        }
+    }
+    
+    size_t name_copy_len = dot ? (size_t)(dot - base_name) : base_name_len;
+    fossil_sys_memory_copy(dest + dir_len, base_name, name_copy_len);
+    
+    // Append suffix
+    fossil_sys_memory_copy(dest + dir_len + name_copy_len, suffix, suffix_len);
+    
+    return 0;
+}
+
+
 // Helper function to convert string format to enum type
 static fossil_io_archive_type_t get_archive_type_from_format(ccstring format) {
     if (!format) return FOSSIL_IO_ARCHIVE_UNKNOWN;
@@ -159,10 +210,10 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             } else {
                 fossil_sys_memory_copy(log_msg + 27, "list", 4);
             }
-            size_t len = fossil_cstring_size(log_msg);
+            size_t len = fossil_io_cstring_length(log_msg);
             log_msg[len] = '\n';
             log_msg[len + 1] = '\0';
-            fossil_fstream_write(&log_stream, log_msg, fossil_cstring_size(log_msg), 1);
+            fossil_fstream_write(&log_stream, log_msg, fossil_io_cstring_length(log_msg), 1);
             fossil_sys_memory_free(log_msg);
         }
     }
@@ -295,7 +346,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             }
             result_msg[written] = '\n';
             result_msg[written + 1] = '\0';
-            fossil_fstream_write((fossil_fstream_t*)log_option.value, result_msg, fossil_cstring_size(result_msg), 1);
+            fossil_fstream_write((fossil_fstream_t*)log_option.value, result_msg, fossil_io_cstring_length(result_msg), 1);
             fossil_sys_memory_free(result_msg);
         }
         fossil_fstream_close((fossil_fstream_t*)log_option.value);

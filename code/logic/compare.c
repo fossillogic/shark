@@ -73,27 +73,6 @@ static bool is_regular_file(ccstring path) {
 #endif
 }
 
-// Helper: get file size (cross-platform)
-static size_t get_file_size(ccstring path) {
-#ifdef _WIN32
-    HANDLE hFile = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, 
-                              OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (hFile == INVALID_HANDLE_VALUE) return 0;
-    
-    LARGE_INTEGER size;
-    if (!GetFileSizeEx(hFile, &size)) {
-        CloseHandle(hFile);
-        return 0;
-    }
-    CloseHandle(hFile);
-    return (size_t)size.QuadPart;
-#else
-    struct stat st;
-    if (stat(path, &st) != 0) return 0;
-    return (size_t)st.st_size;
-#endif
-}
-
 /**
  * Compare two files (text or binary)
  */
