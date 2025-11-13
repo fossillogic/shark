@@ -20,6 +20,14 @@
 #include <fossil/ai/framework.h>
 #include <fossil/io/framework.h>
 
+#ifdef _WIN32
+#include <direct.h>
+#include <io.h>
+#else
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
