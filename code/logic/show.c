@@ -470,7 +470,7 @@ static int show_tree(ccstring path, bool show_all, bool long_format,
             continue;
         }
 
-        cstring new_prefix = fossil_io_cstring_format("%s├── ", cunwrap_or(prefix, ""));
+        cstring new_prefix = fossil_io_cstring_format("%s+-- ", cunwrap_or(prefix, ""));
         if (cunlikely(!new_prefix)) {
             fossil_io_cstring_free(full_path);
             cnullify(full_path);
@@ -482,7 +482,7 @@ static int show_tree(ccstring path, bool show_all, bool long_format,
         if ((findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && 
             strcmp(findFileData.cFileName, ".") != 0 && strcmp(findFileData.cFileName, "..") != 0 && 
             (depth == 0 || current_depth < depth)) {
-            cstring child_prefix = fossil_io_cstring_format("%s│   ", cunwrap_or(prefix, ""));
+            cstring child_prefix = fossil_io_cstring_format("%s|   ", cunwrap_or(prefix, ""));
             if (cnotnull(child_prefix)) {
                 show_tree(full_path, show_all, long_format, human_readable, show_time,
                           depth, current_depth + 1, child_prefix);
