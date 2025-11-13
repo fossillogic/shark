@@ -16,6 +16,7 @@
 #include "fossil/code/app.h"
 
 #ifndef _WIN32
+#define _GNU_SOURCE
 #include <unistd.h>
 #endif
 
