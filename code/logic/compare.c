@@ -60,6 +60,40 @@ static bool line_equal(ccstring a, ccstring b, bool ignore_case) {
     return fossil_io_cstring_case_compare(a, b) == 0;
 }
 
+// Helper: check if file is regular file (cross-platform)
+static bool is_regular_file(ccstring path) {
+#ifdef _WIN32
+    DWORD attrs = GetFileAttributesA(path);
+    return (attrs != INVALID_FILE_ATTRIBUTES) && 
+           !(attrs & FILE_ATTRIBUTE_DIRECTORY);
+#else
+    struct stat st;
+    if (stat(path, &st) != 0) return false;
+    return S_ISREG(st.st_mode);
+#endif
+}
+
+// Helper: get file size (cross-platform)
+static size_t get_file_size(ccstring path) {
+#ifdef _WIN32
+    HANDLE hFile = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, 
+                              OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) return 0;
+    
+    LARGE_INTEGER size;
+    if (!GetFileSizeEx(hFile, &size)) {
+        CloseHandle(hFile);
+        return 0;
+    }
+    CloseHandle(hFile);
+    return (size_t)size.QuadPart;
+#else
+    struct stat st;
+    if (stat(path, &st) != 0) return 0;
+    return (size_t)st.st_size;
+#endif
+}
+
 /**
  * Compare two files (text or binary)
  */
@@ -71,14 +105,8 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
         return 1;
     }
 
-    struct stat st1, st2;
-    if (cunlikely(stat(path1, &st1) != 0 || stat(path2, &st2) != 0)) {
-        fossil_io_printf("{red}Error: Failed to get file information: %s{normal}\n", strerror(errno));
-        return errno;
-    }
-
-    if (cunlikely(!S_ISREG(st1.st_mode) || !S_ISREG(st2.st_mode))) {
-        fossil_io_printf("{red}Error: Currently only regular files are supported.{normal}\n");
+    if (cunlikely(!is_regular_file(path1) || !is_regular_file(path2))) {
+        fossil_io_printf("{red}Error: Failed to access files or not regular files.{normal}\n");
         return 1;
     }
 
@@ -86,8 +114,8 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
         fossil_fstream_t f1, f2;
         if (cunlikely(fossil_fstream_open(&f1, path1, "rb") != 0 || 
                       fossil_fstream_open(&f2, path2, "rb") != 0)) { 
-            fossil_io_printf("{red}Error: Failed to open files: %s{normal}\n", strerror(errno));
-            return errno; 
+            fossil_io_printf("{red}Error: Failed to open files for binary comparison.{normal}\n");
+            return 1; 
         }
 
         int diff_found = 0;
@@ -111,8 +139,8 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
         fossil_fstream_t f1, f2;
         if (cunlikely(fossil_fstream_open(&f1, path1, "r") != 0 || 
                       fossil_fstream_open(&f2, path2, "r") != 0)) { 
-            fossil_io_printf("{red}Error: Failed to open files: %s{normal}\n", strerror(errno));
-            return errno; 
+            fossil_io_printf("{red}Error: Failed to open files for text comparison.{normal}\n");
+            return 1; 
         }
 
         // Read all lines first
@@ -124,6 +152,8 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
         lines2 = (cstring*)fossil_sys_memory_alloc(capacity2 * sizeof(cstring));
         
         if (!cnotnull(lines1) || !cnotnull(lines2)) {
+            if (cnotnull(lines1)) fossil_sys_memory_free(lines1);
+            if (cnotnull(lines2)) fossil_sys_memory_free(lines2);
             fossil_fstream_close(&f1);
             fossil_fstream_close(&f2);
             return 1;
@@ -133,7 +163,17 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
         while ((line = read_line(&f1)) != cnull) {
             if (count1 >= capacity1) {
                 capacity1 *= 2;
-                lines1 = (cstring*)fossil_sys_memory_realloc(lines1, capacity1 * sizeof(cstring));
+                cstring *new_lines = (cstring*)fossil_sys_memory_realloc(lines1, capacity1 * sizeof(cstring));
+                if (!cnotnull(new_lines)) {
+                    // Cleanup on realloc failure
+                    for (size_t i = 0; i < count1; i++) fossil_sys_memory_free(lines1[i]);
+                    fossil_sys_memory_free(lines1);
+                    fossil_sys_memory_free(lines2);
+                    fossil_fstream_close(&f1);
+                    fossil_fstream_close(&f2);
+                    return 1;
+                }
+                lines1 = new_lines;
             }
             lines1[count1++] = line;
         }
@@ -141,7 +181,18 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
         while ((line = read_line(&f2)) != cnull) {
             if (count2 >= capacity2) {
                 capacity2 *= 2;
-                lines2 = (cstring*)fossil_sys_memory_realloc(lines2, capacity2 * sizeof(cstring));
+                cstring *new_lines = (cstring*)fossil_sys_memory_realloc(lines2, capacity2 * sizeof(cstring));
+                if (!cnotnull(new_lines)) {
+                    // Cleanup on realloc failure
+                    for (size_t i = 0; i < count1; i++) fossil_sys_memory_free(lines1[i]);
+                    for (size_t i = 0; i < count2; i++) fossil_sys_memory_free(lines2[i]);
+                    fossil_sys_memory_free(lines1);
+                    fossil_sys_memory_free(lines2);
+                    fossil_fstream_close(&f1);
+                    fossil_fstream_close(&f2);
+                    return 1;
+                }
+                lines2 = new_lines;
             }
             lines2[count2++] = line;
         }

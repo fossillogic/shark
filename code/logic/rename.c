@@ -77,8 +77,9 @@ int fossil_shark_rename(ccstring old_name, ccstring new_name,
         }
     }
 
+    // Cross-platform rename operation
     if (cunlikely(fossil_fstream_rename(safe_old, safe_new) != 0)) {
-        fossil_io_printf("{red}Error: Rename failed{normal}\n");
+        fossil_io_printf("{red}Error: Rename failed - %s{normal}\n", strerror(errno));
         return 1;
     }
 

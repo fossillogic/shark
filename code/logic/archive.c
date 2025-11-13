@@ -131,8 +131,8 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         }
     }
 
-    // Create a log file for the operation
-    char *log_filename = (char*)fossil_sys_memory_alloc(600);
+    // Create a log file for the operation (cross-platform path handling)
+    char *log_filename = (char*)fossil_sys_memory_alloc(1024);
     if (cunlikely(!log_filename)) {
         fossil_io_printf("{red}Error: Failed to allocate log filename buffer.{normal}\n");
         fossil_sys_memory_free(sanitized_path);
@@ -141,8 +141,8 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         return 1;
     }
     
-    fossil_sys_memory_zero(log_filename, 600);
-    snprintf(log_filename, 600, "%s.archive.log", sanitized_path);
+    fossil_sys_memory_zero(log_filename, 1024);
+    fossil_fpath_create_path_safe(log_filename, 1024, sanitized_path, ".archive.log");
     
     fossil_fstream_t log_stream;
     COption log_option = cnone();
@@ -151,9 +151,18 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         char *log_msg = (char*)fossil_sys_memory_alloc(1000);
         if (cnotnull(log_msg)) {
             fossil_sys_memory_zero(log_msg, 1000);
-            snprintf(log_msg, 1000, "Archive operation started: %s%c", 
-                    create ? "create" : extract ? "extract" : "list", cnewline);
-            fossil_fstream_write(&log_stream, log_msg, strlen(log_msg), 1);
+            fossil_sys_memory_copy(log_msg, "Archive operation started: ", 27);
+            if (create) {
+                fossil_sys_memory_copy(log_msg + 27, "create", 6);
+            } else if (extract) {
+                fossil_sys_memory_copy(log_msg + 27, "extract", 7);
+            } else {
+                fossil_sys_memory_copy(log_msg + 27, "list", 4);
+            }
+            size_t len = fossil_cstring_size(log_msg);
+            log_msg[len] = '\n';
+            log_msg[len + 1] = '\0';
+            fossil_fstream_write(&log_stream, log_msg, fossil_cstring_size(log_msg), 1);
             fossil_sys_memory_free(log_msg);
         }
     }
@@ -165,6 +174,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         // Interactive confirmation for create operation
         fossil_io_printf("{cyan}Creating archive: %s (format: %s){normal}\n", sanitized_path, sanitized_format);
         fossil_io_printf("Are you sure you want to create this archive? (y/N): ");
+        fossil_io_flush();
         
         char *confirm = (char*)fossil_sys_memory_alloc(10);
         if (cunlikely(!confirm)) {
@@ -203,7 +213,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             fossil_io_printf("{red}Error: Failed to create archive{normal}\n");
             ret = 1;
         } else {
-            // Add current directory contents
+            // Add current directory contents (cross-platform)
             if (!fossil_io_archive_add_directory(archive, ".", "")) {
                 fossil_io_printf("{red}Error: Failed to add files to archive{normal}\n");
                 ret = 1;
@@ -226,7 +236,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         } else {
             fossil_io_show_progress(50);
             
-            // Extract all files to current directory
+            // Extract all files to current directory (cross-platform)
             if (!fossil_io_archive_extract_all(archive, ".")) {
                 fossil_io_printf("{red}Error: Failed to extract archive{normal}\n");
                 ret = 1;
@@ -236,7 +246,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         }
         
         fossil_io_show_progress(100);
-        fossil_io_printf("%c", cnewline);
+        fossil_io_printf("\n");
         
     } else if (list) {
         fossil_io_printf("{cyan}Listing contents of archive: %s{normal}\n", sanitized_path);
@@ -272,8 +282,20 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         char *result_msg = (char*)fossil_sys_memory_alloc(200);
         if (cnotnull(result_msg)) {
             fossil_sys_memory_zero(result_msg, 200);
-            snprintf(result_msg, 200, "Operation completed with return code: %d%c", ret, cnewline);
-            fossil_fstream_write((fossil_fstream_t*)log_option.value, result_msg, strlen(result_msg), 1);
+            size_t written = 0;
+            fossil_sys_memory_copy(result_msg, "Operation completed with return code: ", 38);
+            written += 38;
+            // Convert return code to string in cross-platform manner
+            if (ret == 0) {
+                fossil_sys_memory_copy(result_msg + written, "0", 1);
+                written += 1;
+            } else {
+                fossil_sys_memory_copy(result_msg + written, "1", 1);
+                written += 1;
+            }
+            result_msg[written] = '\n';
+            result_msg[written + 1] = '\0';
+            fossil_fstream_write((fossil_fstream_t*)log_option.value, result_msg, fossil_cstring_size(result_msg), 1);
             fossil_sys_memory_free(result_msg);
         }
         fossil_fstream_close((fossil_fstream_t*)log_option.value);

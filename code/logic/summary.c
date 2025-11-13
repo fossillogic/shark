@@ -41,15 +41,25 @@ int fossil_shark_summery(ccstring file_path, int depth,
 
     // Optional: show timestamps
     if (show_time) {
+#ifdef _WIN32
+        struct _stat st;
+        if (_stat(file_path, &st) == 0) {
+#else
         struct stat st;
         if (stat(file_path, &st) == 0) {
+#endif
             char *timebuf = (char*)fossil_sys_memory_alloc(64);
             if (cunlikely(!cnotnull(timebuf))) {
                 fossil_fstream_close(&file_stream);
                 return 1;
             }
             
-            strftime(timebuf, 64, "%Y-%m-%d %H:%M:%S", localtime(&st.st_mtime));
+#ifdef _WIN32
+            struct tm *tm_info = localtime(&st.st_mtime);
+#else
+            struct tm *tm_info = localtime(&st.st_mtime);
+#endif
+            strftime(timebuf, 64, "%Y-%m-%d %H:%M:%S", tm_info);
             if (color) {
                 fossil_io_printf("{cyan}File: %s{normal}\n{cyan}Modified: %s{normal}\n", file_path, timebuf);
             } else {

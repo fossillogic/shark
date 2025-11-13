@@ -31,20 +31,27 @@ static bool confirm_removal(ccstring path) {
     return (answer[0] == 'y' || answer[0] == 'Y');
 }
 
-// Helper: move file to system trash (simple cross-platform placeholder)
+// Helper: move file to system trash (cross-platform)
 static int move_to_trash(ccstring path) {
-    // On Unix systems, could move to ~/.local/share/Trash/files/
     char *trash_path = (char*)fossil_sys_memory_alloc(4096);
     if (cunlikely(trash_path == cnull)) {
         fossil_io_printf("{red}Failed to allocate memory for trash path{normal}\n");
         return ENOMEM;
     }
     
+    ccstring filename = strrchr(path, '/') ? strrchr(path, '/') + 1 : path;
+#ifdef _WIN32
+    // Windows: use Recycle Bin path or temp directory
+    ccstring home = getenv("USERPROFILE");
+    if (home == cnull) home = getenv("TEMP");
+    if (home == cnull) home = ".";
+    snprintf(trash_path, 4096, "%s\\AppData\\Local\\Trash\\%s", home, filename);
+#else
+    // Unix-like systems: use XDG trash specification
     ccstring home = getenv("HOME");
     if (home == cnull) home = ".";
-    
-    ccstring filename = strrchr(path, '/') ? strrchr(path, '/') + 1 : path;
     snprintf(trash_path, 4096, "%s/.local/share/Trash/files/%s", home, filename);
+#endif
 
     if (fossil_fstream_rename(path, trash_path) != 0) {
         fossil_io_printf("{red}Failed to move to trash: %s{normal}\n", strerror(errno));
@@ -74,6 +81,25 @@ static int remove_recursive(ccstring path, bool recursive, bool force,
     }
 
     if (S_ISDIR(st.st_mode)) {
+#ifdef _WIN32
+        WIN32_FIND_DATA find_data;
+        HANDLE dir;
+        char search_path[4096];
+        snprintf(search_path, sizeof(search_path), "%s\\*", path);
+        
+        dir = FindFirstFile(search_path, &find_data);
+        if (dir == INVALID_HANDLE_VALUE) {
+            if (force) return 0;
+            fossil_io_printf("{red}Error opening directory '%s': %d{normal}\n", path, GetLastError());
+            return GetLastError();
+        }
+
+        do {
+            if (fossil_io_cstring_equals(find_data.cFileName, ".") || 
+                fossil_io_cstring_equals(find_data.cFileName, "..")) continue;
+
+            cstring child_path = fossil_io_cstring_format("%s\\%s", path, find_data.cFileName);
+#else
         DIR *dir = opendir(path);
         if (dir == cnull) {
             if (force) return 0;
@@ -86,8 +112,13 @@ static int remove_recursive(ccstring path, bool recursive, bool force,
             if (fossil_io_cstring_equals(entry->d_name, ".") || fossil_io_cstring_equals(entry->d_name, "..")) continue;
 
             cstring child_path = fossil_io_cstring_format("%s/%s", path, entry->d_name);
+#endif
             if (cunlikely(child_path == cnull)) {
+#ifdef _WIN32
+                FindClose(dir);
+#else
                 closedir(dir);
+#endif
                 return ENOMEM;
             }
 
@@ -104,7 +135,11 @@ static int remove_recursive(ccstring path, bool recursive, bool force,
                     if (remove_recursive(child_path, recursive, force, interactive, use_trash) != 0 && !force) {
                         fossil_io_cstring_free(child_path);
                         cnullify(child_path);
+#ifdef _WIN32
+                        FindClose(dir);
+#else
                         closedir(dir);
+#endif
                         return 1;
                     }
                 } else {
@@ -138,16 +173,24 @@ static int remove_recursive(ccstring path, bool recursive, bool force,
             }
             fossil_io_cstring_free(child_path);
             cnullify(child_path);
+#ifdef _WIN32
+        } while (FindNextFile(dir, &find_data));
+        FindClose(dir);
+#else
         }
-
         closedir(dir);
+#endif
 
         if (interactive && !force) {
             if (!confirm_removal(path)) return 0;
         }
 
         if (use_trash) return move_to_trash(path);
+#ifdef _WIN32
+        if (_rmdir(path) != 0 && !force) {
+#else
         if (rmdir(path) != 0 && !force) {
+#endif
             fossil_io_printf("{red}Failed to remove directory '%s': %s{normal}\n", path, strerror(errno));
             return errno;
         } else if (!force) {

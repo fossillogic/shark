@@ -42,7 +42,11 @@ static int create_parent_dirs(ccstring path) {
         return 1;
     }
 
+#ifdef _WIN32
+    if (_mkdir(dir_path) != 0) {
+#else
     if (mkdir(dir_path, 0755) != 0) {
+#endif
         if (errno != EEXIST) {
             fossil_io_printf("{red}Error creating directory '%s': %s{normal}\n", dir_path, strerror(errno));
             fossil_io_cstring_free_safe(&dir_path);
@@ -82,7 +86,11 @@ int fossil_shark_create(ccstring path, bool create_parents,
         fossil_fstream_close(&stream);
         fossil_io_printf("{cyan}File '%s' created successfully.{normal}\n", path);
     } else if (fossil_io_cstring_equals(type, "dir")) {
+#ifdef _WIN32
+        if (cunlikely(_mkdir(path) != 0)) {
+#else
         if (cunlikely(mkdir(path, 0755) != 0)) {
+#endif
             fossil_io_printf("{red}Error creating directory '%s': %s{normal}\n", path, strerror(errno));
             return errno;
         }

@@ -72,9 +72,23 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
 
     // Preserve permissions and timestamps
     if (preserve) {
+#ifdef _WIN32
+        // Windows: Set file attributes and times
+        HANDLE hFile = CreateFileA(dest, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (hFile != INVALID_HANDLE_VALUE) {
+            FILETIME ft;
+            // Convert Unix timestamp to Windows FILETIME
+            LONGLONG ll = Int32x32To64(st_src.st_mtime, 10000000) + 116444736000000000;
+            ft.dwLowDateTime = (DWORD)ll;
+            ft.dwHighDateTime = (DWORD)(ll >> 32);
+            SetFileTime(hFile, NULL, NULL, &ft);
+            CloseHandle(hFile);
+        }
+#else
         chmod(dest, st_src.st_mode);
         struct utimbuf times = {st_src.st_atime, st_src.st_mtime};
         utime(dest, &times);
+#endif
         fossil_io_printf("{cyan}Preserved permissions and timestamps for '%s'{normal}\n", dest);
     }
 
@@ -97,13 +111,39 @@ static int copy_directory(ccstring src, ccstring dest,
 
     // Create destination directory
     fossil_io_printf("{cyan}Creating directory: %s{normal}\n", dest);
+#ifdef _WIN32
+    if (CreateDirectoryA(dest, NULL) == 0) {
+        if (GetLastError() != ERROR_ALREADY_EXISTS) {
+            fossil_io_printf("{red}Error: Cannot create directory '%s': Error %lu{normal}\n", dest, GetLastError());
+            return 1;
+        }
+    }
+#else
     if (mkdir(dest, st.st_mode) != 0) {
         if (errno != EEXIST) { 
             fossil_io_printf("{red}Error: Cannot create directory '%s': %s{normal}\n", dest, strerror(errno));
             return errno; 
         }
     }
+#endif
 
+#ifdef _WIN32
+    WIN32_FIND_DATAA findData;
+    char searchPath[MAX_PATH];
+    snprintf(searchPath, sizeof(searchPath), "%s\\*", src);
+    
+    HANDLE hFind = FindFirstFileA(searchPath, &findData);
+    if (hFind == INVALID_HANDLE_VALUE) {
+        fossil_io_printf("{red}Error: Cannot open directory '%s': Error %lu{normal}\n", src, GetLastError());
+        return 1;
+    }
+
+    do {
+        if (strcmp(findData.cFileName, ".") == 0 || strcmp(findData.cFileName, "..") == 0) continue;
+
+        cstring src_path = fossil_io_cstring_format("%s\\%s", src, findData.cFileName);
+        cstring dest_path = fossil_io_cstring_format("%s\\%s", dest, findData.cFileName);
+#else
     DIR *dir = opendir(src);
     if (cunlikely(!cnotnull(dir))) { 
         fossil_io_printf("{red}Error: Cannot open directory '%s': %s{normal}\n", src, strerror(errno));
@@ -116,11 +156,16 @@ static int copy_directory(ccstring src, ccstring dest,
 
         cstring src_path = fossil_io_cstring_format("%s/%s", src, entry->d_name);
         cstring dest_path = fossil_io_cstring_format("%s/%s", dest, entry->d_name);
+#endif
 
         if (cunlikely(!cnotnull(src_path) || !cnotnull(dest_path))) {
             fossil_io_cstring_free(src_path);
             fossil_io_cstring_free(dest_path);
+#ifdef _WIN32
+            FindClose(hFind);
+#else
             closedir(dir);
+#endif
             return 1;
         }
 
@@ -135,7 +180,11 @@ static int copy_directory(ccstring src, ccstring dest,
                 if (copy_directory(src_path, dest_path, recursive, update, preserve) != 0) {
                     fossil_io_cstring_free(src_path);
                     fossil_io_cstring_free(dest_path);
+#ifdef _WIN32
+                    FindClose(hFind);
+#else
                     closedir(dir);
+#endif
                     return 1;
                 }
             }
@@ -143,22 +192,42 @@ static int copy_directory(ccstring src, ccstring dest,
             if (copy_file(src_path, dest_path, update, preserve) != 0) {
                 fossil_io_cstring_free(src_path);
                 fossil_io_cstring_free(dest_path);
+#ifdef _WIN32
+                FindClose(hFind);
+#else
                 closedir(dir);
+#endif
                 return 1;
             }
         }
-        // ignore symlinks, devices, etc. for now
 
         fossil_io_cstring_free(src_path);
         fossil_io_cstring_free(dest_path);
+#ifdef _WIN32
+    } while (FindNextFileA(hFind, &findData) != 0);
+    FindClose(hFind);
+#else
     }
-
     closedir(dir);
+#endif
 
     // Preserve directory timestamps
     if (preserve) {
+#ifdef _WIN32
+        HANDLE hDir = CreateFileA(dest, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, 
+                                  OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+        if (hDir != INVALID_HANDLE_VALUE) {
+            FILETIME ft;
+            LONGLONG ll = Int32x32To64(st.st_mtime, 10000000) + 116444736000000000;
+            ft.dwLowDateTime = (DWORD)ll;
+            ft.dwHighDateTime = (DWORD)(ll >> 32);
+            SetFileTime(hDir, NULL, NULL, &ft);
+            CloseHandle(hDir);
+        }
+#else
         struct utimbuf times = {st.st_atime, st.st_mtime};
         utime(dest, &times);
+#endif
     }
 
     return 0;

@@ -17,6 +17,15 @@
 #include <errno.h>
 #include <ctype.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <io.h>
+#else
+#include <dirent.h>
+#include <sys/stat.h>
+#include <errno.h>
+#endif
+
 // Helper: case-insensitive string match using fossil_io_cstring functions
 static bool str_match(ccstring str, ccstring pattern, bool ignore_case) {
     if (!pattern) return true; // No pattern means match all
@@ -57,7 +66,47 @@ static bool content_match(ccstring file_path, ccstring pattern, bool ignore_case
     return found;
 }
 
-// Internal recursive search
+#ifdef _WIN32
+// Windows implementation using FindFirstFile/FindNextFile
+static int search_recursive(ccstring path, bool recursive,
+                            ccstring name_pattern, ccstring content_pattern,
+                            bool ignore_case) {
+    cstring search_path = fossil_io_cstring_format("%s\\*", path);
+    if (!search_path) return -1;
+
+    WIN32_FIND_DATAA find_data;
+    HANDLE hFind = FindFirstFileA(search_path, &find_data);
+    
+    if (hFind == INVALID_HANDLE_VALUE) {
+        fossil_io_cstring_free(search_path);
+        return GetLastError();
+    }
+
+    do {
+        if (fossil_io_cstring_equals(find_data.cFileName, ".") || 
+            fossil_io_cstring_equals(find_data.cFileName, "..")) continue;
+
+        cstring full_path = fossil_io_cstring_format("%s\\%s", path, find_data.cFileName);
+        if (!full_path) continue;
+
+        if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            if (recursive) search_recursive(full_path, recursive, name_pattern, content_pattern, ignore_case);
+        } else {
+            if (str_match(find_data.cFileName, name_pattern, ignore_case) &&
+                content_match(full_path, content_pattern, ignore_case)) {
+                fossil_io_printf("{cyan}%s{normal}\n", full_path);
+            }
+        }
+        
+        fossil_io_cstring_free(full_path);
+    } while (FindNextFileA(hFind, &find_data) != 0);
+
+    FindClose(hFind);
+    fossil_io_cstring_free(search_path);
+    return 0;
+}
+#else
+// Unix/Linux implementation using opendir/readdir
 static int search_recursive(ccstring path, bool recursive,
                             ccstring name_pattern, ccstring content_pattern,
                             bool ignore_case) {
@@ -95,7 +144,6 @@ static int search_recursive(ccstring path, bool recursive,
                 fossil_io_printf("{cyan}%s{normal}\n", full_path);
             }
         }
-        // Ignore symlinks and other file types for now
         
         fossil_io_cstring_free(full_path);
         fossil_sys_memory_free(st);
@@ -104,6 +152,7 @@ static int search_recursive(ccstring path, bool recursive,
     closedir(dir);
     return 0;
 }
+#endif
 
 /**
  * Search for files by name patterns or content matching

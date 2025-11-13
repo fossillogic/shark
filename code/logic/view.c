@@ -33,14 +33,28 @@ int fossil_shark_view(ccstring path, bool number_lines,
         return 1;
     }
 
-    // Optionally display timestamps
+    // Optionally display timestamps (cross-platform)
     if (show_time) {
+#ifdef _WIN32
+        struct _stat st;
+        if (_stat(path, &st) == 0) {
+            fossil_io_printf("{blue}File:{normal} %s\n", path);
+            fossil_io_printf("{blue}Size:{normal} %ld bytes\n", (long)st.st_size);
+            char time_buf[64];
+            struct tm *tm_info = localtime(&st.st_mtime);
+            if (tm_info) {
+                strftime(time_buf, sizeof(time_buf), "%c", tm_info);
+                fossil_io_printf("{blue}Modified:{normal} %s\n", time_buf);
+            }
+        }
+#else
         struct stat st;
         if (stat(path, &st) == 0) {
             fossil_io_printf("{blue}File:{normal} %s\n", path);
-            fossil_io_printf("{blue}Size:{normal} %ld bytes\n", st.st_size);
+            fossil_io_printf("{blue}Size:{normal} %ld bytes\n", (long)st.st_size);
             fossil_io_printf("{blue}Modified:{normal} %s", ctime(&st.st_mtime));
         }
+#endif
     }
 
     // Read all lines into memory if tail_lines is requested

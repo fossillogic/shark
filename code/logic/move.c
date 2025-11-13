@@ -62,31 +62,54 @@ int fossil_shark_move(ccstring src, ccstring dest,
         return 1;
     }
 
-    bool dest_exists = fossil_fstream_file_exists(dest);
+    // Normalize paths for cross-platform compatibility
+    cstring norm_src = fossil_fstream_path_normalize(src);
+    cstring norm_dest = fossil_fstream_path_normalize(dest);
+    
+    if (!cnotnull(norm_src) || !cnotnull(norm_dest)) {
+        fossil_io_printf("{red}Error: Failed to normalize paths.{normal}\n");
+        if (norm_src) fossil_io_cstring_free(norm_src);
+        if (norm_dest) fossil_io_cstring_free(norm_dest);
+        return 1;
+    }
+
+    bool dest_exists = fossil_fstream_file_exists(norm_dest);
 
     if (clikely(dest_exists)) {
         if (backup) {
-            if (create_backup(dest) != 0) return 1;
+            if (create_backup(norm_dest) != 0) {
+                fossil_io_cstring_free(norm_src);
+                fossil_io_cstring_free(norm_dest);
+                return 1;
+            }
         }
 
         if (interactive && !force) {
-            if (!confirm_overwrite(dest)) {
+            if (!confirm_overwrite(norm_dest)) {
                 fossil_io_printf("{cyan}Move cancelled by user.{normal}\n");
+                fossil_io_cstring_free(norm_src);
+                fossil_io_cstring_free(norm_dest);
                 return 1;
             }
         }
 
         if (cunlikely(!force && !interactive && !backup)) {
             fossil_io_printf("{red}Error: Destination exists. Use --force, --interactive, or --backup.{normal}\n");
+            fossil_io_cstring_free(norm_src);
+            fossil_io_cstring_free(norm_dest);
             return 1;
         }
     }
 
-    if (fossil_fstream_rename(src, dest) != 0) {
+    if (fossil_fstream_rename(norm_src, norm_dest) != 0) {
         fossil_io_printf("{red}Failed to move/rename: %s{normal}\n", strerror(errno));
+        fossil_io_cstring_free(norm_src);
+        fossil_io_cstring_free(norm_dest);
         return errno;
     }
 
-    fossil_io_printf("{cyan}Successfully moved '%s' to '%s'{normal}\n", src, dest);
+    fossil_io_printf("{cyan}Successfully moved '%s' to '%s'{normal}\n", norm_src, norm_dest);
+    fossil_io_cstring_free(norm_src);
+    fossil_io_cstring_free(norm_dest);
     return 0;
 }
