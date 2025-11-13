@@ -19,6 +19,10 @@
 #include <fcntl.h>
 #include <utime.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 // Helper: copy a single file
 static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
     if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {

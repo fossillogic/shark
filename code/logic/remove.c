@@ -18,6 +18,11 @@
 #include <dirent.h>
 #include <errno.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <direct.h>
+#endif
+
 // Helper: ask user for confirmation
 static bool confirm_removal(ccstring path) {
     char answer[8];

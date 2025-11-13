@@ -17,6 +17,9 @@
 #include <unistd.h>
 #include <libgen.h>
 #include <fcntl.h>
+#ifdef _WIN32
+#include <direct.h>
+#endif
 
 /**
  * Helper: create parent directories recursively
