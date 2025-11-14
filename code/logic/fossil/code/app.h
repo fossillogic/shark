@@ -14,10 +14,9 @@
 #ifndef FOSSIL_APP_CODE_H
 #define FOSSIL_APP_CODE_H
 
-#include <fossil/sys/framework.h>
-#include <fossil/io/framework.h>
+#include "commands.h"
 
-#define FOSSIL_APP_NAME "Sample App"
+#define FOSSIL_APP_NAME "Shark Tool"
 #define FOSSIL_APP_VERSION "0.1.0"
 
 #ifdef __cplusplus
