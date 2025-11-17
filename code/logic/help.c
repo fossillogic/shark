@@ -32,11 +32,9 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         fossil_io_printf("  {cyan}archive{normal}   - Create, extract, or list archives\n");
         fossil_io_printf("  {cyan}view{normal}      - Output file contents\n");
         fossil_io_printf("  {cyan}compare{normal}   - Compare files or directories\n");
-        fossil_io_printf("  {cyan}link{normal}      - Create hard or symbolic links\n");
         fossil_io_printf("  {cyan}info{normal}      - Show detailed metadata\n");
         fossil_io_printf("  {cyan}sync{normal}      - Synchronize files/directories\n");
         fossil_io_printf("  {cyan}watch{normal}     - Monitor files/directories\n");
-        fossil_io_printf("  {cyan}stat{normal}      - Display file statistics\n");
         fossil_io_printf("  {cyan}help{normal}      - Show help and usage\n");
         fossil_io_printf("\n{blue,bold}AI Commands:{normal}\n");
         fossil_io_printf("  {cyan}chat{normal}      - Interactive AI chat session\n");
@@ -127,12 +125,6 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan}-b, --binary{normal}     Binary diff\n");
             fossil_io_printf("  {cyan}--context <n>{normal}    Show context lines\n");
             fossil_io_printf("  {cyan}--ignore-case{normal}    Ignore case differences\n");
-        } else if (fossil_io_cstring_equals(command, "link")) {
-            fossil_io_printf("{blue,bold}Usage:{normal} link [options] <target> <linkname>\n");
-            fossil_io_printf("{blue,bold}Options:{normal}\n");
-            fossil_io_printf("  {cyan}-s, --symbolic{normal}        Create a symlink\n");
-            fossil_io_printf("  {cyan}-f, --force{normal}           Overwrite existing\n");
-            fossil_io_printf("  {cyan}-n, --no-dereference{normal}  Treat destination as file\n");
         } else if (fossil_io_cstring_equals(command, "info")) {
             fossil_io_printf("{blue,bold}Usage:{normal} info [options] <path>\n");
             fossil_io_printf("{blue,bold}Options:{normal}\n");
@@ -152,11 +144,6 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan}-r, --recursive{normal}      Include subdirs\n");
             fossil_io_printf("  {cyan}-e, --events <list>{normal}  Filter events: create/modify/delete\n");
             fossil_io_printf("  {cyan}-t, --interval <n>{normal}   Poll interval in seconds\n");
-        } else if (fossil_io_cstring_equals(command, "stat")) {
-            fossil_io_printf("{blue,bold}Usage:{normal} stat [options] <file>\n");
-            fossil_io_printf("{blue,bold}Options:{normal}\n");
-            fossil_io_printf("  {cyan}-c, --format <fmt>{normal}   Custom format\n");
-            fossil_io_printf("  {cyan}-f, --filesystem{normal}     Show FS info\n");
         } else if (fossil_io_cstring_equals(command, "chat")) {
             fossil_io_printf("{blue,bold}Usage:{normal} chat [options]\n");
             fossil_io_printf("{blue,bold}Options:{normal}\n");
@@ -203,11 +190,9 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             else if (fossil_io_cstring_equals(command, "archive")) fossil_io_printf("  {cyan}archive -c -f zip backup.zip{normal}\n");
             else if (fossil_io_cstring_equals(command, "view")) fossil_io_printf("  {cyan}view -n -s file.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "compare")) fossil_io_printf("  {cyan}compare -t file1.txt file2.txt{normal}\n");
-            else if (fossil_io_cstring_equals(command, "link")) fossil_io_printf("  {cyan}link -s target.txt shortcut.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "info")) fossil_io_printf("  {cyan}info -p -o -s -t file.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "sync")) fossil_io_printf("  {cyan}sync -r -u --delete src/ dest/{normal}\n");
             else if (fossil_io_cstring_equals(command, "watch")) fossil_io_printf("  {cyan}watch -r -e create,modify -t 2 logs/{normal}\n");
-            else if (fossil_io_cstring_equals(command, "stat")) fossil_io_printf("  {cyan}stat -c \"%s %u\" -f file.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "chat")) fossil_io_printf("  {cyan}chat -m jellyfish -s assistant{normal}\n");
             else if (fossil_io_cstring_equals(command, "ask")) fossil_io_printf("  {cyan}ask -f file.txt --explain{normal}\n");
             else if (fossil_io_cstring_equals(command, "summery")) fossil_io_printf("  {cyan}summery -f report.txt --color --depth 3{normal}\n");
