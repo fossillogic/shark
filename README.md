@@ -20,7 +20,6 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 ---
 
 ### 🗂 Core File Operations
-
 | **Command** | **Description** | **Common Flags** |
 |--------------|-----------------|------------------|
 | `show` | Display files and directories. | `-a, --all` Show hidden files<br>`-l, --long` Detailed info<br>`-h, --human` Human-readable sizes<br>`-r, --recursive` Include subdirs<br>`-d, --depth <n>` Limit recursion depth<br>`--as` format options "list", tree, graph<br>`--time` Show timestamps |
@@ -28,12 +27,17 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `copy` | Copy files or directories. | `-r, --recursive` Copy subdirectories<br>`-u, --update` Only copy newer<br>`-p, --preserve` Keep permissions/timestamps |
 | `remove` / `delete` | Delete files or directories. | `-r, --recursive` Delete contents<br>`-f, --force` No confirmation<br>`-i, --interactive` Confirm per file<br>`--trash` Move to system trash |
 | `rename` | Rename files or directories. | `-f, --force` Overwrite target<br>`-i, --interactive` Confirm before overwrite |
-| `create` | Create new directories. | `-p, --parents` Create parent dirs<br>`-t, --type` Creates either file or dir |
+| `create` | Create new directories or files. | `-p, --parents` Create parent dirs<br>`-t, --type` Create file or dir |
 | `search` | Find files by name or content. | `-r, --recursive` Include subdirs<br>`-n, --name` Match filename<br>`-c, --content` Search in file contents<br>`-i, --ignore-case` Case-insensitive |
 | `archive` | Create, extract, or list archives. | `-c, --create` New archive<br>`-x, --extract` Extract contents<br>`-l, --list` List archive<br>`-f <format>` Format: zip/tar/gz<br>`-p, --password` Encrypt archive |
 | `view` | Output file contents to terminal. | `-n, --number` Number all lines<br>`-b, --non-blank` Number non-empty lines<br>`-s, --squeeze` Remove blank lines<br>`-h, --head <n>` First *n* lines<br>`-t, --tail <n>` Last *n* lines<br>`--time` Show timestamps |
-| `compare` | Compare two files/directories (text, or binary). | `-t, --text` Line diff<br>`-b, --binary` Binary diff<br>`--context <n>` Show context lines<br>`--ignore-case` Ignore case differences |
+| `compare` | Compare two files/directories (text or binary). | `-t, --text` Line diff<br>`-b, --binary` Binary diff<br>`--context <n>` Show context lines<br>`--ignore-case` Ignore case differences |
 | `help` | Display help for supported commands. | `--examples` Show usage examples<br>`--man` Full manual |
+| `link` | Create hard or symbolic links. | `-s, --symbolic` Create a symlink<br>`-f, --force` Overwrite existing<br>`-n, --no-dereference` Treat destination as file |
+| `info` | Show detailed metadata about a file or directory. | `-p, --permissions` Show permissions<br>`-o, --owner` Show owner/group<br>`-s, --size` Show size<br>`-t, --timestamps` Show times |
+| `sync` | Synchronize files/directories. | `-r, --recursive` Include subdirs<br>`-u, --update` Copy only newer<br>`--delete` Remove extraneous files from target |
+| `watch` | Continuously monitor files or directories. | `-r, --recursive` Include subdirs<br>`-e, --events <list>` Filter events: create/modify/delete<br>`-t, --interval <n>` Poll interval in seconds |
+| `stat` | Display file statistics (size, blocks, permissions). | `-c, --format <fmt>` Custom format<br>`-f, --filesystem` Show FS info |
 
 ---
 
