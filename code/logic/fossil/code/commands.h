@@ -358,6 +358,35 @@ int fossil_shark_sync(const char *src, const char *dest,
 int fossil_shark_watch(const char *path, bool recursive,
                        const char *events, int interval);
 
+/**
+ * Modify or update file contents, timestamps, or size
+ * @param path Path to the file to modify
+ * @param in_place Perform in-place modification (for content changes)
+ * @param append Append content instead of overwriting
+ * @param new_content Content to write to the file (NULL if only updating timestamps/size)
+ * @param size Set exact file size (truncate or extend)
+ * @param update_access_time Update file access time
+ * @param update_mod_time Update file modification time
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_rewrite(const char *path, bool in_place, bool append,
+                         const char *new_content, size_t size,
+                         bool update_access_time, bool update_mod_time);
+
+/**
+ * Examine file contents, type, or metadata
+ * @param path Path to the file to introspect
+ * @param show_head_lines Number of lines from the start to display (0 for none)
+ * @param show_tail_lines Number of lines from the end to display (0 for none)
+ * @param count_lines_words_bytes Count lines, words, and bytes if true
+ * @param show_file_type Determine file type (e.g., MIME or description)
+ * @param output_json Output metadata in JSON format
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_introspect(const char *path, int show_head_lines,
+                             int show_tail_lines, bool count_lines_words_bytes,
+                             bool show_file_type, bool output_json);
+
 // ========================================================
 // AI Commands
 // ========================================================
