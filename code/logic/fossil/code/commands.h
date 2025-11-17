@@ -14,8 +14,6 @@
 #ifndef FOSSIL_APP_COMMANDS_H
 #define FOSSIL_APP_COMMANDS_H
 
-#include <fossil/cryptic/framework.h>
-#include <fossil/math/framework.h>
 #include <fossil/sys/framework.h>
 #include <fossil/ai/framework.h>
 #include <fossil/io/framework.h>
@@ -126,6 +124,41 @@ extern "C" {
  * Common flags:
  * - `--examples` Show usage examples
  * - `--man` Full manual
+ * 
+ * ### link - Create hard or symbolic links
+ * Create hard or symbolic links between files or directories.
+ * Common flags:
+ * - `-s, --symbolic` Create a symlink
+ * - `-f, --force` Overwrite existing
+ * - `-n, --no-dereference` Treat destination as file
+ * 
+ * ### info - Show detailed metadata about a file or directory
+ * Show detailed metadata about a file or directory.
+ * Common flags:
+ * - `-p, --permissions` Show permissions
+ * - `-o, --owner` Show owner/group
+ * - `-s, --size` Show size
+ * - `-t, --timestamps` Show times
+ * 
+ * ### sync - Synchronize files/directories
+ * Synchronize files or directories between source and destination.
+ * Common flags:
+ * - `-r, --recursive` Include subdirs
+ * - `-u, --update` Copy only newer
+ * - `--delete` Remove extraneous files from target
+ * 
+ * ### watch - Continuously monitor files or directories
+ * Continuously monitor files or directories for changes.
+ * Common flags:
+ * - `-r, --recursive` Include subdirs
+ * - `-e, --events <list>` Filter events: create/modify/delete
+ * - `-t, --interval <n>` Poll interval in seconds
+ * 
+ * ### stat - Display file statistics (size, blocks, permissions)
+ * Display file statistics for files or directories.
+ * Common flags:
+ * - `-c, --format <fmt>` Custom format
+ * - `-f, --filesystem` Show FS info
  * 
  * ## 🤖 AI Commands (Jellyfish Integration)
  * 
@@ -315,6 +348,61 @@ int fossil_shark_compare(const char *path1, const char *path2,
  */
 int fossil_shark_help(ccstring command, bool show_examples, bool full_manual);
 
+/**
+ * Create hard or symbolic links between files or directories
+ * @param target Path to the target file or directory
+ * @param link_name Path for the new link
+ * @param symbolic Create a symbolic link if true, otherwise hard link
+ * @param force Overwrite existing link if true
+ * @param no_dereference Treat destination as file, do not follow symlinks
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_link(const char *target, const char *link_name,
+                      bool symbolic, bool force, bool no_dereference);
+
+/**
+ * Show detailed metadata about a file or directory
+ * @param path Path to file or directory
+ * @param show_permissions Show permissions information
+ * @param show_owner Show owner/group information
+ * @param show_size Show size information
+ * @param show_timestamps Show timestamps information
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_info(const char *path, bool show_permissions,
+                      bool show_owner, bool show_size, bool show_timestamps);
+
+/**
+ * Synchronize files or directories between source and destination
+ * @param src Source path
+ * @param dest Destination path
+ * @param recursive Include subdirectories
+ * @param update Copy only newer files
+ * @param delete Remove extraneous files from target
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_sync(const char *src, const char *dest,
+                      bool recursive, bool update, bool delete);
+
+/**
+ * Continuously monitor files or directories for changes
+ * @param path Path to monitor
+ * @param recursive Monitor subdirectories
+ * @param events List of events to filter ("create", "modify", "delete")
+ * @param interval Poll interval in seconds
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_watch(const char *path, bool recursive,
+                       const char *events, int interval);
+
+/**
+ * Display file statistics (size, blocks, permissions)
+ * @param path Path to file or directory
+ * @param format Custom format string
+ * @param filesystem Show filesystem info if true
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_stat(const char *path, const char *format, bool filesystem);
 
 // ========================================================
 // AI Commands
