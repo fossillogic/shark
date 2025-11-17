@@ -125,13 +125,6 @@ extern "C" {
  * - `--examples` Show usage examples
  * - `--man` Full manual
  * 
- * ### link - Create hard or symbolic links
- * Create hard or symbolic links between files or directories.
- * Common flags:
- * - `-s, --symbolic` Create a symlink
- * - `-f, --force` Overwrite existing
- * - `-n, --no-dereference` Treat destination as file
- * 
  * ### info - Show detailed metadata about a file or directory
  * Show detailed metadata about a file or directory.
  * Common flags:
@@ -153,12 +146,6 @@ extern "C" {
  * - `-r, --recursive` Include subdirs
  * - `-e, --events <list>` Filter events: create/modify/delete
  * - `-t, --interval <n>` Poll interval in seconds
- * 
- * ### stat - Display file statistics (size, blocks, permissions)
- * Display file statistics for files or directories.
- * Common flags:
- * - `-c, --format <fmt>` Custom format
- * - `-f, --filesystem` Show FS info
  * 
  * ## 🤖 AI Commands (Jellyfish Integration)
  * 
@@ -349,18 +336,6 @@ int fossil_shark_compare(const char *path1, const char *path2,
 int fossil_shark_help(ccstring command, bool show_examples, bool full_manual);
 
 /**
- * Create hard or symbolic links between files or directories
- * @param target Path to the target file or directory
- * @param link_name Path for the new link
- * @param symbolic Create a symbolic link if true, otherwise hard link
- * @param force Overwrite existing link if true
- * @param no_dereference Treat destination as file, do not follow symlinks
- * @return 0 on success, non-zero on error
- */
-int fossil_shark_link(const char *target, const char *link_name,
-                      bool symbolic, bool force, bool no_dereference);
-
-/**
  * Show detailed metadata about a file or directory
  * @param path Path to file or directory
  * @param show_permissions Show permissions information
@@ -394,15 +369,6 @@ int fossil_shark_sync(const char *src, const char *dest,
  */
 int fossil_shark_watch(const char *path, bool recursive,
                        const char *events, int interval);
-
-/**
- * Display file statistics (size, blocks, permissions)
- * @param path Path to file or directory
- * @param format Custom format string
- * @param filesystem Show filesystem info if true
- * @return 0 on success, non-zero on error
- */
-int fossil_shark_stat(const char *path, const char *format, bool filesystem);
 
 // ========================================================
 // AI Commands
