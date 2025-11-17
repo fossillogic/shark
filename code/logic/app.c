@@ -114,7 +114,7 @@ void show_commands(char* app_name) {
     fossil_io_printf("                   --tail <n>        Show last n lines\n");
     fossil_io_printf("                   --count           Count lines, words, bytes\n");
     fossil_io_printf("                   --type            Show file type or MIME\n");
-    fossil_io_printf("                   --json            Output metadata in JSON format\n");
+    fossil_io_printf("                   --fson            Output metadata in FSON format\n");
 
     fossil_io_printf("{blue}🤖 AI Commands (Jellyfish Integration):{reset}\n");
     fossil_io_printf("{cyan}  chat             {reset}Start an interactive AI chat session\n");
