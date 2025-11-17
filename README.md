@@ -33,11 +33,8 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `view` | Output file contents to terminal. | `-n, --number` Number all lines<br>`-b, --non-blank` Number non-empty lines<br>`-s, --squeeze` Remove blank lines<br>`-h, --head <n>` First *n* lines<br>`-t, --tail <n>` Last *n* lines<br>`--time` Show timestamps |
 | `compare` | Compare two files/directories (text or binary). | `-t, --text` Line diff<br>`-b, --binary` Binary diff<br>`--context <n>` Show context lines<br>`--ignore-case` Ignore case differences |
 | `help` | Display help for supported commands. | `--examples` Show usage examples<br>`--man` Full manual |
-| `link` | Create hard or symbolic links. | `-s, --symbolic` Create a symlink<br>`-f, --force` Overwrite existing<br>`-n, --no-dereference` Treat destination as file |
-| `info` | Show detailed metadata about a file or directory. | `-p, --permissions` Show permissions<br>`-o, --owner` Show owner/group<br>`-s, --size` Show size<br>`-t, --timestamps` Show times |
 | `sync` | Synchronize files/directories. | `-r, --recursive` Include subdirs<br>`-u, --update` Copy only newer<br>`--delete` Remove extraneous files from target |
 | `watch` | Continuously monitor files or directories. | `-r, --recursive` Include subdirs<br>`-e, --events <list>` Filter events: create/modify/delete<br>`-t, --interval <n>` Poll interval in seconds |
-| `stat` | Display file statistics (size, blocks, permissions). | `-c, --format <fmt>` Custom format<br>`-f, --filesystem` Show FS info |
 
 ---
 

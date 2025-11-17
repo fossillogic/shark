@@ -477,26 +477,6 @@ bool app_entry(int argc, char** argv) {
             }
             fossil_shark_summery(file_path, depth, quiet, color, show_time);
             
-        } else if (fossil_io_cstring_compare(argv[i], "info") == 0) {
-            // Parse info command arguments and call fossil_shark_info
-            const char *path = NULL;
-            bool show_permissions = false, show_owner = false, show_size = false, show_timestamps = false;
-            for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--permissions") == 0) {
-                show_permissions = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-o") == 0 || fossil_io_cstring_compare(argv[j], "--owner") == 0) {
-                show_owner = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--size") == 0) {
-                show_size = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--timestamps") == 0) {
-                show_timestamps = true;
-            } else if (!path) {
-                path = argv[j];
-            }
-            i = j;
-            }
-            if (path) fossil_shark_info(path, show_permissions, show_owner, show_size, show_timestamps);
-
         } else if (fossil_io_cstring_compare(argv[i], "sync") == 0) {
             // Parse sync command arguments and call fossil_shark_sync
             const char *src = NULL, *dest = NULL;

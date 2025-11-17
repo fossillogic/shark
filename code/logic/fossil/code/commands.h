@@ -336,18 +336,6 @@ int fossil_shark_compare(const char *path1, const char *path2,
 int fossil_shark_help(ccstring command, bool show_examples, bool full_manual);
 
 /**
- * Show detailed metadata about a file or directory
- * @param path Path to file or directory
- * @param show_permissions Show permissions information
- * @param show_owner Show owner/group information
- * @param show_size Show size information
- * @param show_timestamps Show timestamps information
- * @return 0 on success, non-zero on error
- */
-int fossil_shark_info(const char *path, bool show_permissions,
-                      bool show_owner, bool show_size, bool show_timestamps);
-
-/**
  * Synchronize files or directories between source and destination
  * @param src Source path
  * @param dest Destination path
