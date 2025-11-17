@@ -101,6 +101,21 @@ void show_commands(char* app_name) {
     fossil_io_printf("{yellow}                   --examples        Show usage examples\n");
     fossil_io_printf("                   --man             Full manual{reset}\n\n");
 
+    fossil_io_printf("{cyan}  rewrite          {reset}Modify or update file contents, timestamps, or size\n");
+    fossil_io_printf("{yellow}                   --in-place       Modify file directly (default)\n");
+    fossil_io_printf("                   -a, --append      Append content instead of overwriting\n");
+    fossil_io_printf("                   --size <n>        Truncate or extend file to exact size\n");
+    fossil_io_printf("                   --access-time     Update file access time\n");
+    fossil_io_printf("                   --mod-time        Update file modification time\n");
+    fossil_io_printf("                   <content>         Optional content to write{reset}\n");
+
+    fossil_io_printf("{cyan}  introspect       {reset}Examine file contents, type, or metadata\n");
+    fossil_io_printf("{yellow}                   --head <n>       Show first n lines\n");
+    fossil_io_printf("                   --tail <n>        Show last n lines\n");
+    fossil_io_printf("                   --count           Count lines, words, bytes\n");
+    fossil_io_printf("                   --type            Show file type or MIME\n");
+    fossil_io_printf("                   --json            Output metadata in JSON format\n");
+
     fossil_io_printf("{blue}🤖 AI Commands (Jellyfish Integration):{reset}\n");
     fossil_io_printf("{cyan}  chat             {reset}Start an interactive AI chat session\n");
     fossil_io_printf("{yellow}                   -f, --file <path> Use file content\n");
