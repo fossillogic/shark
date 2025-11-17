@@ -47,13 +47,6 @@ static const char *KW_CODE[] = {
 static const char OPS_CODE[] =
     "{}()[];,+-*/%<>&|^!=~?:.";
 
-static const char *COMMENTS_CODE[] = {
-    "//",  /* C, C++, JS, Java, Rust, Go */
-    "#",   /* Python, shell */
-    "/*",  /* C-style block open */
-    "*/",  /* C-style block close */
-};
-
 static const char STR_PUNCT[] = "{}[]:,\"'=<>/";
 
 static const char *KW_STRUCT[] = {
@@ -249,7 +242,7 @@ int fossil_shark_view(ccstring path, bool number_lines,
                ------------------------- */
             if (is_code) {
 
-                /* (1) Comments: // and # - rest of line; /* ... * / handled too */
+                /* (1) Comments: // and # - rest of line; ... handled too */
                 if (c == '/' && buffer[i+1] == '/') {
                     /* print '//' and the rest as green */
                     j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
