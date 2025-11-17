@@ -14,7 +14,7 @@
 #include "fossil/code/commands.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <strings.h>   // strcasecmp on POSIX
 #include <stdbool.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -109,7 +109,7 @@ int fossil_shark_introspect(const char *path, int show_head_lines,
         if (show_tail_lines > 0) {
             // store last N lines in circular buffer
             free(tail_buffer[tail_index]);
-            tail_buffer[tail_index] = strdup(buffer);
+            tail_buffer[tail_index] = fossil_io_cstring_dup(buffer);
             tail_index = (tail_index + 1) % show_tail_lines;
         }
     }
