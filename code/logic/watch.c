@@ -28,6 +28,7 @@
 
 #include <dirent.h>
 
+__attribute__((unused))
 static void fossil_shark_watch_file(const char *path, const char *events, struct stat *prev_stat)
 {
     struct stat curr_stat;
