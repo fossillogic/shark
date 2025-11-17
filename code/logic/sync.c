@@ -18,6 +18,11 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <utime.h>
+#if defined(_WIN32)
+#include <windows.h>
+#include <io.h>
+#include <direct.h>
+#endif
 
 #define PATH_MAX_LEN 1024
 
