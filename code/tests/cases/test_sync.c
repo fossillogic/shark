@@ -70,7 +70,7 @@ FOSSIL_TEST_CASE(c_test_sync_file_to_file) {
 
     // Sync file
     int result = fossil_shark_sync("sync_src.txt", "sync_dest.txt", false, false, false);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
 
     // Check destination exists
     FILE *dest = fopen("sync_dest.txt", "r");
@@ -104,7 +104,7 @@ FOSSIL_TEST_CASE(c_test_sync_directory_recursive) {
 
     // Sync recursively
     int result = fossil_shark_sync("sync_src_dir", "sync_dest_dir", true, false, false);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
 
     // Check files exist in destination
     FILE *df1 = fopen("sync_dest_dir/file1.txt", "r");

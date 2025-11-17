@@ -62,7 +62,7 @@ FOSSIL_TEST_CASE(c_test_watch_empty_events) {
     ASSUME_NOT_CNULL(file);
     fclose(file);
     int result = fossil_shark_watch("watch_test.txt", false, "", 1);
-    ASSUME_EQUAL_I32(0, result); // Should not error, but no events will be reported
+    ASSUME_ITS_EQUAL_I32(0, result); // Should not error, but no events will be reported
     remove("watch_test.txt");
 }
 
@@ -81,7 +81,7 @@ FOSSIL_TEST_CASE(c_test_watch_modify_event) {
     fclose(file);
 
     int result = fossil_shark_watch("watch_modify.txt", false, "modify", 1);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
     remove("watch_modify.txt");
 }
 
@@ -95,7 +95,7 @@ FOSSIL_TEST_CASE(c_test_watch_delete_event) {
     remove("watch_delete.txt");
 
     int result = fossil_shark_watch("watch_delete.txt", false, "delete", 1);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST_CASE(c_test_watch_create_event) {
@@ -109,7 +109,7 @@ FOSSIL_TEST_CASE(c_test_watch_create_event) {
     fclose(file);
 
     int result = fossil_shark_watch("watch_create.txt", false, "create", 1);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
     remove("watch_create.txt");
 }
 
@@ -135,7 +135,7 @@ FOSSIL_TEST_CASE(c_test_watch_special_characters_in_path) {
     fclose(file);
 
     int result = fossil_shark_watch("watch file@!#.txt", false, "modify", 1);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
     remove("watch file@!#.txt");
 }
 
@@ -146,7 +146,7 @@ FOSSIL_TEST_CASE(c_test_watch_multiple_events) {
     fclose(file);
 
     int result = fossil_shark_watch("watch_multi.txt", false, "modify,delete", 1);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
     remove("watch_multi.txt");
 }
 
