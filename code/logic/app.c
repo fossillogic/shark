@@ -516,6 +516,72 @@ bool app_entry(int argc, char** argv) {
             }
             if (path) fossil_shark_watch(path, recursive, events, interval);
 
+        } else if (fossil_io_cstring_compare(argv[i], "rewrite") == 0) {
+            // Parse rewrite command arguments and call fossil_shark_rewrite
+            const char *path = NULL;
+            const char *content = NULL;
+            size_t size = 0;
+            bool append = false;
+            bool in_place = true;  // default true
+            bool update_access = false, update_mod = false;
+
+            for (int j = i + 1; j < argc; j++) {
+                if (fossil_io_cstring_compare(argv[j], "-a") == 0 || fossil_io_cstring_compare(argv[j], "--append") == 0) {
+                    append = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--in-place") == 0) {
+                    in_place = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--access-time") == 0) {
+                    update_access = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--mod-time") == 0) {
+                    update_mod = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--size") == 0 && j + 1 < argc) {
+                    size = (size_t)atoi(argv[++j]);
+                } else if (!path) {
+                    path = argv[j];
+                } else if (!content) {
+                    content = argv[j];
+                }
+                i = j;
+            }
+
+            if (path) {
+                int rc = fossil_shark_rewrite(path, in_place, append, content, size, update_access, update_mod);
+                if (rc != 0) {
+                    fossil_io_printf("{red}Rewrite failed: %s{reset}\n", path);
+                }
+            }
+
+        } else if (fossil_io_cstring_compare(argv[i], "introspect") == 0) {
+            // Parse introspect command arguments and call fossil_shark_introspect
+            const char *path = NULL;
+            int head_lines = 0, tail_lines = 0;
+            bool count_lwb = false; // count lines/words/bytes
+            bool show_type = false; 
+            bool output_fson = false;
+
+            for (int j = i + 1; j < argc; j++) {
+                if (fossil_io_cstring_compare(argv[j], "--head") == 0 && j + 1 < argc) {
+                    head_lines = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--tail") == 0 && j + 1 < argc) {
+                    tail_lines = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--count") == 0) {
+                    count_lwb = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--type") == 0) {
+                    show_type = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--fson") == 0) {
+                    output_fson = true;
+                } else if (!path) {
+                    path = argv[j];
+                }
+                i = j;
+            }
+
+            if (path) {
+                int rc = fossil_shark_introspect(path, head_lines, tail_lines, count_lwb, show_type, output_json);
+                if (rc != 0) {
+                    fossil_io_printf("{red}Introspect failed: %s{reset}\n", path);
+                }
+            }
         } else {
             fossil_io_printf("{red}Unknown command: %s{reset}\n", argv[i]);
             return false;
