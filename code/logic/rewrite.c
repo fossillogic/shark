@@ -27,50 +27,57 @@
 #include <utime.h>
 #endif
 
-/**
- * Modify or update file contents, timestamps, or size
- * @param path Path to the file to modify
- * @param in_place If true, modify the file directly; if false, write via temporary file
- * @param append Append content instead of overwriting
- * @param new_content Content to write to the file (NULL if only updating timestamps/size)
- * @param size Set exact file size (truncate or extend)
- * @param update_access_time Update file access time
- * @param update_mod_time Update file modification time
- * @return 0 on success, non-zero on error
- */
 int fossil_shark_rewrite(const char *path, bool in_place, bool append,
                          const char *new_content, size_t size,
                          bool update_access_time, bool update_mod_time)
 {
-    if (!path) return -1;
+    if (!cnotnull(path)) return -1;
+
+    fossil_fstream_t stream;
+    fossil_fstream_t tmp_stream;
+    fossil_sys_memory_t tmp_path = fossil_sys_memory_calloc(1, FILENAME_MAX);
 
     // Use a temporary file if not modifying in place
-    char tmp_path[FILENAME_MAX];
-    FILE *fp = NULL;
-    if (!in_place && new_content) {
-        snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", path);
-        fp = fopen(tmp_path, "wb");
-    } else if (new_content) {
-        fp = fopen(path, append ? "ab" : "wb");
-    }
-
-    if (new_content) {
-        if (!fp) return errno;
-        if (fwrite(new_content, 1, strlen(new_content), fp) != strlen(new_content)) {
-            fclose(fp);
+    if (!in_place && cnotnull(new_content)) {
+        snprintf((char *)tmp_path, FILENAME_MAX, "%s.tmp", path);
+        if (fossil_fstream_open(&tmp_stream, (char *)tmp_path, "wb") != 0) {
+            fossil_sys_memory_free(tmp_path);
             return errno;
         }
-        fclose(fp);
-
-        if (!in_place) {
-            // Replace original file with temporary file
-#if defined(_WIN32) || defined(_WIN64)
-            if (!MoveFileExA(tmp_path, path, MOVEFILE_REPLACE_EXISTING)) return -1;
-#else
-            if (rename(tmp_path, path) != 0) return errno;
-#endif
+        size_t content_len = fossil_io_cstring_length(new_content);
+        if (fossil_fstream_write(&tmp_stream, new_content, 1, content_len) != content_len) {
+            fossil_fstream_close(&tmp_stream);
+            fossil_sys_memory_free(tmp_path);
+            return errno;
         }
+        fossil_fstream_close(&tmp_stream);
+
+#if defined(_WIN32) || defined(_WIN64)
+        if (fossil_fstream_rename((char *)tmp_path, path) != 0) {
+            fossil_sys_memory_free(tmp_path);
+            return errno;
+        }
+#else
+        if (fossil_fstream_rename((char *)tmp_path, path) != 0) {
+            fossil_sys_memory_free(tmp_path);
+            return errno;
+        }
+#endif
+    } else if (cnotnull(new_content)) {
+        if (fossil_fstream_open(&stream, path, append ? "ab" : "wb") != 0) {
+            fossil_sys_memory_free(tmp_path);
+            return errno;
+        }
+        size_t content_len = fossil_io_cstring_length(new_content);
+        if (fossil_fstream_write(&stream, new_content, 1, content_len) != content_len) {
+            fossil_fstream_close(&stream);
+            fossil_sys_memory_free(tmp_path);
+            return errno;
+        }
+        fossil_fstream_close(&stream);
     }
+
+    fossil_sys_memory_free(tmp_path);
 
     // Handle truncating/extending file size
     if (size > 0) {
@@ -85,16 +92,12 @@ int fossil_shark_rewrite(const char *path, bool in_place, bool append,
         }
         CloseHandle(hFile);
 #else
-        {
-            int fd = open(path, O_WRONLY);
-            if (fd < 0) return errno;
-        
-            int rc = ftruncate(fd, (off_t)size);
-            int saved = errno;
-        
-            close(fd);
-            if (rc != 0) return saved;
-        }
+        int fd = open(path, O_WRONLY);
+        if (fd < 0) return errno;
+        int rc = ftruncate(fd, (off_t)size);
+        int saved = errno;
+        close(fd);
+        if (rc != 0) return saved;
 #endif
     }
 
