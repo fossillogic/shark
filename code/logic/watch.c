@@ -58,6 +58,8 @@ static void fossil_shark_watch_file(const char *path, const char *events, struct
     *prev_stat = curr_stat;
 }
 
+#if !defined(_WIN32) && !defined(_WIN64)
+__attribute__((unused))
 static void fossil_shark_watch_dir(const char *dir_path, const char *events, int interval)
 {
     DIR *dir = opendir(dir_path);
@@ -86,6 +88,7 @@ static void fossil_shark_watch_dir(const char *dir_path, const char *events, int
     }
     closedir(dir);
 }
+#endif
 
 int fossil_shark_watch(const char *path, bool recursive,
                        const char *events, int interval)
