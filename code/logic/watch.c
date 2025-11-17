@@ -20,6 +20,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
+#include <sys/stat.h>
 #else
 #include <unistd.h>
 #include <sys/stat.h>
