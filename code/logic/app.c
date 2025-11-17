@@ -29,44 +29,44 @@ void show_commands(char* app_name) {
     fossil_io_printf("                   -d, --depth <n>   Limit recursion depth\n");
     fossil_io_printf("                   --as <format>     Format: list, tree, graph\n");
     fossil_io_printf("                   --time            Show timestamps{reset}\n");
-    
+
     fossil_io_printf("{cyan}  move             {reset}Move or rename files/directories\n");
     fossil_io_printf("{yellow}                   -f, --force       Overwrite without prompt\n");
     fossil_io_printf("                   -i, --interactive Ask before overwrite\n");
     fossil_io_printf("                   -b, --backup      Backup before move{reset}\n");
-    
+
     fossil_io_printf("{cyan}  copy             {reset}Copy files or directories\n");
     fossil_io_printf("{yellow}                   -r, --recursive   Copy subdirectories\n");
     fossil_io_printf("                   -u, --update      Only copy newer\n");
     fossil_io_printf("                   -p, --preserve    Keep permissions/timestamps{reset}\n");
-    
+
     fossil_io_printf("{cyan}  remove/delete    {reset}Delete files or directories\n");
     fossil_io_printf("{yellow}                   -r, --recursive   Delete contents\n");
     fossil_io_printf("                   -f, --force       No confirmation\n");
     fossil_io_printf("                   -i, --interactive Confirm per file\n");
     fossil_io_printf("                   --trash           Move to system trash{reset}\n");
-    
+
     fossil_io_printf("{cyan}  rename           {reset}Rename files or directories\n");
     fossil_io_printf("{yellow}                   -f, --force       Overwrite target\n");
     fossil_io_printf("                   -i, --interactive Confirm before overwrite{reset}\n");
-    
+
     fossil_io_printf("{cyan}  create           {reset}Create new directories or files\n");
     fossil_io_printf("{yellow}                   -p, --parents     Create parent dirs\n");
     fossil_io_printf("                   -t, --type        Creates either file or dir{reset}\n");
-    
+
     fossil_io_printf("{cyan}  search           {reset}Find files by name or content\n");
     fossil_io_printf("{yellow}                   -r, --recursive   Include subdirs\n");
     fossil_io_printf("                   -n, --name        Match filename\n");
     fossil_io_printf("                   -c, --content     Search in file contents\n");
     fossil_io_printf("                   -i, --ignore-case Case-insensitive{reset}\n");
-    
+
     fossil_io_printf("{cyan}  archive          {reset}Create, extract, or list archives\n");
     fossil_io_printf("{yellow}                   -c, --create      New archive\n");
     fossil_io_printf("                   -x, --extract     Extract contents\n");
     fossil_io_printf("                   -l, --list        List archive\n");
     fossil_io_printf("                   -f <format>       Format: zip/tar/gz\n");
     fossil_io_printf("                   -p, --password    Encrypt archive{reset}\n");
-    
+
     fossil_io_printf("{cyan}  view             {reset}Output file contents to terminal\n");
     fossil_io_printf("{yellow}                   -n, --number      Number all lines\n");
     fossil_io_printf("                   -b, --non-blank   Number non-empty lines\n");
@@ -74,17 +74,42 @@ void show_commands(char* app_name) {
     fossil_io_printf("                   -h, --head <n>    First n lines\n");
     fossil_io_printf("                   -t, --tail <n>    Last n lines\n");
     fossil_io_printf("                   --time            Show timestamps{reset}\n");
-    
+
     fossil_io_printf("{cyan}  compare          {reset}Compare two files/directories\n");
     fossil_io_printf("{yellow}                   -t, --text        Line diff\n");
     fossil_io_printf("                   -b, --binary      Binary diff\n");
     fossil_io_printf("                   --context <n>     Show context lines\n");
     fossil_io_printf("                   --ignore-case     Ignore case differences{reset}\n");
-    
+
+    fossil_io_printf("{cyan}  link             {reset}Create hard or symbolic links\n");
+    fossil_io_printf("{yellow}                   -s, --symbolic    Create a symlink\n");
+    fossil_io_printf("                   -f, --force       Overwrite existing\n");
+    fossil_io_printf("                   -n, --no-dereference Treat destination as file{reset}\n");
+
+    fossil_io_printf("{cyan}  info             {reset}Show detailed metadata about a file or directory\n");
+    fossil_io_printf("{yellow}                   -p, --permissions Show permissions\n");
+    fossil_io_printf("                   -o, --owner       Show owner/group\n");
+    fossil_io_printf("                   -s, --size        Show size\n");
+    fossil_io_printf("                   -t, --timestamps  Show times{reset}\n");
+
+    fossil_io_printf("{cyan}  sync             {reset}Synchronize files/directories\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   Include subdirs\n");
+    fossil_io_printf("                   -u, --update      Copy only newer\n");
+    fossil_io_printf("                   --delete          Remove extraneous files from target{reset}\n");
+
+    fossil_io_printf("{cyan}  watch            {reset}Continuously monitor files or directories\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   Include subdirs\n");
+    fossil_io_printf("                   -e, --events <list> Filter events: create/modify/delete\n");
+    fossil_io_printf("                   -t, --interval <n> Poll interval in seconds{reset}\n");
+
+    fossil_io_printf("{cyan}  stat             {reset}Display file statistics (size, blocks, permissions)\n");
+    fossil_io_printf("{yellow}                   -c, --format <fmt> Custom format\n");
+    fossil_io_printf("                   -f, --filesystem  Show FS info{reset}\n");
+
     fossil_io_printf("{cyan}  help             {reset}Display help for supported commands\n");
     fossil_io_printf("{yellow}                   --examples        Show usage examples\n");
     fossil_io_printf("                   --man             Full manual{reset}\n\n");
-    
+
     fossil_io_printf("{blue}🤖 AI Commands (Jellyfish Integration):{reset}\n");
     fossil_io_printf("{cyan}  chat             {reset}Start an interactive AI chat session\n");
     fossil_io_printf("{yellow}                   -f, --file <path> Use file content\n");
@@ -92,20 +117,20 @@ void show_commands(char* app_name) {
     fossil_io_printf("                   -s, --system <role> AI persona\n");
     fossil_io_printf("                   --save <path>     Save chat transcript\n");
     fossil_io_printf("                   --context         Keep session history{reset}\n");
-    
+
     fossil_io_printf("{cyan}  ask              {reset}Ask Jellyfish AI a one-shot question\n");
     fossil_io_printf("{yellow}                   -f, --file <path> Provide file context\n");
     fossil_io_printf("                   --explain         Force explanation\n");
     fossil_io_printf("                   --analyze         Deep analysis\n");
     fossil_io_printf("                   -q, --quiet       Minimal output{reset}\n");
-    
+
     fossil_io_printf("{cyan}  summery          {reset}Generate AI summary of file/directory\n");
     fossil_io_printf("{yellow}                   -f, --file <path> Use file content\n");
     fossil_io_printf("                   --depth <level>   Summary depth\n");
     fossil_io_printf("                   -q, --quiet       Minimal output\n");
     fossil_io_printf("                   --color           Highlight key items\n");
     fossil_io_printf("                   --time            Include timestamps{reset}\n\n");
-    
+
     fossil_io_printf("{blue}🌍 Global Options:{reset}\n");
     fossil_io_printf("{cyan}  --help           {reset}Display help information\n");
     fossil_io_printf("{cyan}  --version        {reset}Display current version\n");
@@ -461,6 +486,101 @@ bool app_entry(int argc, char** argv) {
             }
             fossil_shark_summery(file_path, depth, quiet, color, show_time);
             
+        } else if (fossil_io_cstring_compare(argv[i], "link") == 0) {
+            // Parse link command arguments and call fossil_shark_link
+            const char *target = NULL, *link_name = NULL;
+            bool symbolic = false, force = false, no_dereference = false;
+            for (int j = i + 1; j < argc; j++) {
+            if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--symbolic") == 0) {
+                symbolic = true;
+            } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0) {
+                force = true;
+            } else if (fossil_io_cstring_compare(argv[j], "-n") == 0 || fossil_io_cstring_compare(argv[j], "--no-dereference") == 0) {
+                no_dereference = true;
+            } else if (!target) {
+                target = argv[j];
+            } else if (!link_name) {
+                link_name = argv[j];
+            }
+            i = j;
+            }
+            if (target && link_name) fossil_shark_link(target, link_name, symbolic, force, no_dereference);
+
+        } else if (fossil_io_cstring_compare(argv[i], "info") == 0) {
+            // Parse info command arguments and call fossil_shark_info
+            const char *path = NULL;
+            bool show_permissions = false, show_owner = false, show_size = false, show_timestamps = false;
+            for (int j = i + 1; j < argc; j++) {
+            if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--permissions") == 0) {
+                show_permissions = true;
+            } else if (fossil_io_cstring_compare(argv[j], "-o") == 0 || fossil_io_cstring_compare(argv[j], "--owner") == 0) {
+                show_owner = true;
+            } else if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--size") == 0) {
+                show_size = true;
+            } else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--timestamps") == 0) {
+                show_timestamps = true;
+            } else if (!path) {
+                path = argv[j];
+            }
+            i = j;
+            }
+            if (path) fossil_shark_info(path, show_permissions, show_owner, show_size, show_timestamps);
+
+        } else if (fossil_io_cstring_compare(argv[i], "sync") == 0) {
+            // Parse sync command arguments and call fossil_shark_sync
+            const char *src = NULL, *dest = NULL;
+            bool recursive = false, update = false, delete_flag = false;
+            for (int j = i + 1; j < argc; j++) {
+            if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
+                recursive = true;
+            } else if (fossil_io_cstring_compare(argv[j], "-u") == 0 || fossil_io_cstring_compare(argv[j], "--update") == 0) {
+                update = true;
+            } else if (fossil_io_cstring_compare(argv[j], "--delete") == 0) {
+                delete_flag = true;
+            } else if (!src) {
+                src = argv[j];
+            } else if (!dest) {
+                dest = argv[j];
+            }
+            i = j;
+            }
+            if (src && dest) fossil_shark_sync(src, dest, recursive, update, delete_flag);
+
+        } else if (fossil_io_cstring_compare(argv[i], "watch") == 0) {
+            // Parse watch command arguments and call fossil_shark_watch
+            const char *path = NULL, *events = NULL;
+            bool recursive = false;
+            int interval = 1;
+            for (int j = i + 1; j < argc; j++) {
+            if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
+                recursive = true;
+            } else if (fossil_io_cstring_compare(argv[j], "-e") == 0 || fossil_io_cstring_compare(argv[j], "--events") == 0) {
+                if (j + 1 < argc) events = argv[++j];
+            } else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--interval") == 0) {
+                if (j + 1 < argc) interval = atoi(argv[++j]);
+            } else if (!path) {
+                path = argv[j];
+            }
+            i = j;
+            }
+            if (path) fossil_shark_watch(path, recursive, events, interval);
+
+        } else if (fossil_io_cstring_compare(argv[i], "stat") == 0) {
+            // Parse stat command arguments and call fossil_shark_stat
+            const char *path = NULL, *format = NULL;
+            bool filesystem = false;
+            for (int j = i + 1; j < argc; j++) {
+            if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--format") == 0) {
+                if (j + 1 < argc) format = argv[++j];
+            } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--filesystem") == 0) {
+                filesystem = true;
+            } else if (!path) {
+                path = argv[j];
+            }
+            i = j;
+            }
+            if (path) fossil_shark_stat(path, format, filesystem);
+
         } else {
             fossil_io_printf("{red}Unknown command: %s{reset}\n", argv[i]);
             return false;
