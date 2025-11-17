@@ -17,6 +17,7 @@
 
 /**
  * View and display file contents with formatting options
+ * Uses markup tags for colorizing tokens: {red}, {green}, {yellow}, {blue}, {magenta}, {cyan}, {normal}, etc.
  */
 int fossil_shark_view(ccstring path, bool number_lines,
                       bool number_non_blank, bool squeeze_blank,
@@ -24,6 +25,37 @@ int fossil_shark_view(ccstring path, bool number_lines,
     if (path == cnull) {
         fossil_io_fprintf(FOSSIL_STDERR, "{red}Error:{normal} File path must be specified.\n");
         return 1;
+    }
+
+    // Determine file type by extension
+    bool is_media = false, is_code = false, is_structured = false;
+    const char *ext = strrchr(path, '.');
+    if (ext) {
+        // Media file extensions
+        if (strcmp(ext, ".jpg") == 0 || strcmp(ext, ".jpeg") == 0 ||
+            strcmp(ext, ".png") == 0 || strcmp(ext, ".gif") == 0 ||
+            strcmp(ext, ".mp3") == 0 || strcmp(ext, ".mp4") == 0 ||
+            strcmp(ext, ".wav") == 0 || strcmp(ext, ".avi") == 0 ||
+            strcmp(ext, ".mov") == 0 || strcmp(ext, ".flac") == 0) {
+            is_media = true;
+        }
+        // Structured data file extensions
+        else if (strcmp(ext, ".json") == 0 || strcmp(ext, ".xml") == 0 ||
+                 strcmp(ext, ".yaml") == 0 || strcmp(ext, ".yml") == 0 ||
+                 strcmp(ext, ".toml") == 0 || strcmp(ext, ".ini") == 0 ||
+                 strcmp(ext, ".csv") == 0) {
+            is_structured = true;
+        }
+        // Code file extensions
+        else if (strcmp(ext, ".c") == 0 || strcmp(ext, ".cpp") == 0 ||
+                 strcmp(ext, ".h") == 0 || strcmp(ext, ".hpp") == 0 ||
+                 strcmp(ext, ".py") == 0 || strcmp(ext, ".js") == 0 ||
+                 strcmp(ext, ".java") == 0 || strcmp(ext, ".cs") == 0 ||
+                 strcmp(ext, ".go") == 0 || strcmp(ext, ".rs") == 0 ||
+                 strcmp(ext, ".sh") == 0 || strcmp(ext, ".html") == 0 ||
+                 strcmp(ext, ".css") == 0) {
+            is_code = true;
+        }
     }
 
     fossil_fstream_t stream;
@@ -63,27 +95,48 @@ int fossil_shark_view(ccstring path, bool number_lines,
     char buffer[8192];
 
     while (fossil_io_gets_from_stream(buffer, sizeof(buffer), &stream)) {
-        // Trim whitespace for better handling
         fossil_io_trim(buffer);
 
         if (squeeze_blank && strlen(buffer) == 0) {
             if (count > 0 && cnotnull(lines) && strlen(lines[count-1]) == 0) continue;
         }
 
-        // Colorize token chars in buffer
-        char colored_buf[8192 * 2]; // Enough space for color codes
+        // Colorize token chars in buffer based on file type using markup tags
+        char colored_buf[8192 * 2];
         size_t j = 0;
         for (size_t i = 0; buffer[i] != '\0' && j < sizeof(colored_buf) - 16; ++i) {
             char c = buffer[i];
-            if (c == '{' || c == '}' || c == '(' || c == ')' ||
-                c == '[' || c == ']' || c == ';' || c == ',' ||
-                c == '=' || c == '+' || c == '-' || c == '*' ||
-                c == '/' || c == '%' || c == '<' || c == '>' ||
-                c == '&' || c == '|' || c == '^' || c == '!') {
-                // Apply color to token chars
-                j += snprintf(colored_buf + j, sizeof(colored_buf) - j, "{yellow}%c{normal}", c);
+            if (is_media) {
+                // For media files, color everything magenta
+                j += snprintf(colored_buf + j, sizeof(colored_buf) - j, "{magenta}%c{normal}", c);
+            } else if (is_structured) {
+                // For structured data files, color punctuation cyan, keys green, values yellow
+                if (c == '{' || c == '}' || c == '[' || c == ']' ||
+                    c == ':' || c == ',' || c == '"' || c == '\'') {
+                    j += snprintf(colored_buf + j, sizeof(colored_buf) - j, "{cyan}%c{normal}", c);
+                } else if ((i == 0 || buffer[i-1] == '"' || buffer[i-1] == '\'') && (c >= 'a' && c <= 'z')) {
+                    // Simple heuristic: keys (start after quote)
+                    j += snprintf(colored_buf + j, sizeof(colored_buf) - j, "{green}%c{normal}", c);
+                } else if (c >= '0' && c <= '9') {
+                    // Values (numbers)
+                    j += snprintf(colored_buf + j, sizeof(colored_buf) - j, "{yellow}%c{normal}", c);
+                } else {
+                    j += snprintf(colored_buf + j, sizeof(colored_buf) - j, "{normal}%c", c);
+                }
+            } else if (is_code) {
+                // For code files, color token chars yellow, keywords blue, comments green
+                if (c == '{' || c == '}' || c == '(' || c == ')' ||
+                    c == '[' || c == ']' || c == ';' || c == ',' ||
+                    c == '=' || c == '+' || c == '-' || c == '*' ||
+                    c == '/' || c == '%' || c == '<' || c == '>' ||
+                    c == '&' || c == '|' || c == '^' || c == '!') {
+                    j += snprintf(colored_buf + j, sizeof(colored_buf) - j, "{yellow}%c{normal}", c);
+                } else {
+                    j += snprintf(colored_buf + j, sizeof(colored_buf) - j, "{normal}%c", c);
+                }
             } else {
-                colored_buf[j++] = c;
+                // Default: color as green
+                j += snprintf(colored_buf + j, sizeof(colored_buf) - j, "{green}%c{normal}", c);
             }
         }
         colored_buf[j] = '\0';
@@ -104,14 +157,13 @@ int fossil_shark_view(ccstring path, bool number_lines,
             }
             lines[count++] = fossil_io_cstring_dup_safe(colored_buf, strlen(colored_buf));
         } else {
-            // Print immediately for head_lines == 0 or counting from top
             if (head_lines == 0 || (int)count < head_lines) {
                 if (number_lines)
-                    fossil_io_printf("{blue}%6zu{normal}\t{green}%s{normal}\n", count + 1, colored_buf);
+                    fossil_io_printf("{blue}%6zu{normal}\t%s\n", count + 1, colored_buf);
                 else if (number_non_blank && strlen(buffer) > 0)
-                    fossil_io_printf("{blue}%6zu{normal}\t{green}%s{normal}\n", count + 1, colored_buf);
+                    fossil_io_printf("{blue}%6zu{normal}\t%s\n", count + 1, colored_buf);
                 else
-                    fossil_io_printf("{green}%s{normal}\n", colored_buf);
+                    fossil_io_printf("%s\n", colored_buf);
             }
             count++;
             if (head_lines > 0 && (int)count >= head_lines) break;
@@ -119,16 +171,15 @@ int fossil_shark_view(ccstring path, bool number_lines,
     }
     fossil_fstream_close(&stream);
 
-    // Handle tail_lines printing
     if (tail_lines > 0 && count > 0 && cnotnull(lines)) {
         size_t start = count > (size_t)tail_lines ? count - tail_lines : 0;
         for (size_t i = start; i < count; i++) {
             if (number_lines)
-                fossil_io_printf("{blue}%6zu{normal}\t{green}%s{normal}\n", i + 1, lines[i]);
+                fossil_io_printf("{blue}%6zu{normal}\t%s\n", i + 1, lines[i]);
             else if (number_non_blank && strlen(lines[i]) > 0)
-                fossil_io_printf("{blue}%6zu{normal}\t{green}%s{normal}\n", i + 1, lines[i]);
+                fossil_io_printf("{blue}%6zu{normal}\t%s\n", i + 1, lines[i]);
             else
-                fossil_io_printf("{green}%s{normal}\n", lines[i]);
+                fossil_io_printf("%s\n", lines[i]);
             fossil_io_cstring_free_safe(&lines[i]);
         }
         fossil_sys_memory_free(lines);
