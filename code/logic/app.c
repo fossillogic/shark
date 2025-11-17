@@ -81,11 +81,6 @@ void show_commands(char* app_name) {
     fossil_io_printf("                   --context <n>     Show context lines\n");
     fossil_io_printf("                   --ignore-case     Ignore case differences{reset}\n");
 
-    fossil_io_printf("{cyan}  link             {reset}Create hard or symbolic links\n");
-    fossil_io_printf("{yellow}                   -s, --symbolic    Create a symlink\n");
-    fossil_io_printf("                   -f, --force       Overwrite existing\n");
-    fossil_io_printf("                   -n, --no-dereference Treat destination as file{reset}\n");
-
     fossil_io_printf("{cyan}  info             {reset}Show detailed metadata about a file or directory\n");
     fossil_io_printf("{yellow}                   -p, --permissions Show permissions\n");
     fossil_io_printf("                   -o, --owner       Show owner/group\n");
@@ -101,10 +96,6 @@ void show_commands(char* app_name) {
     fossil_io_printf("{yellow}                   -r, --recursive   Include subdirs\n");
     fossil_io_printf("                   -e, --events <list> Filter events: create/modify/delete\n");
     fossil_io_printf("                   -t, --interval <n> Poll interval in seconds{reset}\n");
-
-    fossil_io_printf("{cyan}  stat             {reset}Display file statistics (size, blocks, permissions)\n");
-    fossil_io_printf("{yellow}                   -c, --format <fmt> Custom format\n");
-    fossil_io_printf("                   -f, --filesystem  Show FS info{reset}\n");
 
     fossil_io_printf("{cyan}  help             {reset}Display help for supported commands\n");
     fossil_io_printf("{yellow}                   --examples        Show usage examples\n");
@@ -486,26 +477,6 @@ bool app_entry(int argc, char** argv) {
             }
             fossil_shark_summery(file_path, depth, quiet, color, show_time);
             
-        } else if (fossil_io_cstring_compare(argv[i], "link") == 0) {
-            // Parse link command arguments and call fossil_shark_link
-            const char *target = NULL, *link_name = NULL;
-            bool symbolic = false, force = false, no_dereference = false;
-            for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--symbolic") == 0) {
-                symbolic = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0) {
-                force = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-n") == 0 || fossil_io_cstring_compare(argv[j], "--no-dereference") == 0) {
-                no_dereference = true;
-            } else if (!target) {
-                target = argv[j];
-            } else if (!link_name) {
-                link_name = argv[j];
-            }
-            i = j;
-            }
-            if (target && link_name) fossil_shark_link(target, link_name, symbolic, force, no_dereference);
-
         } else if (fossil_io_cstring_compare(argv[i], "info") == 0) {
             // Parse info command arguments and call fossil_shark_info
             const char *path = NULL;
@@ -564,22 +535,6 @@ bool app_entry(int argc, char** argv) {
             i = j;
             }
             if (path) fossil_shark_watch(path, recursive, events, interval);
-
-        } else if (fossil_io_cstring_compare(argv[i], "stat") == 0) {
-            // Parse stat command arguments and call fossil_shark_stat
-            const char *path = NULL, *format = NULL;
-            bool filesystem = false;
-            for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--format") == 0) {
-                if (j + 1 < argc) format = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--filesystem") == 0) {
-                filesystem = true;
-            } else if (!path) {
-                path = argv[j];
-            }
-            i = j;
-            }
-            if (path) fossil_shark_stat(path, format, filesystem);
 
         } else {
             fossil_io_printf("{red}Unknown command: %s{reset}\n", argv[i]);
