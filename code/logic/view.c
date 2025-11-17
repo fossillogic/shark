@@ -61,14 +61,32 @@ int fossil_shark_view(ccstring path, bool number_lines,
     cstring *lines = cnull;
     size_t count = 0, capacity = 0;
     char buffer[8192];
-    
+
     while (fossil_io_gets_from_stream(buffer, sizeof(buffer), &stream)) {
         // Trim whitespace for better handling
         fossil_io_trim(buffer);
-        
+
         if (squeeze_blank && strlen(buffer) == 0) {
             if (count > 0 && cnotnull(lines) && strlen(lines[count-1]) == 0) continue;
         }
+
+        // Colorize token chars in buffer
+        char colored_buf[8192 * 2]; // Enough space for color codes
+        size_t j = 0;
+        for (size_t i = 0; buffer[i] != '\0' && j < sizeof(colored_buf) - 16; ++i) {
+            char c = buffer[i];
+            if (c == '{' || c == '}' || c == '(' || c == ')' ||
+                c == '[' || c == ']' || c == ';' || c == ',' ||
+                c == '=' || c == '+' || c == '-' || c == '*' ||
+                c == '/' || c == '%' || c == '<' || c == '>' ||
+                c == '&' || c == '|' || c == '^' || c == '!') {
+                // Apply color to token chars
+                j += snprintf(colored_buf + j, sizeof(colored_buf) - j, "{yellow}%c{normal}", c);
+            } else {
+                colored_buf[j++] = c;
+            }
+        }
+        colored_buf[j] = '\0';
 
         if (tail_lines > 0) {
             if (count >= capacity) {
@@ -84,15 +102,16 @@ int fossil_shark_view(ccstring path, bool number_lines,
                 }
                 lines = new_lines;
             }
-            lines[count++] = fossil_io_cstring_dup_safe(buffer, strlen(buffer));
+            lines[count++] = fossil_io_cstring_dup_safe(colored_buf, strlen(colored_buf));
         } else {
             // Print immediately for head_lines == 0 or counting from top
             if (head_lines == 0 || (int)count < head_lines) {
-                if (number_lines) fossil_io_printf("{blue}%6zu{normal}\t%s\n", count + 1, buffer);
+                if (number_lines)
+                    fossil_io_printf("{blue}%6zu{normal}\t{green}%s{normal}\n", count + 1, colored_buf);
                 else if (number_non_blank && strlen(buffer) > 0)
-                    fossil_io_printf("{blue}%6zu{normal}\t%s\n", count + 1, buffer);
+                    fossil_io_printf("{blue}%6zu{normal}\t{green}%s{normal}\n", count + 1, colored_buf);
                 else
-                    fossil_io_printf("%s\n", buffer);
+                    fossil_io_printf("{green}%s{normal}\n", colored_buf);
             }
             count++;
             if (head_lines > 0 && (int)count >= head_lines) break;
@@ -104,11 +123,12 @@ int fossil_shark_view(ccstring path, bool number_lines,
     if (tail_lines > 0 && count > 0 && cnotnull(lines)) {
         size_t start = count > (size_t)tail_lines ? count - tail_lines : 0;
         for (size_t i = start; i < count; i++) {
-            if (number_lines) fossil_io_printf("{blue}%6zu{normal}\t%s\n", i + 1, lines[i]);
+            if (number_lines)
+                fossil_io_printf("{blue}%6zu{normal}\t{green}%s{normal}\n", i + 1, lines[i]);
             else if (number_non_blank && strlen(lines[i]) > 0)
-                fossil_io_printf("{blue}%6zu{normal}\t%s\n", i + 1, lines[i]);
+                fossil_io_printf("{blue}%6zu{normal}\t{green}%s{normal}\n", i + 1, lines[i]);
             else
-                fossil_io_printf("%s\n", lines[i]);
+                fossil_io_printf("{green}%s{normal}\n", lines[i]);
             fossil_io_cstring_free_safe(&lines[i]);
         }
         fossil_sys_memory_free(lines);
