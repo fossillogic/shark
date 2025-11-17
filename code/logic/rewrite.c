@@ -85,7 +85,16 @@ int fossil_shark_rewrite(const char *path, bool in_place, bool append,
         }
         CloseHandle(hFile);
 #else
-        if (truncate(path, size) != 0) return errno;
+        {
+            int fd = open(path, O_WRONLY);
+            if (fd < 0) return errno;
+        
+            int rc = ftruncate(fd, (off_t)size);
+            int saved = errno;
+        
+            close(fd);
+            if (rc != 0) return saved;
+        }
 #endif
     }
 
