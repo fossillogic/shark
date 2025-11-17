@@ -164,6 +164,23 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("{blue,bold}Options:{normal}\n");
             fossil_io_printf("  {cyan}--examples{normal}  Show usage examples\n");
             fossil_io_printf("  {cyan}--man{normal}       Show full manual\n");
+        } else if (fossil_io_cstring_equals(command, "rewrite")) {
+            fossil_io_printf("{blue,bold}Usage:{normal} rewrite [options] <path> [content]\n");
+            fossil_io_printf("{blue,bold}Options:{normal}\n");
+            fossil_io_printf("  {cyan}--in-place{normal}       Modify file directly (default)\n");
+            fossil_io_printf("  {cyan}-a, --append{normal}     Append content instead of overwriting\n");
+            fossil_io_printf("  {cyan}--size <n>{normal}       Truncate or extend file to exact size\n");
+            fossil_io_printf("  {cyan}--access-time{normal}    Update file access time\n");
+            fossil_io_printf("  {cyan}--mod-time{normal}       Update file modification time\n");
+            fossil_io_printf("  {cyan}<content>{normal}        Optional content to write\n");
+        } else if (fossil_io_cstring_equals(command, "introspect")) {
+            fossil_io_printf("{blue,bold}Usage:{normal} introspect [options] <path>\n");
+            fossil_io_printf("{blue,bold}Options:{normal}\n");
+            fossil_io_printf("  {cyan}--head <n>{normal}       Show first n lines\n");
+            fossil_io_printf("  {cyan}--tail <n>{normal}       Show last n lines\n");
+            fossil_io_printf("  {cyan}--count{normal}          Count lines, words, bytes\n");
+            fossil_io_printf("  {cyan}--type{normal}           Show file type or MIME\n");
+            fossil_io_printf("  {cyan}--fson{normal}           Output metadata in FSON format\n");
         } else {
             fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Unknown command: %s{normal}\n", command);
             return 1;
@@ -188,6 +205,8 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             else if (fossil_io_cstring_equals(command, "ask")) fossil_io_printf("  {cyan}ask -f file.txt --explain{normal}\n");
             else if (fossil_io_cstring_equals(command, "summery")) fossil_io_printf("  {cyan}summery -f report.txt --color --depth 3{normal}\n");
             else if (fossil_io_cstring_equals(command, "help")) fossil_io_printf("  {cyan}help show --examples{normal}\n");
+            else if (fossil_io_cstring_equals(command, "rewrite")) fossil_io_printf("  {cyan}rewrite --in-place -a file.txt \"New content\"{normal}\n");
+            else if (fossil_io_cstring_equals(command, "introspect")) fossil_io_printf("  {cyan}introspect --head 10 --type file.txt{normal}\n");
         }
 
         if (cunlikely(full_manual)) {
