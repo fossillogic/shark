@@ -27,23 +27,49 @@
 #include <utime.h>
 #endif
 
+/**
+ * Modify or update file contents, timestamps, or size
+ * @param path Path to the file to modify
+ * @param in_place If true, modify the file directly; if false, write via temporary file
+ * @param append Append content instead of overwriting
+ * @param new_content Content to write to the file (NULL if only updating timestamps/size)
+ * @param size Set exact file size (truncate or extend)
+ * @param update_access_time Update file access time
+ * @param update_mod_time Update file modification time
+ * @return 0 on success, non-zero on error
+ */
 int fossil_shark_rewrite(const char *path, bool in_place, bool append,
                          const char *new_content, size_t size,
-                         bool update_access_time, bool update_mod_time) 
+                         bool update_access_time, bool update_mod_time)
 {
     if (!path) return -1;
 
+    // Use a temporary file if not modifying in place
+    char tmp_path[FILENAME_MAX];
     FILE *fp = NULL;
-
-    // Handle content writing
-    if (new_content) {
+    if (!in_place && new_content) {
+        snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", path);
+        fp = fopen(tmp_path, "wb");
+    } else if (new_content) {
         fp = fopen(path, append ? "ab" : "wb");
+    }
+
+    if (new_content) {
         if (!fp) return errno;
         if (fwrite(new_content, 1, strlen(new_content), fp) != strlen(new_content)) {
             fclose(fp);
             return errno;
         }
         fclose(fp);
+
+        if (!in_place) {
+            // Replace original file with temporary file
+#if defined(_WIN32) || defined(_WIN64)
+            if (!MoveFileExA(tmp_path, path, MOVEFILE_REPLACE_EXISTING)) return -1;
+#else
+            if (rename(tmp_path, path) != 0) return errno;
+#endif
+        }
     }
 
     // Handle truncating/extending file size
@@ -53,11 +79,7 @@ int fossil_shark_rewrite(const char *path, bool in_place, bool append,
         if (hFile == INVALID_HANDLE_VALUE) return -1;
         LARGE_INTEGER li;
         li.QuadPart = size;
-        if (SetFilePointerEx(hFile, li, NULL, FILE_BEGIN) == 0) {
-            CloseHandle(hFile);
-            return -1;
-        }
-        if (SetEndOfFile(hFile) == 0) {
+        if (SetFilePointerEx(hFile, li, NULL, FILE_BEGIN) == 0 || SetEndOfFile(hFile) == 0) {
             CloseHandle(hFile);
             return -1;
         }
@@ -73,12 +95,12 @@ int fossil_shark_rewrite(const char *path, bool in_place, bool append,
         HANDLE hFile = CreateFileA(path, FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, 0, NULL);
         if (hFile == INVALID_HANDLE_VALUE) return -1;
         FILETIME ftCreate, ftAccess, ftWrite;
-        SYSTEMTIME stUTC;
         GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite);
+        SYSTEMTIME stUTC;
         GetSystemTime(&stUTC);
         SystemTimeToFileTime(&stUTC, &ftWrite);
         if (!SetFileTime(hFile,
-                         update_access_time ? NULL : &ftCreate,
+                         NULL,
                          update_access_time ? &ftWrite : &ftAccess,
                          update_mod_time ? &ftWrite : &ftWrite)) {
             CloseHandle(hFile);
