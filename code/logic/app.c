@@ -592,7 +592,7 @@ bool app_entry(int argc, char** argv) {
             }
 
             if (path) {
-                int rc = fossil_shark_introspect(path, head_lines, tail_lines, count_lwb, show_type, output_json);
+                int rc = fossil_shark_introspect(path, head_lines, tail_lines, count_lwb, show_type, output_fson);
                 if (rc != 0) {
                     fossil_io_printf("{red}Introspect failed: %s{reset}\n", path);
                 }
