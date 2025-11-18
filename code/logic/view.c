@@ -778,13 +778,8 @@ static void format_meson_line(ccstring line) {
 
     // Count leading spaces/tabs for indent
     size_t indent_len = 0;
-    size_t indent = 0;
     while (i < len && (line[i] == ' ' || line[i] == '\t')) {
         indent_len++;
-        if (line[i] == '\t')
-            indent += 4;
-        else
-            indent++;
         i++;
     }
     if (indent_len > 0)
