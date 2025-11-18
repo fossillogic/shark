@@ -387,6 +387,22 @@ int fossil_shark_introspect(const char *path, int show_head_lines,
                              int show_tail_lines, bool count_lines_words_bytes,
                              bool show_file_type, bool output_json);
 
+/**
+ * Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning.
+ * Uses SOAP API for advanced grammar and content analysis.
+ * @param file_path Path to file or text to analyze
+ * @param check Run grammar check
+ * @param fix Auto-correct grammar issues
+ * @param sanitize Remove meme/rot-brain language
+ * @param suggest Suggest alternative phrasing
+ * @param tone Detect tone of content
+ * @param detect_type Type of detector to run (e.g., ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble)
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_grammar(const char *file_path, bool check, bool fix,
+                         bool sanitize, bool suggest, bool tone,
+                         const char *detect_type);
+
 // ========================================================
 // AI Commands
 // ========================================================

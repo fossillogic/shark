@@ -116,6 +116,14 @@ void show_commands(char* app_name) {
     fossil_io_printf("{yellow}                   --type            {reset}{bright_black}Show file type or MIME{reset}\n");
     fossil_io_printf("{yellow}                   --fson            {reset}{bright_black}Output metadata in FSON format{reset}\n");
 
+    fossil_io_printf("{cyan}  grammar          {reset}Perform grammar analysis and correction via SOAP API\n");
+    fossil_io_printf("{yellow}                   --check           {reset}{bright_black}Run grammar check{reset}\n");
+    fossil_io_printf("{yellow}                   --fix             {reset}{bright_black}Auto-correct grammar{reset}\n");
+    fossil_io_printf("{yellow}                   --sanitize        {reset}{bright_black}Remove rot-brain/meme language{reset}\n");
+    fossil_io_printf("{yellow}                   --suggest         {reset}{bright_black}Suggest alternatives{reset}\n");
+    fossil_io_printf("{yellow}                   --tone            {reset}{bright_black}Detect tone{reset}\n");
+    fossil_io_printf("{yellow}                   --detect <type>   {reset}{bright_black}Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble{reset}\n");
+
     fossil_io_printf("{blue}🤖 AI Commands (Jellyfish Integration):{reset}\n");
     fossil_io_printf("{cyan}  chat             {reset}Start an interactive AI chat session\n");
     fossil_io_printf("{yellow}                   -f, --file <path> {reset}{bright_black}Use file content{reset}\n");
@@ -595,6 +603,38 @@ bool app_entry(int argc, char** argv) {
                 int rc = fossil_shark_introspect(path, head_lines, tail_lines, count_lwb, show_type, output_fson);
                 if (rc != 0) {
                     fossil_io_printf("{red}Introspect failed: %s{reset}\n", path);
+                }
+            }
+
+        } else if (fossil_io_cstring_compare(argv[i], "grammar") == 0) {
+            // Parse grammar command arguments and call fossil_shark_grammar
+            const char *file_path = NULL;
+            bool check = false, fix = false, sanitize = false, suggest = false, tone = false;
+            const char *detect_type = NULL;
+
+            for (int j = i + 1; j < argc; j++) {
+                if (fossil_io_cstring_compare(argv[j], "--check") == 0) {
+                    check = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--fix") == 0) {
+                    fix = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--sanitize") == 0) {
+                    sanitize = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--suggest") == 0) {
+                    suggest = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--tone") == 0) {
+                    tone = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--detect") == 0 && j + 1 < argc) {
+                    detect_type = argv[++j];
+                } else if (!file_path) {
+                    file_path = argv[j];
+                }
+                i = j;
+            }
+
+            if (file_path) {
+                int rc = fossil_shark_grammar(file_path, check, fix, sanitize, suggest, tone, detect_type);
+                if (rc != 0) {
+                    fossil_io_printf("{red}Grammar analysis failed: %s{reset}\n", file_path);
                 }
             }
         } else {

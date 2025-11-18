@@ -35,6 +35,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         fossil_io_printf("  {cyan}sync{normal}      - Synchronize files/directories\n");
         fossil_io_printf("  {cyan}watch{normal}     - Monitor files/directories\n");
         fossil_io_printf("  {cyan}help{normal}      - Show help and usage\n");
+        fossil_io_printf("  {cyan}grammar{normal}   - Grammar analysis and correction\n");
         fossil_io_printf("\n{blue,bold}AI Commands:{normal}\n");
         fossil_io_printf("  {cyan}chat{normal}      - Interactive AI chat session\n");
         fossil_io_printf("  {cyan}ask{normal}       - Ask AI a single question\n");
@@ -181,6 +182,15 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan}--count{normal}          Count lines, words, bytes\n");
             fossil_io_printf("  {cyan}--type{normal}           Show file type or MIME\n");
             fossil_io_printf("  {cyan}--fson{normal}           Output metadata in FSON format\n");
+        } else if (fossil_io_cstring_equals(command, "grammar")) {
+            fossil_io_printf("{blue,bold}Usage:{normal} grammar [options] <file>\n");
+            fossil_io_printf("{blue,bold}Options:{normal}\n");
+            fossil_io_printf("  {cyan}--check{normal}           Run grammar check\n");
+            fossil_io_printf("  {cyan}--fix{normal}             Auto-correct grammar\n");
+            fossil_io_printf("  {cyan}--sanitize{normal}        Remove rot-brain/meme language\n");
+            fossil_io_printf("  {cyan}--suggest{normal}         Suggest alternatives\n");
+            fossil_io_printf("  {cyan}--tone{normal}            Detect tone\n");
+            fossil_io_printf("  {cyan}--detect <type>{normal}   Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble\n");
         } else {
             fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Unknown command: %s{normal}\n", command);
             return 1;
@@ -207,6 +217,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             else if (fossil_io_cstring_equals(command, "help")) fossil_io_printf("  {cyan}help show --examples{normal}\n");
             else if (fossil_io_cstring_equals(command, "rewrite")) fossil_io_printf("  {cyan}rewrite --in-place -a file.txt \"New content\"{normal}\n");
             else if (fossil_io_cstring_equals(command, "introspect")) fossil_io_printf("  {cyan}introspect --head 10 --type file.txt{normal}\n");
+            else if (fossil_io_cstring_equals(command, "grammar")) fossil_io_printf("  {cyan}grammar --check file.txt{normal}\n");
         }
 
         if (cunlikely(full_manual)) {
