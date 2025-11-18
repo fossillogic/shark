@@ -7,7 +7,7 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 
 ## 🚀 Features
 
-- 🧰 Common file and directory operations (show, copy, move, delete, etc.)
+- 🧰 Common file and directory operations (`show`, `copy`, `move`, `delete`, `etc`.)
 - 🧠 Integrated **Jellyfish AI** commands (`chat`, `ask`, `summary`)
 - 🗂 Archive creation and extraction
 - 🔍 Recursive search and content filtering
@@ -64,18 +64,26 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `--time` | Display timestamps in output. |
 
 ### 🧩 Usage Examples
-
 | **Example** | **Description** |
 |--------------|-----------------|
-| `shark show -lh --as=graph --time` | Show files in long, human-readable format with as graph display and timestamps. |
-| `shark copy -rp src/ backup/` | Copy directory recursively, preserving attributes. |
-| `shark search -rc "config"` | Recursively search for “config” inside files. |
-| `shark archive -c -f zip project.zip src/` | Create a ZIP archive from the `src/` directory. |
-| `shark view -n --color --time file.txt` | View file content with line numbers, syntax highlighting, and timestamps. |
-| `shark chat "Help me debug this error message"` | Start an interactive AI chat session in the terminal. |
-| `shark summery -f report.txt --depth 2 --color --time` | Generate a concise AI summary of a file, highlighting key points with timestamps. |
-| `shark compare main_v1.c main_v2.c --ai --context 5` | Compare two source files with semantic AI diff and show 5 lines of surrounding context. |
-| `shark ask "How do I safely delete directories?"` | Ask AI-powered help for guidance on safe file deletion. |
+| `shark show -alh --as=tree --time` | List all files (including hidden) in long, human-readable format as a tree, with timestamps. |
+| `shark move -i -b old.txt archive/old.txt` | Move a file interactively, creating a backup before moving. |
+| `shark copy -rp src/ backup/` | Recursively copy the `src/` directory to `backup/`, preserving permissions and timestamps. |
+| `shark remove -r --trash temp/` | Recursively move the `temp/` directory and its contents to the system trash. |
+| `shark rename -i draft.md final.md` | Rename a file with confirmation before overwriting the target. |
+| `shark create -p -t dir logs/archive/2024/` | Create a nested directory structure for logs. |
+| `shark search -rc "config"` | Recursively search for the string "config" inside files. |
+| `shark archive -c -f tar project.tar src/` | Create a TAR archive from the `src/` directory. |
+| `shark view -n -h 20 --time notes.txt` | View the first 20 lines of a file with line numbers and timestamps. |
+| `shark compare -t main_v1.c main_v2.c --context 5` | Show a line-by-line diff of two files with 5 lines of context. |
+| `shark sync -ru src/ dest/` | Synchronize files from `src/` to `dest/`, copying only newer files recursively. |
+| `shark watch -r -e create,delete src/` | Monitor the `src/` directory recursively for file creation and deletion events. |
+| `shark rewrite -i --append log.txt "New entry"` | Append a new entry to a log file in-place. |
+| `shark introspect --mime report.pdf` | Show the MIME type of a file. |
+| `shark grammar --check --tone notes.txt` | Run a grammar check and detect tone in a text file. |
+| `shark chat -f error.log "Explain this error" --save chat.txt` | Start an AI chat using file context and save the transcript. |
+| `shark ask -f script.sh --analyze "Is this script safe?"` | Ask Jellyfish AI for a safety analysis of a script file. |
+| `shark summery -f report.txt --depth 2 --color --time` | Generate an AI summary of a file, highlighting key points with timestamps. |
 
 ## **Prerequisites**
 
@@ -131,4 +139,4 @@ For issues, questions, or feedback, open an issue on the [GitHub repository](htt
 
 ## **License**
 
-This project is licensed under the [Mozilla Public License](LICENSE).
+This project is licensed under the [Apache Public License](LICENSE).
