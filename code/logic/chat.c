@@ -24,19 +24,64 @@
  */
 #include "fossil/code/commands.h"
 
-/**
- * Start an interactive AI chat session
- */
-int fossil_shark_chat(ccstring file_path, ccstring model_name,
-                      ccstring system_role, ccstring save_path,
-                      bool keep_context) {
-    cunused(file_path);
-    cunused(model_name);
-    cunused(system_role);
-    cunused(save_path);
-    cunused(keep_context);
+int fossil_shark_chat(const char *model_id, bool keep_context, const char *save_file) {
+    fossil_io_printf("{cyan,bold}=== Interactive Chat Session ==={normal}\n");
+    fossil_io_printf("{green}Model:{normal} %s\n", model_id ? model_id : "default");
+    fossil_io_printf("{green}Keep Context:{normal} %s\n", keep_context ? "Yes" : "No");
+    if (save_file)
+        fossil_io_printf("{green}Save Transcript To:{normal} %s\n", save_file);
+    else
+        fossil_io_printf("{green}Save Transcript To:{normal} Not saving\n");
 
-    fossil_io_printf("{red}Error: Command not implemented yet.{normal}\n");
+    // Jellyfish AI Git-chain hybrid session
+    fossil_ai_jellyfish_chain_t chain;
+    fossil_ai_jellyfish_init(&chain);
+
+    char input_buf[FOSSIL_JELLYFISH_INPUT_SIZE];
+    char output_buf[FOSSIL_JELLYFISH_OUTPUT_SIZE];
+    int running = 1;
+
+    while (running) {
+        fossil_io_printf("{blue}You:{normal} ");
+        if (!fossil_io_readline(input_buf, sizeof(input_buf))) {
+            fossil_io_printf("{red}Input error or EOF. Exiting chat.{normal}\n");
+            break;
+        }
+        if (strcmp(input_buf, "/exit") == 0 || strcmp(input_buf, "/quit") == 0) {
+            fossil_io_printf("{magenta}Session ended.{normal}\n");
+            break;
+        }
+        // Reason using Jellyfish chain
+        float confidence = 0.0f;
+        const fossil_ai_jellyfish_block_t *matched = NULL;
+        bool found = fossil_ai_jellyfish_reason_verbose(&chain, input_buf, output_buf, &confidence, &matched);
+
+        if (found && confidence > 0.0f) {
+            fossil_io_printf("{yellow}AI:{normal} %s {gray}(confidence: %.2f){normal}\n", output_buf, confidence);
+        } else {
+            strcpy(output_buf, "Unknown");
+            fossil_io_printf("{yellow}AI:{normal} Unknown\n");
+        }
+
+        // Learn new input/output pair if not found
+        if (!found || confidence < 0.5f) {
+            fossil_ai_jellyfish_learn(&chain, input_buf, output_buf);
+        }
+
+        // Optionally save transcript
+        if (save_file) {
+            FILE *fp = fopen(save_file, "a");
+            if (fp) {
+                fprintf(fp, "You: %s\nAI: %s\n", input_buf, output_buf);
+                fclose(fp);
+            }
+        }
+    }
+
+    // Optionally persist chain state
+    if (save_file) {
+        fossil_ai_jellyfish_save(&chain, save_file);
+    }
 
     return 0;
 }

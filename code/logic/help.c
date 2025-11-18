@@ -148,29 +148,27 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}-r, --recursive{normal}      Include subdirs\n");
             fossil_io_printf("  {cyan,bold}-e, --events <list>{normal}  Filter events: create/modify/delete\n");
             fossil_io_printf("  {cyan,bold}-t, --interval <n>{normal}   Poll interval in seconds\n");
-        } else if (fossil_io_cstring_equals(command, "chat")) {
-            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}chat [options]{normal}\n");
-            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
-            fossil_io_printf("  {cyan,bold}-f, --file <path>{normal}  Use file content\n");
-            fossil_io_printf("  {cyan,bold}-m, --model <name>{normal} Select model\n");
-            fossil_io_printf("  {cyan,bold}-s, --system <role>{normal} AI persona\n");
-            fossil_io_printf("  {cyan,bold}--save <path>{normal}      Save chat transcript\n");
-            fossil_io_printf("  {cyan,bold}--context{normal}          Keep session history\n");
         } else if (fossil_io_cstring_equals(command, "ask")) {
-            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}ask [options]{normal}\n");
-            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
-            fossil_io_printf("  {cyan,bold}-f, --file <path>{normal}  Provide file context\n");
-            fossil_io_printf("  {cyan,bold}--explain{normal}          Force explanation\n");
-            fossil_io_printf("  {cyan,bold}--analyze{normal}          Deep analysis\n");
-            fossil_io_printf("  {cyan,bold}-q, --quiet{normal}        Minimal output\n");
+            fossil_io_printf("{blue,bold,underline}Command:{normal} {green}ask{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Description:{normal} Run a one-shot prompt against a module or chain.\n");
+            fossil_io_printf("{blue,bold,underline}Common Flags:{normal}\n");
+            fossil_io_printf("  {cyan,bold}-m, --model <id>{normal}    Model to use\n");
+            fossil_io_printf("  {cyan,bold}-f, --file <path>{normal}   Provide file context\n");
+            fossil_io_printf("  {cyan,bold}--explain{normal}           Request explanation\n");
+        } else if (fossil_io_cstring_equals(command, "chat")) {
+            fossil_io_printf("{blue,bold,underline}Command:{normal} {green}chat{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Description:{normal} Interactive conversation session with a local module.\n");
+            fossil_io_printf("{blue,bold,underline}Common Flags:{normal}\n");
+            fossil_io_printf("  {cyan,bold}--context{normal}           Keep conversation history\n");
+            fossil_io_printf("  {cyan,bold}--save <file>{normal}       Save chat transcript\n");
+            fossil_io_printf("  {cyan,bold}-m, --model <id>{normal}    Model to use\n");
         } else if (fossil_io_cstring_equals(command, "summery")) {
-            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}summery [options] <file>{normal}\n");
-            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
-            fossil_io_printf("  {cyan,bold}-f, --file <path>{normal}  Use file content\n");
-            fossil_io_printf("  {cyan,bold}--depth <level>{normal}    Summary depth\n");
-            fossil_io_printf("  {cyan,bold}-q, --quiet{normal}        Minimal output\n");
-            fossil_io_printf("  {cyan,bold}--color{normal}            Highlight key items\n");
-            fossil_io_printf("  {cyan,bold}--time{normal}             Include timestamps\n");
+            fossil_io_printf("{blue,bold,underline}Command:{normal} {green}summary{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Description:{normal} Summarize datasets, chains, logs, or model states.\n");
+            fossil_io_printf("{blue,bold,underline}Common Flags:{normal}\n");
+            fossil_io_printf("  {cyan,bold}-f, --file <path>{normal}   File to summarize\n");
+            fossil_io_printf("  {cyan,bold}--depth <n>{normal}         Summary depth\n");
+            fossil_io_printf("  {cyan,bold}--time{normal}              Show timestamps\n");
         } else if (fossil_io_cstring_equals(command, "help")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}help [command]{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
@@ -240,11 +238,11 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             else if (fossil_io_cstring_equals(command, "grammar"))
             fossil_io_printf("  {cyan,bold}shark grammar --check --tone notes.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "chat"))
-            fossil_io_printf("  {cyan,bold}shark chat -f error.log \"Explain this error\" --save chat.txt{normal}\n");
+            fossil_io_printf("  {cyan,bold}shark chat --context -m jelly.fish --save chat.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "ask"))
-            fossil_io_printf("  {cyan,bold}shark ask -f script.sh --analyze \"Is this script safe?\"{normal}\n");
-            else if (fossil_io_cstring_equals(command, "summery"))
-            fossil_io_printf("  {cyan,bold}shark summery -f report.txt --depth 2 --color --time{normal}\n");
+            fossil_io_printf("  {cyan,bold}shark ask -m jelly.fish -f script.sh --explain \"Is this script safe?\"{normal}\n");
+            else if (fossil_io_cstring_equals(command, "summary"))
+            fossil_io_printf("  {cyan,bold}shark summary -f report.txt --depth 2 --time{normal}\n");
         }
 
         if (cunlikely(full_manual)) {

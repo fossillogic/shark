@@ -26,25 +26,33 @@
 #include <sys/stat.h>
 #include <time.h>
 
-/**
- * Generate a concise AI-powered summary of file contents
- */
-int fossil_shark_summery(ccstring file_path, int depth,
-                         bool quiet, bool color, bool show_time) {
- 
-    cunused(depth);
-    cunused(quiet);
-    cunused(color);
-    cunused(show_time);
-
-    if (cnotnull(file_path)) {
-        fossil_io_printf("{green}Generating summary for file: %s{normal}\n", file_path);
-        // Placeholder summary generation logic
-        fossil_io_printf("{yellow}Summary: This is a concise summary of the file contents.{normal}\n");
-        return 0;
+int fossil_shark_summary(const char *file_path, int depth, bool show_time) {
+    fossil_ai_jellyfish_chain_t chain;
+    int rc = fossil_ai_jellyfish_load(&chain, file_path);
+    if (rc != 0) {
+        fossil_io_printf("{red}Failed to load chain from file: {cyan}%s{reset}\n", file_path);
+        return rc;
     }
 
-    fossil_io_printf("{red}Error: Command not implemented yet.{normal}\n");
+    fossil_io_printf("{blue}Jellyfish Chain Summary for: {cyan}%s{reset}\n", file_path);
+    fossil_io_printf("{blue}Commits: {cyan}%zu{reset}\n", chain.count);
+    fossil_io_printf("{blue}Branches: {cyan}%zu{reset}\n", chain.branch_count);
+    fossil_io_printf("{blue}Summary depth: {cyan}%d{reset}\n", depth);
+    fossil_io_printf("{blue}Show timestamps: {cyan}%s{reset}\n", show_time ? "Yes" : "No");
 
-    return 0;
+    size_t shown = 0;
+    for (size_t i = 0; i < chain.count && shown < (size_t)depth; ++i) {
+        const fossil_ai_jellyfish_block_t *block = &chain.commits[i];
+        char type_str[32];
+        snprintf(type_str, sizeof(type_str), "%s", fossil_ai_jellyfish_commit_type_name(block->block_type));
+        fossil_io_printf("  {yellow}[%zu]{reset} {green}%s{reset}: {white}%s{reset}\n",
+            i, type_str, block->identity.commit_message);
+
+        if (show_time) {
+            fossil_io_printf("    {magenta}Timestamp:{reset} %llu\n", (unsigned long long)block->time.timestamp);
+        }
+        shown++;
+    }
+
+    return FOSSIL_IO_SUCCESS;
 }

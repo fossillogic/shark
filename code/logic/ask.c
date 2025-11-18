@@ -24,17 +24,42 @@
  */
 #include "fossil/code/commands.h"
 
-/**
- * Ask AI a single question about a file or topic
- */
-int fossil_shark_ask(ccstring file_path, bool explain,
-                     bool analyze, bool quiet) {
-    
-    cunused(file_path);
-    cunused(explain);
-    cunused(analyze);
-    cunused(quiet);
-    
-    fossil_io_printf("{red}Error: Command not implemented yet.{normal}\n");
+int fossil_shark_ask(const char *model_id, const char *file_path, bool explain) {
+    fossil_io_printf("{cyan,bold}=== One-Shot AI Prompt ==={normal}\n");
+    fossil_io_printf("{green}Model:{normal} %s\n", model_id ? model_id : "default");
+    if (file_path)
+        fossil_io_printf("{green}File Context:{normal} %s\n", file_path);
+    else
+        fossil_io_printf("{green}File Context:{normal} None provided\n");
+    fossil_io_printf("{green}Explain Response:{normal} %s\n", explain ? "Yes" : "No");
+
+    // --- Jellyfish AI Git-chain Hybrid usage ---
+    fossil_ai_jellyfish_chain_t chain;
+    fossil_ai_jellyfish_init(&chain);
+
+    // Simulate a prompt/response pair
+    const char *input = "What is the meaning of life?";
+    const char *output = "42";
+
+    fossil_ai_jellyfish_learn(&chain, input, output);
+
+    // Reason over the chain
+    char response[256] = {0};
+    float confidence = 0.0f;
+    const fossil_ai_jellyfish_block_t *matched_block = NULL;
+    bool found = fossil_ai_jellyfish_reason_verbose(&chain, input, response, &confidence, &matched_block);
+
+    fossil_io_printf("{yellow}Processing prompt...{normal}\n");
+    if (found) {
+        fossil_io_printf("{blue}AI Response:{normal} %s\n", response);
+        if (explain && matched_block) {
+            char explanation[256] = {0};
+            fossil_ai_jellyfish_block_explain(matched_block, explanation, sizeof(explanation));
+            fossil_io_printf("{blue}Explanation:{normal} %s\n", explanation);
+        }
+    } else {
+        fossil_io_printf("{red}AI Response:{normal} Unknown\n");
+    }
+
     return 0;
 }

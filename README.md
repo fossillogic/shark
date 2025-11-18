@@ -45,9 +45,9 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 
 | **Command** | **Description** | **Common Flags** |
 |--------------|-----------------|------------------|
-| `chat` | Start an interactive AI chat session. | `-f, --file <path>` Use file content<br>`-m, --model <name>` Select model<br>`-s, --system <role>` AI persona<br>`--save <path>` Save chat transcript<br>`--context` Keep session history |
-| `ask` | Ask Jellyfish AI a one-shot question. | `-f, --file <path>` Provide file context<br>`--explain` Force explanation<br>`--analyze` Deep analysis<br>`-q, --quiet` Minimal output |
-| `summery` | Generate a concise AI summary of a file or directory. | `-f, --file <path>` Use file content<br>`--depth <level>` Summary depth<br>`-q, --quiet` Minimal output<br>`--color` Highlight key items<br>`--time` Include timestamps |
+| `ask` | Run a one-shot prompt against a module or chain. | `-m, --model <id>` Model to use<br>`-f, --file <path>` Provide file context<br>`--explain` Request explanation |
+| `chat` | Interactive conversation session with a local module. | `--context` Keep conversation history<br>`--save <file>` Save chat transcript<br>`-m, --model <id>` Model to use |
+| `summary` | Summarize datasets, chains, logs, or model states. | `-f, --file <path>` File to summarize<br>`--depth <n>` Summary depth<br>`--time` Show timestamps |
 
 ---
 
@@ -81,9 +81,9 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `shark rewrite -i --append log.txt "New entry"` | Append a new entry to a log file in-place. |
 | `shark introspect --mime report.pdf` | Show the MIME type of a file. |
 | `shark grammar --check --tone notes.txt` | Run a grammar check and detect tone in a text file. |
-| `shark chat -f error.log "Explain this error" --save chat.txt` | Start an AI chat using file context and save the transcript. |
-| `shark ask -f script.sh --analyze "Is this script safe?"` | Ask Jellyfish AI for a safety analysis of a script file. |
-| `shark summery -f report.txt --depth 2 --color --time` | Generate an AI summary of a file, highlighting key points with timestamps. |
+| `shark chat -f error.log "Explain this error" --save chat.txt` | Start an interactive AI chat session using the contents of `error.log` as context and save the transcript to `chat.txt`. |
+| `shark ask -f script.sh --explain "Is this script safe?"` | Run a one-shot prompt asking Jellyfish AI to analyze the safety of `script.sh` and provide an explanation. |
+| `shark summary -f report.txt --depth 2 --color --time` | Summarize `report.txt` with AI, showing key points, colored output, and timestamps at depth 2. |
 
 ## **Prerequisites**
 

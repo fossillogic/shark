@@ -136,25 +136,20 @@ void show_commands(char* app_name) {
     fossil_io_printf("{yellow}                   --detect <type>   {reset}{bright_black}Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble{reset}\n");
 
     fossil_io_printf("{blue}🤖 AI Commands (Jellyfish Integration):{reset}\n");
-    fossil_io_printf("{cyan}  chat             {reset}Start an interactive AI chat session\n");
-    fossil_io_printf("{yellow}                   -f, --file <path> {reset}{bright_black}Use file content{reset}\n");
-    fossil_io_printf("{yellow}                   -m, --model <name> {reset}{bright_black}Select model{reset}\n");
-    fossil_io_printf("{yellow}                   -s, --system <role> {reset}{bright_black}AI persona{reset}\n");
-    fossil_io_printf("{yellow}                   --save <path>     {reset}{bright_black}Save chat transcript{reset}\n");
-    fossil_io_printf("{yellow}                   --context         {reset}{bright_black}Keep session history{reset}\n");
+    fossil_io_printf("{cyan}  ask              {reset}Run a one-shot prompt against a module or chain\n");
+    fossil_io_printf("{yellow}                   -m, --model <id>   {reset}{bright_black}Model to use{reset}\n");
+    fossil_io_printf("{yellow}                   -f, --file <path>  {reset}{bright_black}Provide file context{reset}\n");
+    fossil_io_printf("{yellow}                   --explain          {reset}{bright_black}Request explanation{reset}\n");
 
-    fossil_io_printf("{cyan}  ask              {reset}Ask Jellyfish AI a one-shot question\n");
-    fossil_io_printf("{yellow}                   -f, --file <path> {reset}{bright_black}Provide file context{reset}\n");
-    fossil_io_printf("{yellow}                   --explain         {reset}{bright_black}Force explanation{reset}\n");
-    fossil_io_printf("{yellow}                   --analyze         {reset}{bright_black}Deep analysis{reset}\n");
-    fossil_io_printf("{yellow}                   -q, --quiet       {reset}{bright_black}Minimal output{reset}\n");
+    fossil_io_printf("{cyan}  chat             {reset}Interactive conversation session with a local module\n");
+    fossil_io_printf("{yellow}                   --context          {reset}{bright_black}Keep conversation history{reset}\n");
+    fossil_io_printf("{yellow}                   --save <file>      {reset}{bright_black}Save chat transcript{reset}\n");
+    fossil_io_printf("{yellow}                   -m, --model <id>   {reset}{bright_black}Model to use{reset}\n");
 
-    fossil_io_printf("{cyan}  summery          {reset}Generate AI summary of file/directory\n");
-    fossil_io_printf("{yellow}                   -f, --file <path> {reset}{bright_black}Use file content{reset}\n");
-    fossil_io_printf("{yellow}                   --depth <level>   {reset}{bright_black}Summary depth{reset}\n");
-    fossil_io_printf("{yellow}                   -q, --quiet       {reset}{bright_black}Minimal output{reset}\n");
-    fossil_io_printf("{yellow}                   --color           {reset}{bright_black}Highlight key items{reset}\n");
-    fossil_io_printf("{yellow}                   --time            {reset}{bright_black}Include timestamps{reset}\n\n");
+    fossil_io_printf("{cyan}  summary          {reset}Summarize datasets, chains, logs, or model states\n");
+    fossil_io_printf("{yellow}                   -f, --file <path>  {reset}{bright_black}File to summarize{reset}\n");
+    fossil_io_printf("{yellow}                   --depth <n>        {reset}{bright_black}Summary depth{reset}\n");
+    fossil_io_printf("{yellow}                   --time             {reset}{bright_black}Show timestamps{reset}\n\n");
 
     fossil_io_printf("{blue}🌍 Global Options:{reset}\n");
     fossil_io_printf("{cyan}  --help           {reset}{bright_black}Display help information{reset}\n");
@@ -449,67 +444,54 @@ bool app_entry(int argc, char** argv) {
             fossil_shark_help(command, show_examples, full_manual);
         }
         // AI Commands
-        else if (fossil_io_cstring_compare(argv[i], "chat") == 0) {
-            // Parse chat command arguments and call fossil_shark_chat
-            const char *file_path = NULL, *model_name = NULL, *system_role = NULL, *save_path = NULL;
-            bool keep_context = false;
-            
-            for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
-                if (j + 1 < argc) file_path = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
-                if (j + 1 < argc) model_name = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--system") == 0) {
-                if (j + 1 < argc) system_role = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "--save") == 0 && j + 1 < argc) {
-                save_path = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "--context") == 0) {
-                keep_context = true;
-            }
-            i = j;
-            }
-            fossil_shark_chat(file_path, model_name, system_role, save_path, keep_context);
-            
-        } else if (fossil_io_cstring_compare(argv[i], "ask") == 0) {
+        else if (fossil_io_cstring_compare(argv[i], "ask") == 0) {
             // Parse ask command arguments and call fossil_shark_ask
-            const char *file_path = NULL;
-            bool explain = false, analyze = false, quiet = false;
-            
+            const char *model_id = NULL, *file_path = NULL;
+            bool explain = false;
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
+            if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
+                if (j + 1 < argc) model_id = argv[++j];
+            } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
                 if (j + 1 < argc) file_path = argv[++j];
             } else if (fossil_io_cstring_compare(argv[j], "--explain") == 0) {
                 explain = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--analyze") == 0) {
-                analyze = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-q") == 0 || fossil_io_cstring_compare(argv[j], "--quiet") == 0) {
-                quiet = true;
             }
             i = j;
             }
-            fossil_shark_ask(file_path, explain, analyze, quiet);
-            
-        } else if (fossil_io_cstring_compare(argv[i], "summery") == 0) {
-            // Parse summery command arguments and call fossil_shark_summery
+            fossil_shark_ask(model_id, file_path, explain);
+
+        } else if (fossil_io_cstring_compare(argv[i], "chat") == 0) {
+            // Parse chat command arguments and call fossil_shark_chat
+            const char *model_id = NULL, *save_file = NULL;
+            bool keep_context = false;
+            for (int j = i + 1; j < argc; j++) {
+            if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
+                if (j + 1 < argc) model_id = argv[++j];
+            } else if (fossil_io_cstring_compare(argv[j], "--context") == 0) {
+                keep_context = true;
+            } else if (fossil_io_cstring_compare(argv[j], "--save") == 0 && j + 1 < argc) {
+                save_file = argv[++j];
+            }
+            i = j;
+            }
+            fossil_shark_chat(model_id, keep_context, save_file);
+
+        } else if (fossil_io_cstring_compare(argv[i], "summary") == 0) {
+            // Parse summary command arguments and call fossil_shark_summary
             const char *file_path = NULL;
-            int depth = 5;
-            bool quiet = false, color = false, show_time = false;
-            
+            int depth = 0;
+            bool show_time = false;
             for (int j = i + 1; j < argc; j++) {
             if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
                 if (j + 1 < argc) file_path = argv[++j];
             } else if (fossil_io_cstring_compare(argv[j], "--depth") == 0 && j + 1 < argc) {
                 depth = atoi(argv[++j]);
-            } else if (fossil_io_cstring_compare(argv[j], "-q") == 0 || fossil_io_cstring_compare(argv[j], "--quiet") == 0) {
-                quiet = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--color") == 0) {
-                color = true;
             } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
                 show_time = true;
             }
             i = j;
             }
-            fossil_shark_summery(file_path, depth, quiet, color, show_time);
+            fossil_shark_summary(file_path, depth, show_time);
             
         } else if (fossil_io_cstring_compare(argv[i], "sync") == 0) {
             // Parse sync command arguments and call fossil_shark_sync
