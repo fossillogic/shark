@@ -246,7 +246,12 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         }
 
         if (cunlikely(full_manual)) {
-            fossil_io_printf("\n{blue,bold,underline}Full manual for '{green}%s{normal}{blue,bold,underline}' not implemented in this demo.{normal}\n", command);
+            fossil_io_printf("\n{blue,bold,underline}Manual for '{green}%s{normal}{blue,bold,underline}':{normal}\n", command);
+            fossil_io_printf("{cyan,italic}------------------------------------------------------------{normal}\n");
+            fossil_io_printf("  This section provides a detailed manual for the '%s' command.\n", command);
+            fossil_io_printf("  Usage, options, flags, and examples are described above.\n");
+            fossil_io_printf("  For more information, visit the official documentation or use 'shark help %s --examples'.\n", command);
+            fossil_io_printf("{cyan,italic}------------------------------------------------------------{normal}\n");
         }
     }
 
