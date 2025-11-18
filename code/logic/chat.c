@@ -41,12 +41,25 @@ int fossil_shark_chat(const char *model_id, bool keep_context, const char *save_
     char output_buf[FOSSIL_JELLYFISH_OUTPUT_SIZE];
     int running = 1;
 
+    fossil_fstream_t *input_stream = FOSSIL_STDIN;
+
+    fossil_fstream_t transcript_stream;
+    fossil_fstream_t *transcript = NULL;
+    if (save_file) {
+        if (fossil_fstream_open(&transcript_stream, save_file, "a") == 0) {
+            transcript = &transcript_stream;
+        } else {
+            fossil_io_printf("{red}Failed to open transcript file: %s{normal}\n", save_file);
+        }
+    }
+
     while (running) {
         fossil_io_printf("{blue}You:{normal} ");
-        if (!fossil_io_readline(input_buf, sizeof(input_buf))) {
+        if (!fossil_io_gets_from_stream(input_buf, sizeof(input_buf), input_stream)) {
             fossil_io_printf("{red}Input error or EOF. Exiting chat.{normal}\n");
             break;
         }
+        fossil_io_trim(input_buf);
         if (strcmp(input_buf, "/exit") == 0 || strcmp(input_buf, "/quit") == 0) {
             fossil_io_printf("{magenta}Session ended.{normal}\n");
             break;
@@ -68,19 +81,21 @@ int fossil_shark_chat(const char *model_id, bool keep_context, const char *save_
             fossil_ai_jellyfish_learn(&chain, input_buf, output_buf);
         }
 
-        // Optionally save transcript
-        if (save_file) {
-            FILE *fp = fopen(save_file, "a");
-            if (fp) {
-                fprintf(fp, "You: %s\nAI: %s\n", input_buf, output_buf);
-                fclose(fp);
-            }
+        // Optionally save transcript using fossil_fstream_write
+        if (transcript && fossil_fstream_is_open(transcript)) {
+            char transcript_line[1024];
+            snprintf(transcript_line, sizeof(transcript_line), "You: %s\nAI: %s\n", input_buf, output_buf);
+            fossil_fstream_write(transcript, transcript_line, 1, strlen(transcript_line));
+            fossil_fstream_flush(transcript);
         }
     }
 
     // Optionally persist chain state
     if (save_file) {
         fossil_ai_jellyfish_save(&chain, save_file);
+        if (transcript && fossil_fstream_is_open(transcript)) {
+            fossil_fstream_close(transcript);
+        }
     }
 
     return 0;
