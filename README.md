@@ -7,7 +7,7 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 
 ## 🚀 Features
 
-- 🧰 Common file and directory operations (show, copy, move, delete, etc.)
+- 🧰 Common file and directory operations (`show`, `copy`, `move`, `delete`, `etc`.)
 - 🧠 Integrated **Jellyfish AI** commands (`chat`, `ask`, `summary`)
 - 🗂 Archive creation and extraction
 - 🔍 Recursive search and content filtering
@@ -20,20 +20,24 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 ---
 
 ### 🗂 Core File Operations
-
 | **Command** | **Description** | **Common Flags** |
-|--------------|-----------------|------------------|
-| `show` | Display files and directories. | `-a, --all` Show hidden files<br>`-l, --long` Detailed info<br>`-h, --human` Human-readable sizes<br>`-r, --recursive` Include subdirs<br>`-d, --depth <n>` Limit recursion depth<br>`--as` format options "list", tree, graph<br>`--time` Show timestamps |
+|-------------|-----------------|-----------------|
+| `show` | Display files and directories. | `-a, --all` Show hidden files<br>`-l, --long` Detailed info<br>`-h, --human` Human-readable sizes<br>`-r, --recursive` Include subdirs<br>`-d, --depth <n>` Limit recursion depth<br>`--as` Format options "list", tree, graph<br>`--time` Show timestamps |
 | `move` | Move or rename files/directories. | `-f, --force` Overwrite without prompt<br>`-i, --interactive` Ask before overwrite<br>`-b, --backup` Backup before move |
 | `copy` | Copy files or directories. | `-r, --recursive` Copy subdirectories<br>`-u, --update` Only copy newer<br>`-p, --preserve` Keep permissions/timestamps |
 | `remove` / `delete` | Delete files or directories. | `-r, --recursive` Delete contents<br>`-f, --force` No confirmation<br>`-i, --interactive` Confirm per file<br>`--trash` Move to system trash |
 | `rename` | Rename files or directories. | `-f, --force` Overwrite target<br>`-i, --interactive` Confirm before overwrite |
-| `create` | Create new directories. | `-p, --parents` Create parent dirs<br>`-t, --type` Creates either file or dir |
+| `create` | Create new directories or files. | `-p, --parents` Create parent dirs<br>`-t, --type` Create file or dir |
 | `search` | Find files by name or content. | `-r, --recursive` Include subdirs<br>`-n, --name` Match filename<br>`-c, --content` Search in file contents<br>`-i, --ignore-case` Case-insensitive |
 | `archive` | Create, extract, or list archives. | `-c, --create` New archive<br>`-x, --extract` Extract contents<br>`-l, --list` List archive<br>`-f <format>` Format: zip/tar/gz<br>`-p, --password` Encrypt archive |
 | `view` | Output file contents to terminal. | `-n, --number` Number all lines<br>`-b, --non-blank` Number non-empty lines<br>`-s, --squeeze` Remove blank lines<br>`-h, --head <n>` First *n* lines<br>`-t, --tail <n>` Last *n* lines<br>`--time` Show timestamps |
-| `compare` | Compare two files/directories (text, or binary). | `-t, --text` Line diff<br>`-b, --binary` Binary diff<br>`--context <n>` Show context lines<br>`--ignore-case` Ignore case differences |
+| `compare` | Compare two files/directories (text or binary). | `-t, --text` Line diff<br>`-b, --binary` Binary diff<br>`--context <n>` Show context lines<br>`--ignore-case` Ignore case differences |
 | `help` | Display help for supported commands. | `--examples` Show usage examples<br>`--man` Full manual |
+| `sync` | Synchronize files/directories. | `-r, --recursive` Include subdirs<br>`-u, --update` Copy only newer<br>`--delete` Remove extraneous files from target |
+| `watch` | Continuously monitor files or directories. | `-r, --recursive` Include subdirs<br>`-e, --events <list>` Filter events: create/modify/delete<br>`-t, --interval <n>` Poll interval in seconds |
+| `rewrite` | Modify or update file contents, timestamps, or size. | `-i` In-place edit<br>`--append` Append instead of overwrite<br>`-n` No newline<br>`--size <n>` Set exact file size |
+| `introspect` | Examine file contents, type, or metadata. | `-n <lines>` Number of lines<br>`-c` Count lines, words, bytes<br>`--fson` FSON output<br>`--mime` Show MIME type |
+| `grammar` | Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning through the SOAP API. | `--check` Run grammar check<br>`--fix` Auto-correct grammar<br>`--sanitize` Remove rot-brain/meme language<br>`--suggest` Suggest alternatives<br>`--tone` Detect tone<br>`--detect <type>` Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble |
 
 ---
 
@@ -41,9 +45,9 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 
 | **Command** | **Description** | **Common Flags** |
 |--------------|-----------------|------------------|
-| `chat` | Start an interactive AI chat session. | `-f, --file <path>` Use file content<br>`-m, --model <name>` Select model<br>`-s, --system <role>` AI persona<br>`--save <path>` Save chat transcript<br>`--context` Keep session history |
-| `ask` | Ask Jellyfish AI a one-shot question. | `-f, --file <path>` Provide file context<br>`--explain` Force explanation<br>`--analyze` Deep analysis<br>`-q, --quiet` Minimal output |
-| `summery` | Generate a concise AI summary of a file or directory. | `-f, --file <path>` Use file content<br>`--depth <level>` Summary depth<br>`-q, --quiet` Minimal output<br>`--color` Highlight key items<br>`--time` Include timestamps |
+| `ask` | Run a one-shot prompt against a module or chain. | `-m, --model <id>` Model to use<br>`-f, --file <path>` Provide file context<br>`--explain` Request explanation |
+| `chat` | Interactive conversation session with a local module. | `--context` Keep conversation history<br>`--save <file>` Save chat transcript<br>`-m, --model <id>` Model to use |
+| `summary` | Summarize datasets, chains, logs, or model states. | `-f, --file <path>` File to summarize<br>`--depth <n>` Summary depth<br>`--time` Show timestamps |
 
 ---
 
@@ -60,18 +64,26 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `--time` | Display timestamps in output. |
 
 ### 🧩 Usage Examples
-
 | **Example** | **Description** |
 |--------------|-----------------|
-| `shark show -lh --as=graph --time` | Show files in long, human-readable format with as graph display and timestamps. |
-| `shark copy -rp src/ backup/` | Copy directory recursively, preserving attributes. |
-| `shark search -rc "config"` | Recursively search for “config” inside files. |
-| `shark archive -c -f zip project.zip src/` | Create a ZIP archive from the `src/` directory. |
-| `shark view -n --color --time file.txt` | View file content with line numbers, syntax highlighting, and timestamps. |
-| `shark chat "Help me debug this error message"` | Start an interactive AI chat session in the terminal. |
-| `shark summery -f report.txt --depth 2 --color --time` | Generate a concise AI summary of a file, highlighting key points with timestamps. |
-| `shark compare main_v1.c main_v2.c --ai --context 5` | Compare two source files with semantic AI diff and show 5 lines of surrounding context. |
-| `shark ask "How do I safely delete directories?"` | Ask AI-powered help for guidance on safe file deletion. |
+| `shark show -alh --as=tree --time` | List all files (including hidden) in long, human-readable format as a tree, with timestamps. |
+| `shark move -i -b old.txt archive/old.txt` | Move a file interactively, creating a backup before moving. |
+| `shark copy -rp src/ backup/` | Recursively copy the `src/` directory to `backup/`, preserving permissions and timestamps. |
+| `shark remove -r --trash temp/` | Recursively move the `temp/` directory and its contents to the system trash. |
+| `shark rename -i draft.md final.md` | Rename a file with confirmation before overwriting the target. |
+| `shark create -p -t dir logs/archive/2024/` | Create a nested directory structure for logs. |
+| `shark search -rc "config"` | Recursively search for the string "config" inside files. |
+| `shark archive -c -f tar project.tar src/` | Create a TAR archive from the `src/` directory. |
+| `shark view -n -h 20 --time notes.txt` | View the first 20 lines of a file with line numbers and timestamps. |
+| `shark compare -t main_v1.c main_v2.c --context 5` | Show a line-by-line diff of two files with 5 lines of context. |
+| `shark sync -ru src/ dest/` | Synchronize files from `src/` to `dest/`, copying only newer files recursively. |
+| `shark watch -r -e create,delete src/` | Monitor the `src/` directory recursively for file creation and deletion events. |
+| `shark rewrite -i --append log.txt "New entry"` | Append a new entry to a log file in-place. |
+| `shark introspect --mime report.pdf` | Show the MIME type of a file. |
+| `shark grammar --check --tone notes.txt` | Run a grammar check and detect tone in a text file. |
+| `shark chat -f error.log "Explain this error" --save chat.txt` | Start an interactive AI chat session using the contents of `error.log` as context and save the transcript to `chat.txt`. |
+| `shark ask -f script.sh --explain "Is this script safe?"` | Run a one-shot prompt asking Jellyfish AI to analyze the safety of `script.sh` and provide an explanation. |
+| `shark summary -f report.txt --depth 2 --color --time` | Summarize `report.txt` with AI, showing key points, colored output, and timestamps at depth 2. |
 
 ## **Prerequisites**
 
@@ -127,4 +139,4 @@ For issues, questions, or feedback, open an issue on the [GitHub repository](htt
 
 ## **License**
 
-This project is licensed under the [Mozilla Public License](LICENSE).
+This project is licensed under the [Apache Public License](LICENSE).

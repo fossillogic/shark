@@ -1,14 +1,25 @@
-/*
+/**
  * -----------------------------------------------------------------------------
  * Project: Fossil Logic
  *
- * This file is part of the Fossil Logic project, which aims to develop high-
- * performance, cross-platform applications and libraries. The code contained
- * herein is subject to the terms and conditions defined in the project license.
+ * This file is part of the Fossil Logic project, which aims to develop
+ * high-performance, cross-platform applications and libraries. The code
+ * contained herein is licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License. You may obtain
+ * a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
  *
  * Author: Michael Gene Brockus (Dreamer)
+ * Date: 04/05/2014
  *
- * Copyright (C) 2024 Fossil Logic. All rights reserved.
+ * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/app.h"
@@ -19,100 +30,134 @@ int FOSSIL_IO_VERBOSE = false; // Verbose output flag
 
 void show_commands(char* app_name) {
     fossil_io_printf("{blue}Usage: {cyan}%s{blue} <command> [options]{reset}\n\n", app_name);
-    
+
     fossil_io_printf("{blue}🗂 Core File Operations:{reset}\n");
     fossil_io_printf("{cyan}  show             {reset}Display files and directories\n");
-    fossil_io_printf("{yellow}                   -a, --all         Show hidden files\n");
-    fossil_io_printf("                   -l, --long        Detailed info\n");
-    fossil_io_printf("                   -h, --human       Human-readable sizes\n");
-    fossil_io_printf("                   -r, --recursive   Include subdirs\n");
-    fossil_io_printf("                   -d, --depth <n>   Limit recursion depth\n");
-    fossil_io_printf("                   --as <format>     Format: list, tree, graph\n");
-    fossil_io_printf("                   --time            Show timestamps{reset}\n");
-    
+    fossil_io_printf("{yellow}                   -a, --all         {reset}{bright_black}Show hidden files{reset}\n");
+    fossil_io_printf("{yellow}                   -l, --long        {reset}{bright_black}Detailed info{reset}\n");
+    fossil_io_printf("{yellow}                   -h, --human       {reset}{bright_black}Human-readable sizes{reset}\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
+    fossil_io_printf("{yellow}                   -d, --depth <n>   {reset}{bright_black}Limit recursion depth{reset}\n");
+    fossil_io_printf("{yellow}                   --as <format>     {reset}{bright_black}Format: list, tree, graph{reset}\n");
+    fossil_io_printf("{yellow}                   --time            {reset}{bright_black}Show timestamps{reset}\n");
+
     fossil_io_printf("{cyan}  move             {reset}Move or rename files/directories\n");
-    fossil_io_printf("{yellow}                   -f, --force       Overwrite without prompt\n");
-    fossil_io_printf("                   -i, --interactive Ask before overwrite\n");
-    fossil_io_printf("                   -b, --backup      Backup before move{reset}\n");
-    
+    fossil_io_printf("{yellow}                   -f, --force       {reset}{bright_black}Overwrite without prompt{reset}\n");
+    fossil_io_printf("{yellow}                   -i, --interactive {reset}{bright_black}Ask before overwrite{reset}\n");
+    fossil_io_printf("{yellow}                   -b, --backup      {reset}{bright_black}Backup before move{reset}\n");
+
     fossil_io_printf("{cyan}  copy             {reset}Copy files or directories\n");
-    fossil_io_printf("{yellow}                   -r, --recursive   Copy subdirectories\n");
-    fossil_io_printf("                   -u, --update      Only copy newer\n");
-    fossil_io_printf("                   -p, --preserve    Keep permissions/timestamps{reset}\n");
-    
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Copy subdirectories{reset}\n");
+    fossil_io_printf("{yellow}                   -u, --update      {reset}{bright_black}Only copy newer{reset}\n");
+    fossil_io_printf("{yellow}                   -p, --preserve    {reset}{bright_black}Keep permissions/timestamps{reset}\n");
+
     fossil_io_printf("{cyan}  remove/delete    {reset}Delete files or directories\n");
-    fossil_io_printf("{yellow}                   -r, --recursive   Delete contents\n");
-    fossil_io_printf("                   -f, --force       No confirmation\n");
-    fossil_io_printf("                   -i, --interactive Confirm per file\n");
-    fossil_io_printf("                   --trash           Move to system trash{reset}\n");
-    
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Delete contents{reset}\n");
+    fossil_io_printf("{yellow}                   -f, --force       {reset}{bright_black}No confirmation{reset}\n");
+    fossil_io_printf("{yellow}                   -i, --interactive {reset}{bright_black}Confirm per file{reset}\n");
+    fossil_io_printf("{yellow}                   --trash           {reset}{bright_black}Move to system trash{reset}\n");
+
     fossil_io_printf("{cyan}  rename           {reset}Rename files or directories\n");
-    fossil_io_printf("{yellow}                   -f, --force       Overwrite target\n");
-    fossil_io_printf("                   -i, --interactive Confirm before overwrite{reset}\n");
-    
+    fossil_io_printf("{yellow}                   -f, --force       {reset}{bright_black}Overwrite target{reset}\n");
+    fossil_io_printf("{yellow}                   -i, --interactive {reset}{bright_black}Confirm before overwrite{reset}\n");
+
     fossil_io_printf("{cyan}  create           {reset}Create new directories or files\n");
-    fossil_io_printf("{yellow}                   -p, --parents     Create parent dirs\n");
-    fossil_io_printf("                   -t, --type        Creates either file or dir{reset}\n");
-    
+    fossil_io_printf("{yellow}                   -p, --parents     {reset}{bright_black}Create parent dirs{reset}\n");
+    fossil_io_printf("{yellow}                   -t, --type        {reset}{bright_black}Creates either file or dir{reset}\n");
+
     fossil_io_printf("{cyan}  search           {reset}Find files by name or content\n");
-    fossil_io_printf("{yellow}                   -r, --recursive   Include subdirs\n");
-    fossil_io_printf("                   -n, --name        Match filename\n");
-    fossil_io_printf("                   -c, --content     Search in file contents\n");
-    fossil_io_printf("                   -i, --ignore-case Case-insensitive{reset}\n");
-    
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
+    fossil_io_printf("{yellow}                   -n, --name        {reset}{bright_black}Match filename{reset}\n");
+    fossil_io_printf("{yellow}                   -c, --content     {reset}{bright_black}Search in file contents{reset}\n");
+    fossil_io_printf("{yellow}                   -i, --ignore-case {reset}{bright_black}Case-insensitive{reset}\n");
+
     fossil_io_printf("{cyan}  archive          {reset}Create, extract, or list archives\n");
-    fossil_io_printf("{yellow}                   -c, --create      New archive\n");
-    fossil_io_printf("                   -x, --extract     Extract contents\n");
-    fossil_io_printf("                   -l, --list        List archive\n");
-    fossil_io_printf("                   -f <format>       Format: zip/tar/gz\n");
-    fossil_io_printf("                   -p, --password    Encrypt archive{reset}\n");
-    
+    fossil_io_printf("{yellow}                   -c, --create      {reset}{bright_black}New archive{reset}\n");
+    fossil_io_printf("{yellow}                   -x, --extract     {reset}{bright_black}Extract contents{reset}\n");
+    fossil_io_printf("{yellow}                   -l, --list        {reset}{bright_black}List archive{reset}\n");
+    fossil_io_printf("{yellow}                   -f <format>       {reset}{bright_black}Format: zip/tar/gz{reset}\n");
+    fossil_io_printf("{yellow}                   -p, --password    {reset}{bright_black}Encrypt archive{reset}\n");
+
     fossil_io_printf("{cyan}  view             {reset}Output file contents to terminal\n");
-    fossil_io_printf("{yellow}                   -n, --number      Number all lines\n");
-    fossil_io_printf("                   -b, --non-blank   Number non-empty lines\n");
-    fossil_io_printf("                   -s, --squeeze     Remove blank lines\n");
-    fossil_io_printf("                   -h, --head <n>    First n lines\n");
-    fossil_io_printf("                   -t, --tail <n>    Last n lines\n");
-    fossil_io_printf("                   --time            Show timestamps{reset}\n");
-    
+    fossil_io_printf("{yellow}                   -n, --number      {reset}{bright_black}Number all lines{reset}\n");
+    fossil_io_printf("{yellow}                   -b, --non-blank   {reset}{bright_black}Number non-empty lines{reset}\n");
+    fossil_io_printf("{yellow}                   -s, --squeeze     {reset}{bright_black}Remove blank lines{reset}\n");
+    fossil_io_printf("{yellow}                   -h, --head <n>    {reset}{bright_black}First n lines{reset}\n");
+    fossil_io_printf("{yellow}                   -t, --tail <n>    {reset}{bright_black}Last n lines{reset}\n");
+    fossil_io_printf("{yellow}                   --time            {reset}{bright_black}Show timestamps{reset}\n");
+
     fossil_io_printf("{cyan}  compare          {reset}Compare two files/directories\n");
-    fossil_io_printf("{yellow}                   -t, --text        Line diff\n");
-    fossil_io_printf("                   -b, --binary      Binary diff\n");
-    fossil_io_printf("                   --context <n>     Show context lines\n");
-    fossil_io_printf("                   --ignore-case     Ignore case differences{reset}\n");
-    
+    fossil_io_printf("{yellow}                   -t, --text        {reset}{bright_black}Line diff{reset}\n");
+    fossil_io_printf("{yellow}                   -b, --binary      {reset}{bright_black}Binary diff{reset}\n");
+    fossil_io_printf("{yellow}                   --context <n>     {reset}{bright_black}Show context lines{reset}\n");
+    fossil_io_printf("{yellow}                   --ignore-case     {reset}{bright_black}Ignore case differences{reset}\n");
+
+    fossil_io_printf("{cyan}  info             {reset}Show detailed metadata about a file or directory\n");
+    fossil_io_printf("{yellow}                   -p, --permissions {reset}{bright_black}Show permissions{reset}\n");
+    fossil_io_printf("{yellow}                   -o, --owner       {reset}{bright_black}Show owner/group{reset}\n");
+    fossil_io_printf("{yellow}                   -s, --size        {reset}{bright_black}Show size{reset}\n");
+    fossil_io_printf("{yellow}                   -t, --timestamps  {reset}{bright_black}Show times{reset}\n");
+
+    fossil_io_printf("{cyan}  sync             {reset}Synchronize files/directories\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
+    fossil_io_printf("{yellow}                   -u, --update      {reset}{bright_black}Copy only newer{reset}\n");
+    fossil_io_printf("{yellow}                   --delete          {reset}{bright_black}Remove extraneous files from target{reset}\n");
+
+    fossil_io_printf("{cyan}  watch            {reset}Continuously monitor files or directories\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
+    fossil_io_printf("{yellow}                   -e, --events <list> {reset}{bright_black}Filter events: create/modify/delete{reset}\n");
+    fossil_io_printf("{yellow}                   -t, --interval <n> {reset}{bright_black}Poll interval in seconds{reset}\n");
+
     fossil_io_printf("{cyan}  help             {reset}Display help for supported commands\n");
-    fossil_io_printf("{yellow}                   --examples        Show usage examples\n");
-    fossil_io_printf("                   --man             Full manual{reset}\n\n");
-    
+    fossil_io_printf("{yellow}                   --examples        {reset}{bright_black}Show usage examples{reset}\n");
+    fossil_io_printf("{yellow}                   --man             {reset}{bright_black}Full manual{reset}\n\n");
+
+    fossil_io_printf("{cyan}  rewrite          {reset}Modify or update file contents, timestamps, or size\n");
+    fossil_io_printf("{yellow}                   --in-place        {reset}{bright_black}Modify file directly (default){reset}\n");
+    fossil_io_printf("{yellow}                   -a, --append      {reset}{bright_black}Append content instead of overwriting{reset}\n");
+    fossil_io_printf("{yellow}                   --size <n>        {reset}{bright_black}Truncate or extend file to exact size{reset}\n");
+    fossil_io_printf("{yellow}                   --access-time     {reset}{bright_black}Update file access time{reset}\n");
+    fossil_io_printf("{yellow}                   --mod-time        {reset}{bright_black}Update file modification time{reset}\n");
+    fossil_io_printf("{yellow}                   <content>         {reset}{bright_black}Optional content to write{reset}\n");
+
+    fossil_io_printf("{cyan}  introspect       {reset}Examine file contents, type, or metadata\n");
+    fossil_io_printf("{yellow}                   --head <n>        {reset}{bright_black}Show first n lines{reset}\n");
+    fossil_io_printf("{yellow}                   --tail <n>        {reset}{bright_black}Show last n lines{reset}\n");
+    fossil_io_printf("{yellow}                   --count           {reset}{bright_black}Count lines, words, bytes{reset}\n");
+    fossil_io_printf("{yellow}                   --type            {reset}{bright_black}Show file type or MIME{reset}\n");
+    fossil_io_printf("{yellow}                   --fson            {reset}{bright_black}Output metadata in FSON format{reset}\n");
+
+    fossil_io_printf("{cyan}  grammar          {reset}Perform grammar analysis and correction via SOAP API\n");
+    fossil_io_printf("{yellow}                   --check           {reset}{bright_black}Run grammar check{reset}\n");
+    fossil_io_printf("{yellow}                   --fix             {reset}{bright_black}Auto-correct grammar{reset}\n");
+    fossil_io_printf("{yellow}                   --sanitize        {reset}{bright_black}Remove rot-brain/meme language{reset}\n");
+    fossil_io_printf("{yellow}                   --suggest         {reset}{bright_black}Suggest alternatives{reset}\n");
+    fossil_io_printf("{yellow}                   --tone            {reset}{bright_black}Detect tone{reset}\n");
+    fossil_io_printf("{yellow}                   --detect <type>   {reset}{bright_black}Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble{reset}\n");
+
     fossil_io_printf("{blue}🤖 AI Commands (Jellyfish Integration):{reset}\n");
-    fossil_io_printf("{cyan}  chat             {reset}Start an interactive AI chat session\n");
-    fossil_io_printf("{yellow}                   -f, --file <path> Use file content\n");
-    fossil_io_printf("                   -m, --model <name> Select model\n");
-    fossil_io_printf("                   -s, --system <role> AI persona\n");
-    fossil_io_printf("                   --save <path>     Save chat transcript\n");
-    fossil_io_printf("                   --context         Keep session history{reset}\n");
-    
-    fossil_io_printf("{cyan}  ask              {reset}Ask Jellyfish AI a one-shot question\n");
-    fossil_io_printf("{yellow}                   -f, --file <path> Provide file context\n");
-    fossil_io_printf("                   --explain         Force explanation\n");
-    fossil_io_printf("                   --analyze         Deep analysis\n");
-    fossil_io_printf("                   -q, --quiet       Minimal output{reset}\n");
-    
-    fossil_io_printf("{cyan}  summery          {reset}Generate AI summary of file/directory\n");
-    fossil_io_printf("{yellow}                   -f, --file <path> Use file content\n");
-    fossil_io_printf("                   --depth <level>   Summary depth\n");
-    fossil_io_printf("                   -q, --quiet       Minimal output\n");
-    fossil_io_printf("                   --color           Highlight key items\n");
-    fossil_io_printf("                   --time            Include timestamps{reset}\n\n");
-    
+    fossil_io_printf("{cyan}  ask              {reset}Run a one-shot prompt against a module or chain\n");
+    fossil_io_printf("{yellow}                   -m, --model <id>   {reset}{bright_black}Model to use{reset}\n");
+    fossil_io_printf("{yellow}                   -f, --file <path>  {reset}{bright_black}Provide file context{reset}\n");
+    fossil_io_printf("{yellow}                   --explain          {reset}{bright_black}Request explanation{reset}\n");
+
+    fossil_io_printf("{cyan}  chat             {reset}Interactive conversation session with a local module\n");
+    fossil_io_printf("{yellow}                   --context          {reset}{bright_black}Keep conversation history{reset}\n");
+    fossil_io_printf("{yellow}                   --save <file>      {reset}{bright_black}Save chat transcript{reset}\n");
+    fossil_io_printf("{yellow}                   -m, --model <id>   {reset}{bright_black}Model to use{reset}\n");
+
+    fossil_io_printf("{cyan}  summary          {reset}Summarize datasets, chains, logs, or model states\n");
+    fossil_io_printf("{yellow}                   -f, --file <path>  {reset}{bright_black}File to summarize{reset}\n");
+    fossil_io_printf("{yellow}                   --depth <n>        {reset}{bright_black}Summary depth{reset}\n");
+    fossil_io_printf("{yellow}                   --time             {reset}{bright_black}Show timestamps{reset}\n\n");
+
     fossil_io_printf("{blue}🌍 Global Options:{reset}\n");
-    fossil_io_printf("{cyan}  --help           {reset}Display help information\n");
-    fossil_io_printf("{cyan}  --version        {reset}Display current version\n");
-    fossil_io_printf("{cyan}  --name           {reset}Display app name\n");
-    fossil_io_printf("{cyan}  --verbose        {reset}Enable detailed output\n");
-    fossil_io_printf("{cyan}  --color          {reset}Set color mode: enable, disable, auto\n");
-    fossil_io_printf("{cyan}  --clear          {reset}Clear terminal screen\n");
+    fossil_io_printf("{cyan}  --help           {reset}{bright_black}Display help information{reset}\n");
+    fossil_io_printf("{cyan}  --version        {reset}{bright_black}Display current version{reset}\n");
+    fossil_io_printf("{cyan}  --name           {reset}{bright_black}Display app name{reset}\n");
+    fossil_io_printf("{cyan}  --verbose        {reset}{bright_black}Enable detailed output{reset}\n");
+    fossil_io_printf("{cyan}  --color          {reset}{bright_black}Set color mode: enable, disable, auto{reset}\n");
+    fossil_io_printf("{cyan}  --clear          {reset}{bright_black}Clear terminal screen{reset}\n");
     
     exit(FOSSIL_IO_SUCCESS);
 }
@@ -399,68 +444,192 @@ bool app_entry(int argc, char** argv) {
             fossil_shark_help(command, show_examples, full_manual);
         }
         // AI Commands
-        else if (fossil_io_cstring_compare(argv[i], "chat") == 0) {
-            // Parse chat command arguments and call fossil_shark_chat
-            const char *file_path = NULL, *model_name = NULL, *system_role = NULL, *save_path = NULL;
-            bool keep_context = false;
-            
-            for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
-                if (j + 1 < argc) file_path = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
-                if (j + 1 < argc) model_name = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--system") == 0) {
-                if (j + 1 < argc) system_role = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "--save") == 0 && j + 1 < argc) {
-                save_path = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "--context") == 0) {
-                keep_context = true;
-            }
-            i = j;
-            }
-            fossil_shark_chat(file_path, model_name, system_role, save_path, keep_context);
-            
-        } else if (fossil_io_cstring_compare(argv[i], "ask") == 0) {
+        else if (fossil_io_cstring_compare(argv[i], "ask") == 0) {
             // Parse ask command arguments and call fossil_shark_ask
-            const char *file_path = NULL;
-            bool explain = false, analyze = false, quiet = false;
-            
+            const char *model_id = NULL, *file_path = NULL;
+            bool explain = false;
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
+            if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
+                if (j + 1 < argc) model_id = argv[++j];
+            } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
                 if (j + 1 < argc) file_path = argv[++j];
             } else if (fossil_io_cstring_compare(argv[j], "--explain") == 0) {
                 explain = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--analyze") == 0) {
-                analyze = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-q") == 0 || fossil_io_cstring_compare(argv[j], "--quiet") == 0) {
-                quiet = true;
             }
             i = j;
             }
-            fossil_shark_ask(file_path, explain, analyze, quiet);
-            
-        } else if (fossil_io_cstring_compare(argv[i], "summery") == 0) {
-            // Parse summery command arguments and call fossil_shark_summery
+            fossil_shark_ask(model_id, file_path, explain);
+
+        } else if (fossil_io_cstring_compare(argv[i], "chat") == 0) {
+            // Parse chat command arguments and call fossil_shark_chat
+            const char *model_id = NULL, *save_file = NULL;
+            bool keep_context = false;
+            for (int j = i + 1; j < argc; j++) {
+            if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
+                if (j + 1 < argc) model_id = argv[++j];
+            } else if (fossil_io_cstring_compare(argv[j], "--context") == 0) {
+                keep_context = true;
+            } else if (fossil_io_cstring_compare(argv[j], "--save") == 0 && j + 1 < argc) {
+                save_file = argv[++j];
+            }
+            i = j;
+            }
+            fossil_shark_chat(model_id, keep_context, save_file);
+
+        } else if (fossil_io_cstring_compare(argv[i], "summary") == 0) {
+            // Parse summary command arguments and call fossil_shark_summary
             const char *file_path = NULL;
-            int depth = 5;
-            bool quiet = false, color = false, show_time = false;
-            
+            int depth = 0;
+            bool show_time = false;
             for (int j = i + 1; j < argc; j++) {
             if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
                 if (j + 1 < argc) file_path = argv[++j];
             } else if (fossil_io_cstring_compare(argv[j], "--depth") == 0 && j + 1 < argc) {
                 depth = atoi(argv[++j]);
-            } else if (fossil_io_cstring_compare(argv[j], "-q") == 0 || fossil_io_cstring_compare(argv[j], "--quiet") == 0) {
-                quiet = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--color") == 0) {
-                color = true;
             } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
                 show_time = true;
             }
             i = j;
             }
-            fossil_shark_summery(file_path, depth, quiet, color, show_time);
+            fossil_shark_summary(file_path, depth, show_time);
             
+        } else if (fossil_io_cstring_compare(argv[i], "sync") == 0) {
+            // Parse sync command arguments and call fossil_shark_sync
+            const char *src = NULL, *dest = NULL;
+            bool recursive = false, update = false, delete_flag = false;
+            for (int j = i + 1; j < argc; j++) {
+            if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
+                recursive = true;
+            } else if (fossil_io_cstring_compare(argv[j], "-u") == 0 || fossil_io_cstring_compare(argv[j], "--update") == 0) {
+                update = true;
+            } else if (fossil_io_cstring_compare(argv[j], "--delete") == 0) {
+                delete_flag = true;
+            } else if (!src) {
+                src = argv[j];
+            } else if (!dest) {
+                dest = argv[j];
+            }
+            i = j;
+            }
+            if (src && dest) fossil_shark_sync(src, dest, recursive, update, delete_flag);
+
+        } else if (fossil_io_cstring_compare(argv[i], "watch") == 0) {
+            // Parse watch command arguments and call fossil_shark_watch
+            const char *path = NULL, *events = NULL;
+            bool recursive = false;
+            int interval = 1;
+            for (int j = i + 1; j < argc; j++) {
+            if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
+                recursive = true;
+            } else if (fossil_io_cstring_compare(argv[j], "-e") == 0 || fossil_io_cstring_compare(argv[j], "--events") == 0) {
+                if (j + 1 < argc) events = argv[++j];
+            } else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--interval") == 0) {
+                if (j + 1 < argc) interval = atoi(argv[++j]);
+            } else if (!path) {
+                path = argv[j];
+            }
+            i = j;
+            }
+            if (path) fossil_shark_watch(path, recursive, events, interval);
+
+        } else if (fossil_io_cstring_compare(argv[i], "rewrite") == 0) {
+            // Parse rewrite command arguments and call fossil_shark_rewrite
+            const char *path = NULL;
+            const char *content = NULL;
+            size_t size = 0;
+            bool append = false;
+            bool in_place = true;  // default true
+            bool update_access = false, update_mod = false;
+
+            for (int j = i + 1; j < argc; j++) {
+                if (fossil_io_cstring_compare(argv[j], "-a") == 0 || fossil_io_cstring_compare(argv[j], "--append") == 0) {
+                    append = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--in-place") == 0) {
+                    in_place = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--access-time") == 0) {
+                    update_access = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--mod-time") == 0) {
+                    update_mod = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--size") == 0 && j + 1 < argc) {
+                    size = (size_t)atoi(argv[++j]);
+                } else if (!path) {
+                    path = argv[j];
+                } else if (!content) {
+                    content = argv[j];
+                }
+                i = j;
+            }
+
+            if (path) {
+                int rc = fossil_shark_rewrite(path, in_place, append, content, size, update_access, update_mod);
+                if (rc != 0) {
+                    fossil_io_printf("{red}Rewrite failed: %s{reset}\n", path);
+                }
+            }
+
+        } else if (fossil_io_cstring_compare(argv[i], "introspect") == 0) {
+            // Parse introspect command arguments and call fossil_shark_introspect
+            const char *path = NULL;
+            int head_lines = 0, tail_lines = 0;
+            bool count_lwb = false; // count lines/words/bytes
+            bool show_type = false; 
+            bool output_fson = false;
+
+            for (int j = i + 1; j < argc; j++) {
+                if (fossil_io_cstring_compare(argv[j], "--head") == 0 && j + 1 < argc) {
+                    head_lines = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--tail") == 0 && j + 1 < argc) {
+                    tail_lines = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--count") == 0) {
+                    count_lwb = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--type") == 0) {
+                    show_type = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--fson") == 0) {
+                    output_fson = true;
+                } else if (!path) {
+                    path = argv[j];
+                }
+                i = j;
+            }
+
+            if (path) {
+                int rc = fossil_shark_introspect(path, head_lines, tail_lines, count_lwb, show_type, output_fson);
+                if (rc != 0) {
+                    fossil_io_printf("{red}Introspect failed: %s{reset}\n", path);
+                }
+            }
+
+        } else if (fossil_io_cstring_compare(argv[i], "grammar") == 0) {
+            // Parse grammar command arguments and call fossil_shark_grammar
+            const char *file_path = NULL;
+            bool check = false, fix = false, sanitize = false, suggest = false, tone = false;
+            const char *detect_type = NULL;
+
+            for (int j = i + 1; j < argc; j++) {
+                if (fossil_io_cstring_compare(argv[j], "--check") == 0) {
+                    check = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--fix") == 0) {
+                    fix = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--sanitize") == 0) {
+                    sanitize = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--suggest") == 0) {
+                    suggest = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--tone") == 0) {
+                    tone = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--detect") == 0 && j + 1 < argc) {
+                    detect_type = argv[++j];
+                } else if (!file_path) {
+                    file_path = argv[j];
+                }
+                i = j;
+            }
+
+            if (file_path) {
+                int rc = fossil_shark_grammar(file_path, check, fix, sanitize, suggest, tone, detect_type);
+                if (rc != 0) {
+                    fossil_io_printf("{red}Grammar analysis failed: %s{reset}\n", file_path);
+                }
+            }
         } else {
             fossil_io_printf("{red}Unknown command: %s{reset}\n", argv[i]);
             return false;

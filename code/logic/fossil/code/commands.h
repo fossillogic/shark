@@ -1,21 +1,30 @@
-/*
+/**
  * -----------------------------------------------------------------------------
  * Project: Fossil Logic
  *
- * This file is part of the Fossil Logic project, which aims to develop high-
- * performance, cross-platform applications and libraries. The code contained
- * herein is subject to the terms and conditions defined in the project license.
+ * This file is part of the Fossil Logic project, which aims to develop
+ * high-performance, cross-platform applications and libraries. The code
+ * contained herein is licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License. You may obtain
+ * a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
  *
  * Author: Michael Gene Brockus (Dreamer)
+ * Date: 04/05/2014
  *
- * Copyright (C) 2024 Fossil Logic. All rights reserved.
+ * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
 #ifndef FOSSIL_APP_COMMANDS_H
 #define FOSSIL_APP_COMMANDS_H
 
-#include <fossil/cryptic/framework.h>
-#include <fossil/math/framework.h>
 #include <fossil/sys/framework.h>
 #include <fossil/ai/framework.h>
 #include <fossil/io/framework.h>
@@ -31,149 +40,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/**
- * @brief Command Palette - Comprehensive Command-Line Interface for Shark Tool
- * 
- * This header defines the complete command palette for the Shark Tool, providing
- * a comprehensive set of file operations, AI-powered commands, and utility functions.
- * The command palette is organized into three main categories:
- * 
- * ## 🗂 Core File Operations
- * 
- * ### show - Display files and directories
- * Display files and directories with various formatting options.
- * Common flags:
- * - `-a, --all` Show hidden files
- * - `-l, --long` Detailed info
- * - `-h, --human` Human-readable sizes
- * - `-r, --recursive` Include subdirs
- * - `-d, --depth <n>` Limit recursion depth
- * - `--as format` options "list", tree, graph
- * - `--time` Show timestamps
- * 
- * ### move - Move or rename files/directories
- * Move or rename files and directories with safety options.
- * Common flags:
- * - `-f, --force` Overwrite without prompt
- * - `-i, --interactive` Ask before overwrite
- * - `-b, --backup` Backup before move
- * 
- * ### copy - Copy files or directories
- * Copy files or directories with preservation options.
- * Common flags:
- * - `-r, --recursive` Copy subdirectories
- * - `-u, --update` Only copy newer
- * - `-p, --preserve` Keep permissions/timestamps
- * 
- * ### remove/delete - Delete files or directories
- * Delete files or directories with safety measures.
- * Common flags:
- * - `-r, --recursive` Delete contents
- * - `-f, --force` No confirmation
- * - `-i, --interactive` Confirm per file
- * - `--trash` Move to system trash
- * 
- * ### rename - Rename files or directories
- * Rename files or directories with collision handling.
- * Common flags:
- * - `-f, --force` Overwrite target
- * - `-i, --interactive` Confirm before overwrite
- * 
- * ### create - Create new directories
- * Create new directories with parent creation support.
- * Common flags:
- * - `-p, --parents` Create parent dirs
- * - `-t, --type` Creates either file or dir
- * 
- * ### search - Find files by name or content
- * Find files by name or content with pattern matching.
- * Common flags:
- * - `-r, --recursive` Include subdirs
- * - `-n, --name` Match filename
- * - `-c, --content` Search in file contents
- * - `-i, --ignore-case` Case-insensitive
- * 
- * ### archive - Create, extract, or list archives
- * Archive management with multiple format support.
- * Common flags:
- * - `-c, --create` New archive
- * - `-x, --extract` Extract contents
- * - `-l, --list` List archive
- * - `-f <format>` Format: zip/tar/gz
- * - `-p, --password` Encrypt archive
- * 
- * ### view - Output file contents to terminal
- * Display file contents with formatting options.
- * Common flags:
- * - `-n, --number` Number all lines
- * - `-b, --non-blank` Number non-empty lines
- * - `-s, --squeeze` Remove blank lines
- * - `-h, --head <n>` First n lines
- * - `-t, --tail <n>` Last n lines
- * - `--time` Show timestamps
- * 
- * ### compare - Compare two files/directories
- * Compare files or directories (text or binary).
- * Common flags:
- * - `-t, --text` Line diff
- * - `-b, --binary` Binary diff
- * - `--context <n>` Show context lines
- * - `--ignore-case` Ignore case differences
- * 
- * ### help - Display help for supported commands
- * Display comprehensive help documentation.
- * Common flags:
- * - `--examples` Show usage examples
- * - `--man` Full manual
- * 
- * ## 🤖 AI Commands (Jellyfish Integration)
- * 
- * ### chat - Start an interactive AI chat session
- * Start an interactive AI chat session with context support.
- * Common flags:
- * - `-f, --file <path>` Use file content
- * - `-m, --model <name>` Select model
- * - `-s, --system <role>` AI persona
- * - `--save <path>` Save chat transcript
- * - `--context` Keep session history
- * 
- * ### ask - Ask Jellyfish AI a one-shot question
- * Ask Jellyfish AI a single question with file context.
- * Common flags:
- * - `-f, --file <path>` Provide file context
- * - `--explain` Force explanation
- * - `--analyze` Deep analysis
- * - `-q, --quiet` Minimal output
- * 
- * ### summery - Generate a concise AI summary
- * Generate AI summaries of files or directories.
- * Common flags:
- * - `-f, --file <path>` Use file content
- * - `--depth <level>` Summary depth
- * - `-q, --quiet` Minimal output
- * - `--color` Highlight key items
- * - `--time` Include timestamps
- * 
- * ## 🌍 Global Flags (Available to All Commands)
- * 
- * These flags are available across all commands for consistent behavior:
- * - `--help` Show command help
- * - `--version` Display Shark Tool version
- * - `-v, --verbose` Enable detailed output
- * - `-q, --quiet` Suppress standard output
- * - `--dry-run` Simulate actions without changes
- * - `--color` Colorize output where applicable
- * - `--time` Display timestamps in output
- * 
- * @note This command palette provides a unified interface for file operations,
- *       AI-powered assistance, and system utilities, making the Shark Tool
- *       a comprehensive command-line solution.
- * 
- * @see For implementation details, refer to the corresponding source files
- *      in the commands/ directory.
- */
-//
 
 // ========================================================
 // File and Directory Commands
@@ -315,46 +181,116 @@ int fossil_shark_compare(const char *path1, const char *path2,
  */
 int fossil_shark_help(ccstring command, bool show_examples, bool full_manual);
 
+/**
+ * Synchronize files or directories between source and destination
+ * @param src Source path
+ * @param dest Destination path
+ * @param recursive Include subdirectories
+ * @param update Copy only newer files
+ * @param delete Remove extraneous files from target
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_sync(const char *src, const char *dest,
+                      bool recursive, bool update, bool delete);
+
+/**
+ * Continuously monitor files or directories for changes
+ * @param path Path to monitor
+ * @param recursive Monitor subdirectories
+ * @param events List of events to filter ("create", "modify", "delete")
+ * @param interval Poll interval in seconds
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_watch(const char *path, bool recursive,
+                       const char *events, int interval);
+
+/**
+ * Modify or update file contents, timestamps, or size
+ * @param path Path to the file to modify
+ * @param in_place Perform in-place modification (for content changes)
+ * @param append Append content instead of overwriting
+ * @param new_content Content to write to the file (NULL if only updating timestamps/size)
+ * @param size Set exact file size (truncate or extend)
+ * @param update_access_time Update file access time
+ * @param update_mod_time Update file modification time
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_rewrite(const char *path, bool in_place, bool append,
+                         const char *new_content, size_t size,
+                         bool update_access_time, bool update_mod_time);
+
+/**
+ * Examine file contents, type, or metadata
+ * @param path Path to the file to introspect
+ * @param show_head_lines Number of lines from the start to display (0 for none)
+ * @param show_tail_lines Number of lines from the end to display (0 for none)
+ * @param count_lines_words_bytes Count lines, words, and bytes if true
+ * @param show_file_type Determine file type (e.g., MIME or description)
+ * @param output_json Output metadata in JSON format
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_introspect(const char *path, int show_head_lines,
+                             int show_tail_lines, bool count_lines_words_bytes,
+                             bool show_file_type, bool output_json);
+
+/**
+ * Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning.
+ * Uses SOAP API for advanced grammar and content analysis.
+ * @param file_path Path to file or text to analyze
+ * @param check Run grammar check
+ * @param fix Auto-correct grammar issues
+ * @param sanitize Remove meme/rot-brain language
+ * @param suggest Suggest alternative phrasing
+ * @param tone Detect tone of content
+ * @param detect_type Type of detector to run (e.g., ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble)
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_grammar(const char *file_path, bool check, bool fix,
+                         bool sanitize, bool suggest, bool tone,
+                         const char *detect_type);
 
 // ========================================================
 // AI Commands
 // ========================================================
 
 /**
- * Start an interactive AI chat session with context management
- * @param file_path Path to file for AI to analyze (optional)
- * @param model_name Name of AI model to use for chat
- * @param system_role System role/persona for the AI assistant
- * @param save_path Path to save chat conversation history
- * @param keep_context Maintain conversation context across interactions
+ * Run a one-shot prompt against a module or chain.
+ * @param model_id Model to use for the prompt
+ * @param file_path Provide file context for the prompt
+ * @param explain Request explanation from AI
  * @return 0 on success, non-zero on error
+ * Common flags:
+ *   -m, --model <id>   Model to use
+ *   -f, --file <path>  Provide file context
+ *   --explain          Request explanation
  */
-int fossil_shark_chat(const char *file_path, const char *model_name,
-                      const char *system_role, const char *save_path,
-                      bool keep_context);
+int fossil_shark_ask(const char *model_id, const char *file_path, bool explain);
 
 /**
- * Ask AI a single question about a file or general topic
- * @param file_path Path to file for AI to analyze
- * @param explain Request detailed explanation from AI
- * @param analyze Request thorough analysis from AI
- * @param quiet Suppress verbose output, show only essential information
+ * Interactive conversation session with a local module.
+ * @param model_id Model to use for the chat session
+ * @param keep_context Keep conversation history across interactions
+ * @param save_file Save chat transcript to file
  * @return 0 on success, non-zero on error
+ * Common flags:
+ *   --context          Keep conversation history
+ *   --save <file>      Save chat transcript
+ *   -m, --model <id>   Model to use
  */
-int fossil_shark_ask(const char *file_path, bool explain,
-                     bool analyze, bool quiet);
+int fossil_shark_chat(const char *model_id, bool keep_context, const char *save_file);
 
 /**
- * Generate a concise AI-powered summary of file contents
- * @param file_path Path to file to summarize
- * @param depth Level of detail in summary (1-10 scale)
- * @param quiet Suppress additional output, show only summary
- * @param color Use colored output for better readability
- * @param show_time Display timestamp information
+ * Summarize datasets, chains, logs, or model states.
+ * @param file_path File to summarize
+ * @param depth Summary depth
+ * @param show_time Show timestamps in summary
  * @return 0 on success, non-zero on error
+ * Common flags:
+ *   -f, --file <path>  File to summarize
+ *   --depth <n>        Summary depth
+ *   --time             Show timestamps
  */
-int fossil_shark_summery(const char *file_path, int depth,
-                         bool quiet, bool color, bool show_time);
+int fossil_shark_summary(const char *file_path, int depth, bool show_time);
 
 #ifdef __cplusplus
 }

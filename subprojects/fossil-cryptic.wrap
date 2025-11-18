@@ -1,6 +1,0 @@
-[wrap-git]
-url = https://github.com/fossillogic/fossil-cryptic.git
-revision = v0.1.1
-
-[provide]
-dependency_names = fossil-cryptic
