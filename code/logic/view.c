@@ -155,14 +155,11 @@ static void format_code_line(ccstring line) {
     size_t len = fossil_io_cstring_length(line);
     size_t i = 0;
     bool in_string = false, in_char = false, in_multi_comment = false;
-   
 
     // Indentation
     size_t indent_len = 0;
     while (i < len && (line[i] == ' ' || line[i] == '\t')) {
         indent_len++;
-        if (line[i] == '\t') indent += 4;
-        else indent++;
         i++;
     }
     if (indent_len > 0)
@@ -311,16 +308,10 @@ static bool is_structured_keyword(ccstring word) {
 static void format_structured_line(ccstring line, ccstring ext) {
     size_t len = fossil_io_cstring_length(line);
     size_t i = 0;
-   
-
     // Count leading spaces/tabs for indent
     size_t indent_len = 0;
     while (i < len && (line[i] == ' ' || line[i] == '\t')) {
         indent_len++;
-        if (line[i] == '\t')
-            indent += 4;
-        else
-            indent++;
         i++;
     }
     if (indent_len > 0)
@@ -401,7 +392,6 @@ static void format_structured_line(ccstring line, ccstring ext) {
 
     // CSV support
     if (fossil_io_cstring_iequals(ext, "csv")) {
-        
         while (i < len) {
             if (line[i] == '"') {
                 fossil_io_printf("{yellow}\"");
@@ -418,7 +408,6 @@ static void format_structured_line(ccstring line, ccstring ext) {
             } else if (line[i] == ',') {
                 fossil_io_printf("{blue},");
                 i++;
-                col++;
             } else {
                 fossil_io_putchar(line[i++]);
             }
@@ -786,7 +775,6 @@ static bool is_meson_builtin_func(ccstring word) {
 static void format_meson_line(ccstring line) {
     size_t len = fossil_io_cstring_length(line);
     size_t i = 0;
-   
 
     // Count leading spaces/tabs for indent
     size_t indent_len = 0;
