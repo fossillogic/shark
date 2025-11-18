@@ -55,123 +55,176 @@ FOSSIL_TEARDOWN(c_view_command_suite) {
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-FOSSIL_TEST_CASE(c_test_view_null_path) {
-    int result = fossil_shark_view(cnull, false, false, false, 0, 0, false);
-    ASSUME_ITS_EQUAL_I32(1, result);
-}
-
-FOSSIL_TEST_CASE(c_test_view_nonexistent_file) {
-    int result = fossil_shark_view("nonexistent_file.txt", false, false, false, 0, 0, false);
-    ASSUME_ITS_EQUAL_I32(1, result);
-}
-
-FOSSIL_TEST_CASE(c_test_view_basic_file) {
-    // Create a temporary test file
-    FILE *temp = fopen("test_file.txt", "w");
+FOSSIL_TEST_CASE(c_test_view_media_file_jpg) {
+    FILE *temp = fopen("test_image.jpg", "wb");
     ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "Line 1\nLine 2\nLine 3\n");
+    // Write minimal JPEG header (binary)
+    unsigned char jpg_header[] = {0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01};
+    fwrite(jpg_header, 1, sizeof(jpg_header), temp);
     fclose(temp);
-    
-    int result = fossil_shark_view("test_file.txt", false, false, false, 0, 0, false);
+
+    int result = fossil_shark_view("test_image.jpg", false, false, false, 0, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
-    
-    // Clean up
-    remove("test_file.txt");
+
+    remove("test_image.jpg");
 }
 
-FOSSIL_TEST_CASE(c_test_view_with_line_numbers) {
-    FILE *temp = fopen("test_numbered.txt", "w");
+FOSSIL_TEST_CASE(c_test_view_media_file_mp3) {
+    FILE *temp = fopen("test_audio.mp3", "wb");
     ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "First line\nSecond line\nThird line\n");
+    unsigned char mp3_header[] = {0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21};
+    fwrite(mp3_header, 1, sizeof(mp3_header), temp);
     fclose(temp);
-    
-    int result = fossil_shark_view("test_numbered.txt", true, false, false, 0, 0, false);
+
+    int result = fossil_shark_view("test_audio.mp3", false, false, false, 0, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
-    
-    remove("test_numbered.txt");
+
+    remove("test_audio.mp3");
 }
 
-FOSSIL_TEST_CASE(c_test_view_number_non_blank) {
-    FILE *temp = fopen("test_blank.txt", "w");
+FOSSIL_TEST_CASE(c_test_view_binary_file) {
+    FILE *temp = fopen("test_binary.bin", "wb");
     ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "Line 1\n\nLine 3\n\n\nLine 6\n");
+    unsigned char bin_data[] = {0x00, 0x01, 0x02, 0x03, 0x04};
+    fwrite(bin_data, 1, sizeof(bin_data), temp);
     fclose(temp);
-    
-    int result = fossil_shark_view("test_blank.txt", false, true, false, 0, 0, false);
+
+    int result = fossil_shark_view("test_binary.bin", false, false, false, 0, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
-    
-    remove("test_blank.txt");
+
+    remove("test_binary.bin");
 }
 
-FOSSIL_TEST_CASE(c_test_view_squeeze_blank_lines) {
-    FILE *temp = fopen("test_squeeze.txt", "w");
+FOSSIL_TEST_CASE(c_test_view_code_file_c) {
+    FILE *temp = fopen("test_code.c", "w");
     ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "Line 1\n\n\n\nLine 5\n\n\nLine 8\n");
+    fprintf(temp, "#include <stdio.h>\nint main() { return 0; }\n");
     fclose(temp);
-    
-    int result = fossil_shark_view("test_squeeze.txt", false, false, true, 0, 0, false);
+
+    int result = fossil_shark_view("test_code.c", false, false, false, 0, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
-    
-    remove("test_squeeze.txt");
+
+    remove("test_code.c");
 }
 
-FOSSIL_TEST_CASE(c_test_view_head_lines) {
-    FILE *temp = fopen("test_head.txt", "w");
+FOSSIL_TEST_CASE(c_test_view_structured_file_json) {
+    FILE *temp = fopen("test_structured.json", "w");
     ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n");
+    fprintf(temp, "{ \"key\": true, \"value\": null }\n");
     fclose(temp);
-    
-    int result = fossil_shark_view("test_head.txt", false, false, false, 3, 0, false);
+
+    int result = fossil_shark_view("test_structured.json", false, false, false, 0, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
-    
-    remove("test_head.txt");
+
+    remove("test_structured.json");
 }
 
-FOSSIL_TEST_CASE(c_test_view_tail_lines) {
-    FILE *temp = fopen("test_tail.txt", "w");
+FOSSIL_TEST_CASE(c_test_view_meson_file) {
+    FILE *temp = fopen("meson.build", "w");
     ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n");
+    fprintf(temp, "project('demo', 'c')\nexecutable('app', 'main.c')\n");
     fclose(temp);
-    
-    int result = fossil_shark_view("test_tail.txt", false, false, false, 0, 2, false);
+
+    int result = fossil_shark_view("meson.build", false, false, false, 0, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
-    
-    remove("test_tail.txt");
+
+    remove("meson.build");
 }
 
-FOSSIL_TEST_CASE(c_test_view_with_timestamps) {
-    FILE *temp = fopen("test_time.txt", "w");
+FOSSIL_TEST_CASE(c_test_view_structured_and_code_file) {
+    FILE *temp = fopen("test_structured_code.json", "w");
     ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "Test content\n");
+    fprintf(temp, "{ \"main\": \"int main() { return 0; }\" }\n");
     fclose(temp);
-    
-    int result = fossil_shark_view("test_time.txt", false, false, false, 0, 0, true);
+
+    int result = fossil_shark_view("test_structured_code.json", false, false, false, 0, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
-    
-    remove("test_time.txt");
+
+    remove("test_structured_code.json");
 }
 
-FOSSIL_TEST_CASE(c_test_view_empty_file) {
-    FILE *temp = fopen("test_empty.txt", "w");
+FOSSIL_TEST_CASE(c_test_view_structured_and_meson_file) {
+    FILE *temp = fopen("meson.options", "w");
     ASSUME_NOT_CNULL(temp);
+    fprintf(temp, "option('feature', type: 'boolean', value: true)\n");
     fclose(temp);
-    
-    int result = fossil_shark_view("test_empty.txt", false, false, false, 0, 0, false);
+
+    int result = fossil_shark_view("meson.options", false, false, false, 0, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
-    
-    remove("test_empty.txt");
+
+    remove("meson.options");
 }
 
-FOSSIL_TEST_CASE(c_test_view_combined_options) {
-    FILE *temp = fopen("test_combined.txt", "w");
+FOSSIL_TEST_CASE(c_test_view_plain_text_no_extension) {
+    FILE *temp = fopen("plainfile", "w");
     ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "Line 1\n\nLine 3\n\n\nLine 6\nLine 7\nLine 8\n");
+    fprintf(temp, "Just some plain text.\nAnother line.\n");
     fclose(temp);
-    
-    int result = fossil_shark_view("test_combined.txt", true, false, true, 0, 0, true);
+
+    int result = fossil_shark_view("plainfile", false, false, false, 0, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
-    
-    remove("test_combined.txt");
+
+    remove("plainfile");
+}
+
+FOSSIL_TEST_CASE(c_test_view_csv_file) {
+    FILE *temp = fopen("test.csv", "w");
+    ASSUME_NOT_CNULL(temp);
+    fprintf(temp, "name,age\nAlice,30\nBob,25\n");
+    fclose(temp);
+
+    int result = fossil_shark_view("test.csv", false, false, false, 0, 0, false);
+    ASSUME_ITS_EQUAL_I32(0, result);
+
+    remove("test.csv");
+}
+
+FOSSIL_TEST_CASE(c_test_view_html_file) {
+    FILE *temp = fopen("test.html", "w");
+    ASSUME_NOT_CNULL(temp);
+    fprintf(temp, "<html><body><h1>Hello</h1></body></html>\n");
+    fclose(temp);
+
+    int result = fossil_shark_view("test.html", false, false, false, 0, 0, false);
+    ASSUME_ITS_EQUAL_I32(0, result);
+
+    remove("test.html");
+}
+
+FOSSIL_TEST_CASE(c_test_view_yaml_file) {
+    FILE *temp = fopen("test.yaml", "w");
+    ASSUME_NOT_CNULL(temp);
+    fprintf(temp, "key: value\nflag: true\n");
+    fclose(temp);
+
+    int result = fossil_shark_view("test.yaml", false, false, false, 0, 0, false);
+    ASSUME_ITS_EQUAL_I32(0, result);
+
+    remove("test.yaml");
+}
+
+FOSSIL_TEST_CASE(c_test_view_ini_file) {
+    FILE *temp = fopen("test.ini", "w");
+    ASSUME_NOT_CNULL(temp);
+    fprintf(temp, "[section]\nkey=value\n");
+    fclose(temp);
+
+    int result = fossil_shark_view("test.ini", false, false, false, 0, 0, false);
+    ASSUME_ITS_EQUAL_I32(0, result);
+
+    remove("test.ini");
+}
+
+FOSSIL_TEST_CASE(c_test_view_markdown_file) {
+    FILE *temp = fopen("test.md", "w");
+    ASSUME_NOT_CNULL(temp);
+    fprintf(temp, "# Heading\n- List item\n`inline code`\n");
+    fclose(temp);
+
+    int result = fossil_shark_view("test.md", false, false, false, 0, 0, false);
+    ASSUME_ITS_EQUAL_I32(0, result);
+
+    remove("test.md");
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
@@ -179,17 +232,20 @@ FOSSIL_TEST_CASE(c_test_view_combined_options) {
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 FOSSIL_TEST_GROUP(c_view_command_tests) {
-    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_null_path);
-    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_nonexistent_file);
-    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_basic_file);
-    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_with_line_numbers);
-    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_number_non_blank);
-    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_squeeze_blank_lines);
-    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_head_lines);
-    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_tail_lines);
-    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_with_timestamps);
-    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_empty_file);
-    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_combined_options);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_media_file_jpg);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_media_file_mp3);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_binary_file);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_code_file_c);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_structured_file_json);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_meson_file);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_structured_and_code_file);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_structured_and_meson_file);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_plain_text_no_extension);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_csv_file);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_html_file);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_yaml_file);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_ini_file);
+    FOSSIL_TEST_ADD(c_view_command_suite, c_test_view_markdown_file);
 
     FOSSIL_TEST_REGISTER(c_view_command_suite);
 }
