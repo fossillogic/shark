@@ -13,702 +13,1077 @@
  */
 #include "fossil/code/commands.h"
 #include <ctype.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/stat.h>
+#include <time.h>
 
-/* ---------------------------------------------------------------------
-    Preloaded language/token tables (maximized for common languages)
-    --------------------------------------------------------------------- */
-static const char *KW_CODE[] = {
-    // Control flow
-    "if","else","for","while","do","switch","case","default",
-    "break","continue","goto","return",
+/* -----------------------------------------------------------------------
+    Utility: detect if file is binary
+    ----------------------------------------------------------------------- */
+static bool is_binary_file(const char *path) {
+     fossil_fstream_t stream;
+     if (fossil_fstream_open(&stream, path, "rb") != 0)
+          return false;
 
-    // Types (C/C++)
-    "void","char","short","int","long","float","double","signed","unsigned",
-    "size_t","ssize_t","ptrdiff_t","struct","union","enum","typedef",
-    "class","interface","fn","let","var","const","static","extern",
-    "volatile","register","auto","inline","restrict","_Bool","_Complex","_Imaginary",
+     unsigned char buf[256];
+     size_t n = fossil_fstream_read(&stream, buf, 1, sizeof(buf));
+     fossil_fstream_close(&stream);
 
-    // C++/Java
-    "public","private","protected","virtual","override","final","abstract",
-    "template","typename","namespace","using","friend","operator","explicit",
-    "this","new","delete","throw","try","catch","finally","import","package",
-    "extends","implements","instanceof","synchronized","transient","throws",
-
-    // Modern languages
-    "async","await","yield","lambda","import","from","package","module",
-    "with","as","pass","raise","except","def","class","self","global","nonlocal",
-
-    // Rust/Go
-    "fn","pub","crate","impl","use","match","const","let","mut","enum","struct",
-    "trait","type","where","ref","move","unsafe","dyn","super","Self","self",
-
-    // JS / TS
-    "function","export","extends","new","this","super","typeof","instanceof",
-    "let","var","const","class","constructor","get","set","import","from",
-    "await","async","yield","return","break","continue","switch","case","default",
-
-    // Python
-    "def","pass","class","self","with","as","try","except","finally","raise",
-    "import","from","lambda","yield","global","nonlocal","assert","del","elif",
-    "False","True","None","not","or","and","is","in",
-
-    // Shell
-    "if","then","fi","elif","else","for","while","do","done","case","esac",
-    "function","select","until","in","break","continue","return","exit","export",
-    "readonly","declare","local","typeset","eval","exec","set","unset","source",
-
-    // HTML/CSS
-    "html","head","body","div","span","script","style","link","meta","title",
-    "table","tr","td","th","ul","ol","li","form","input","button","select",
-    "option","textarea","label","fieldset","legend","header","footer","nav",
-    "main","section","article","aside","h1","h2","h3","h4","h5","h6","br","hr",
-    "class","id","src","href","alt","type","value","name","action","method",
-    "checked","disabled","readonly","selected","placeholder","required",
-
-    // SQL
-    "select","insert","update","delete","from","where","join","inner","left",
-    "right","full","on","group","by","order","having","limit","offset","union",
-    "distinct","as","into","values","set","create","table","view","index",
-    "drop","alter","add","column","primary","key","foreign","references",
-    "constraint","check","default","null","not","and","or","in","exists",
-
-    // TOML/YAML/INI
-    "true","false","null","yes","no","on","off",
-
-    // Misc
-    "print","echo","input","read","write","open","close","main","args","argc","argv",
-};
-
-static const char OPS_CODE[] =
-    "{}()[];,+-*/%<>&|^!=~?:.@$`\\#";
-
-static const char STR_PUNCT[] =
-    "{}[]:,\"'=<>/;()!@#$%^&*|~`\\.";
-
-static const char *KW_STRUCT[] = {
-    // JSON/TOML/YAML/INI booleans/null
-    "true","false","null","yes","no","on","off",
-
-    // Additional structured keywords
-    "none","nil","empty","undefined","default","required","optional",
-    "enabled","disabled","active","inactive","success","error","fail","warning",
-    "info","debug","trace","fatal","critical","unknown","pending","complete",
-    "open","closed","locked","unlocked","visible","hidden","readonly","writeonly",
-    "public","private","protected","internal","external","global","local",
-    "user","admin","guest","system","root","superuser","owner","group",
-    "config","settings","options","parameters","values","items","list","array",
-    "object","map","dict","table","section","entry","field","row","column",
-    "start","end","first","last","next","prev","previous","current","index",
-    "count","size","length","capacity","limit","max","min","average","median",
-    "sum","total","amount","rate","percent","ratio","score","grade",
-    "date","time","timestamp","created","modified","updated","deleted",
-    "path","file","dir","folder","name","type","id","uuid","guid","key",
-    "value","data","info","desc","description","title","label","tag","note",
-    "status","state","mode","level","priority","rank","order","sort",
-    "input","output","result","response","request","message","event","action",
-    "source","target","destination","origin","host","port","address","ip",
-    "url","uri","link","ref","reference","hash","checksum","signature",
-    "version","release","build","commit","branch","tag","merge","pull","push",
-    "login","logout","register","signup","signin","signout","auth","authorize",
-    "token","session","cookie","cache","store","load","save","read","write",
-    "connect","disconnect","send","receive","upload","download","import","export",
-    "start","stop","pause","resume","run","execute","launch","init","initialize",
-    "shutdown","restart","reset","clear","flush","sync","update","upgrade",
-    "install","uninstall","remove","delete","add","create","edit","change",
-    "set","get","find","search","replace","filter","sort","group","aggregate",
-    "split","join","combine","merge","diff","patch","apply","revert","rollback",
-    "backup","restore","copy","move","rename","duplicate","clone","fork",
-    "lock","unlock","open","close","enable","disable","show","hide","display",
-    "print","echo","log","trace","debug","warn","error","fail","success",
-    "ok","cancel","confirm","accept","reject","approve","deny","allow","block",
-    "grant","revoke","subscribe","unsubscribe","follow","unfollow","like","dislike",
-    "vote","rate","review","comment","reply","share","post","publish","draft",
-    "archive","unarchive","favorite","bookmark","star","flag","report",
-    "invite","join","leave","kick","ban","mute","unmute","promote","demote",
-    "add","remove","update","edit","delete","create","destroy","build","compile",
-    "test","run","execute","deploy","release","publish","install","uninstall",
-    "upgrade","downgrade","rollback","restore","backup","sync","merge","rebase",
-    "commit","push","pull","fetch","clone","fork","branch","tag","checkout",
-    "init","status","log","diff","reset","clean","stash","pop","apply",
-    "cherry-pick","revert","blame","bisect","submodule","remote","origin",
-    "upstream","downstream","mirror","snapshot","archive","bundle","patch",
-    "issue","bug","feature","task","todo","note","comment","review","approve",
-    "request","response","message","event","action","trigger","handler",
-    "listener","observer","subscriber","publisher","producer","consumer",
-    "queue","stack","heap","tree","graph","list","array","map","set","dict",
-    "table","row","column","cell","field","record","entry","item","element",
-    "node","edge","vertex","link","connection","relation","reference",
-    "parent","child","sibling","ancestor","descendant","root","leaf","branch",
-    "path","route","track","trace","trail","way","line","curve","circle",
-    "point","dot","pixel","block","chunk","segment","slice","piece","part",
-    "section","zone","area","region","domain","range","interval","window",
-    "frame","page","screen","view","panel","tab","group","box","container",
-    "form","input","output","button","label","field","checkbox","radio",
-    "select","option","dropdown","listbox","slider","spinner","switch",
-    "toggle","menu","item","link","anchor","image","icon","picture","photo",
-    "video","audio","media","file","document","text","html","xml","json",
-    "yaml","toml","ini","csv","tsv","md","markdown","rst","adoc","pdf",
-    "doc","docx","xls","xlsx","ppt","pptx","odt","ods","odp","rtf","tex",
-    "latex","bib","log","conf","cfg","config","settings","properties",
-    "env","environment","profile","template","sample","example","demo",
-    "test","case","suite","spec","scenario","step","assert","expect",
-    "verify","check","validate","compare","match","diff","patch","fix",
-    "resolve","close","open","assign","unassign","label","tag","milestone",
-    "release","version","build","commit","branch","merge","pull","push",
-    "fork","clone","init","status","log","diff","reset","clean","stash",
-    "pop","apply","cherry-pick","revert","blame","bisect","submodule",
-    "remote","origin","upstream","downstream","mirror","snapshot","archive",
-    "bundle","patch","issue","bug","feature","task","todo","note","comment",
-    "review","approve","request","response","message","event","action",
-    "trigger","handler","listener","observer","subscriber","publisher",
-    "producer","consumer","queue","stack","heap","tree","graph","list",
-    "array","map","set","dict","table","row","column","cell","field",
-    "record","entry","item","element","node","edge","vertex","link",
-    "connection","relation","reference","parent","child","sibling",
-    "ancestor","descendant","root","leaf","branch","path","route",
-    "track","trace","trail","way","line","curve","circle","point",
-    "dot","pixel","block","chunk","segment","slice","piece","part",
-    "section","zone","area","region","domain","range","interval",
-    "window","frame","page","screen","view","panel","tab","group",
-    "box","container","form","input","output","button","label",
-    "field","checkbox","radio","select","option","dropdown",
-    "listbox","slider","spinner","switch","toggle","menu","item",
-    "link","anchor","image","icon","picture","photo","video",
-    "audio","media","file","document","text","html","xml","json",
-    "yaml","toml","ini","csv","tsv","md","markdown","rst","adoc",
-    "pdf","doc","docx","xls","xlsx","ppt","pptx","odt","ods",
-    "odp","rtf","tex","latex","bib","log","conf","cfg","config",
-    "settings","properties","env","environment","profile","template",
-    "sample","example","demo","test","case","suite","spec","scenario",
-    "step","assert","expect","verify","check","validate","compare",
-    "match","diff","patch","fix","resolve","close","open","assign",
-    "unassign","label","tag","milestone","release","version","build",
-    "commit","branch","merge","pull","push","fork","clone","init",
-    "status","log","diff","reset","clean","stash","pop","apply",
-    "cherry-pick","revert","blame","bisect","submodule","remote",
-    "origin","upstream","downstream","mirror","snapshot","archive",
-    "bundle","patch"
-};
-
-#define is_number_char(c) (isdigit((unsigned char)(c)) || (c)=='-' || (c)=='.')
-
-/* ---------------------------------------------------------------------
-    Helper: check keyword list (linear scan). Could be optimized later.
-    --------------------------------------------------------------------- */
-static int is_in_table(const char *tok, const char *table[], size_t n) {
-     for (size_t i = 0; i < n; ++i) {
-          if (table[i] == NULL) continue;
-          if (strcmp(tok, table[i]) == 0) return 1;
+     for (size_t i = 0; i < n; i++) {
+          if (buf[i] == 0) return true;
      }
-     return 0;
+     return false;
 }
 
-/* ---------------------------------------------------------------------
-    Helper: apply color markup tags in output buffer.
-    --------------------------------------------------------------------- */
-static void apply_color_tags(const char *src, char *dst, size_t dst_size) {
-    size_t si = 0, di = 0;
-    while (src[si] != '\0' && di < dst_size - 1) {
-        if (src[si] == '{') {
-            size_t tag_start = si + 1;
-            size_t tag_end = tag_start;
-            while (src[tag_end] != '\0' && src[tag_end] != '}') tag_end++;
-            if (src[tag_end] == '}') {
-                char tag[64];
-                size_t tag_len = tag_end - tag_start;
-                if (tag_len < sizeof(tag)) {
-                    memcpy(tag, src + tag_start, tag_len);
-                    tag[tag_len] = '\0';
-                    // Map tag to ANSI escape sequence
-                    if (strcmp(tag, "red") == 0)
-                        di += snprintf(dst + di, dst_size - di, "\033[31m");
-                    else if (strcmp(tag, "green") == 0)
-                        di += snprintf(dst + di, dst_size - di, "\033[32m");
-                    else if (strcmp(tag, "yellow") == 0)
-                        di += snprintf(dst + di, dst_size - di, "\033[33m");
-                    else if (strcmp(tag, "blue") == 0)
-                        di += snprintf(dst + di, dst_size - di, "\033[34m");
-                    else if (strcmp(tag, "magenta") == 0)
-                        di += snprintf(dst + di, dst_size - di, "\033[35m");
-                    else if (strcmp(tag, "cyan") == 0)
-                        di += snprintf(dst + di, dst_size - di, "\033[36m");
-                    else if (strcmp(tag, "normal") == 0)
-                        di += snprintf(dst + di, dst_size - di, "\033[0m");
-                    else if (strcmp(tag, "lightblue") == 0)
-                        di += snprintf(dst + di, dst_size - di, "\033[94m");
-                    else if (strstr(tag, "bold"))
-                        di += snprintf(dst + di, dst_size - di, "\033[1m");
-                    else if (strstr(tag, "underline"))
-                        di += snprintf(dst + di, dst_size - di, "\033[4m");
-                    else if (strstr(tag, "dim"))
-                        di += snprintf(dst + di, dst_size - di, "\033[2m");
-                    else if (strstr(tag, "reversed"))
-                        di += snprintf(dst + di, dst_size - di, "\033[7m");
-                    else if (strncmp(tag, "pos:", 4) == 0) {
-                        // Example: {pos:top} moves cursor to top
-                        if (strcmp(tag + 4, "top") == 0)
-                            di += snprintf(dst + di, dst_size - di, "\033[H");
-                        else if (strcmp(tag + 4, "bottom") == 0)
-                            di += snprintf(dst + di, dst_size - di, "\033[999B");
-                        else if (strcmp(tag + 4, "left") == 0)
-                            di += snprintf(dst + di, dst_size - di, "\033[1G");
-                        else if (strcmp(tag + 4, "right") == 0)
-                            di += snprintf(dst + di, dst_size - di, "\033[999C");
-                    }
-                    // Add more tags as needed
+/* -----------------------------------------------------------------------
+    Utility: determine type from extension
+    ----------------------------------------------------------------------- */
+static const char *get_extension(const char *path) {
+     const char *dot = strrchr(path, '.');
+     return dot ? dot + 1 : "";
+}
+
+static bool is_code_ext(const char *ext) {
+     const char *list[] = {
+          "c","h","cpp","hpp","cc","java","js","ts","py","go","rs","lua",
+          "php","rb","swift","cs","m","mm","sh"
+     };
+     for (size_t i = 0; i < sizeof(list)/sizeof(list[0]); i++)
+          if (fossil_io_cstring_iequals(ext, list[i]))
+                return true;
+     return false;
+}
+
+static bool is_structured_ext(ccstring ext) {
+    const ccstring list[] = { "json", "xml", "yaml", "yml", "ini", "toml" };
+    for (size_t i = 0; i < sizeof(list)/sizeof(list[0]); i++)
+        if (fossil_io_cstring_iequals(ext, list[i]))
+             return true;
+    return false;
+}
+
+static bool is_media_ext(ccstring ext) {
+    const ccstring list[] = {
+        "jpg","jpeg","png","gif","bmp","mp3","wav","ogg","flac","mp4",
+        "mkv","avi","webm"
+    };
+    for (size_t i = 0; i < sizeof(list)/sizeof(list[0]); i++)
+        if (fossil_io_cstring_iequals(ext, list[i]))
+             return true;
+    return false;
+}
+
+
+/* -----------------------------------------------------------------------
+    Code formatting (very simple keyword highlighter)
+    ----------------------------------------------------------------------- */
+// --- Advanced code keyword lists ---
+static const char *KW_CODE[] = {
+    // Control
+    "if","else","for","while","do","switch","case","default","break",
+    "continue","goto","return",
+    // Types
+    "void","char","short","int","long","float","double","signed","unsigned",
+    "struct","union","enum","typedef","const","volatile","static","extern","register",
+    // Modifiers
+    "inline","restrict","auto","sizeof",
+    // C++
+    "class","public","private","protected","virtual","override","template","typename",
+    "namespace","using","new","delete","operator","friend","this","throw","try","catch",
+    "const_cast","static_cast","dynamic_cast","reinterpret_cast",
+    // C99/C11/C++11
+    "bool","true","false","nullptr","constexpr","decltype","thread_local","noexcept",
+    // Preprocessor
+    "#include","#define","#ifdef","#ifndef","#endif","#if","#else","#elif","#undef","#pragma",
+    // Misc
+    "switch","case","default","break","continue","return",
+    NULL
+};
+
+static const char *KW_CODE_TYPES[] = {
+    "void","char","short","int","long","float","double","signed","unsigned",
+    "struct","union","enum","typedef","const","volatile","static","extern","register",
+    "bool","size_t","ssize_t","uint8_t","uint16_t","uint32_t","uint64_t",
+    "int8_t","int16_t","int32_t","int64_t", NULL
+};
+
+static const char *KW_CODE_PREPROC[] = {
+    "#include","#define","#ifdef","#ifndef","#endif","#if","#else","#elif","#undef","#pragma", NULL
+};
+
+static const char *KW_CODE_LITERAL[] = {
+    "NULL","nullptr","true","false", NULL
+};
+
+static bool is_code_keyword(ccstring word) {
+    for (int i = 0; KW_CODE[i]; i++)
+        if (fossil_io_cstring_iequals(word, KW_CODE[i]))
+            return true;
+    return false;
+}
+static bool is_code_type(ccstring word) {
+    for (int i = 0; KW_CODE_TYPES[i]; i++)
+        if (fossil_io_cstring_iequals(word, KW_CODE_TYPES[i]))
+            return true;
+    return false;
+}
+static bool is_code_preproc(ccstring word) {
+    for (int i = 0; KW_CODE_PREPROC[i]; i++)
+        if (fossil_io_cstring_iequals(word, KW_CODE_PREPROC[i]))
+            return true;
+    return false;
+}
+static bool is_code_literal(ccstring word) {
+    for (int i = 0; KW_CODE_LITERAL[i]; i++)
+        if (fossil_io_cstring_iequals(word, KW_CODE_LITERAL[i]))
+            return true;
+    return false;
+}
+
+// --- Advanced code formatter ---
+static void format_code_line(ccstring line) {
+    size_t len = fossil_io_cstring_length(line);
+    size_t i = 0;
+    bool in_string = false, in_char = false, in_multi_comment = false;
+    int indent = 0;
+
+    // Indentation
+    size_t indent_len = 0;
+    while (i < len && (line[i] == ' ' || line[i] == '\t')) {
+        indent_len++;
+        if (line[i] == '\t') indent += 4;
+        else indent++;
+        i++;
+    }
+    if (indent_len > 0)
+        fossil_io_printf("%.*s", (int)indent_len, line);
+
+    // Preprocessor directive at line start
+    if (line[indent_len] == '#') {
+        fossil_io_printf("{magenta,bold}");
+        for (; i < len; i++) fossil_io_putchar(line[i]);
+        fossil_io_printf("{normal}");
+        return;
+    }
+
+    while (i < len) {
+        // Single-line comment
+        if (!in_string && !in_char && line[i] == '/' && i + 1 < len && line[i+1] == '/') {
+            fossil_io_printf("{green}//%s{normal}", &line[i+2]);
+            break;
+        }
+        // Multi-line comment start
+        if (!in_string && !in_char && line[i] == '/' && i + 1 < len && line[i+1] == '*') {
+            fossil_io_printf("{green}/*");
+            i += 2;
+            in_multi_comment = true;
+            continue;
+        }
+        // Multi-line comment end
+        if (in_multi_comment) {
+            if (line[i] == '*' && i + 1 < len && line[i+1] == '/') {
+                fossil_io_printf("*/{normal}");
+                i += 2;
+                in_multi_comment = false;
+            } else {
+                fossil_io_putchar(line[i++]);
+            }
+            continue;
+        }
+        // String literal
+        if (!in_char && line[i] == '"' && !in_string) {
+            fossil_io_printf("{yellow}\"");
+            i++;
+            in_string = true;
+            while (i < len) {
+                if (line[i] == '\\' && i + 1 < len) {
+                    fossil_io_printf("\\%c", line[i+1]);
+                    i += 2;
+                    continue;
                 }
-                si = tag_end + 1;
-                continue;
+                fossil_io_putchar(line[i]);
+                if (line[i] == '"' && line[i-1] != '\\') {
+                    fossil_io_printf("{normal}");
+                    i++;
+                    in_string = false;
+                    break;
+                }
+                i++;
+            }
+            continue;
+        }
+        // Char literal
+        if (!in_string && line[i] == '\'' && !in_char) {
+            fossil_io_printf("{magenta}'");
+            i++;
+            in_char = true;
+            while (i < len) {
+                if (line[i] == '\\' && i + 1 < len) {
+                    fossil_io_printf("\\%c", line[i+1]);
+                    i += 2;
+                    continue;
+                }
+                fossil_io_putchar(line[i]);
+                if (line[i] == '\'' && line[i-1] != '\\') {
+                    fossil_io_printf("{normal}");
+                    i++;
+                    in_char = false;
+                    break;
+                }
+                i++;
+            }
+            continue;
+        }
+        // Numbers (hex, float, int)
+        if (isdigit((unsigned char)line[i]) ||
+            (line[i] == '-' && i + 1 < len && isdigit((unsigned char)line[i+1]))) {
+            size_t start = i;
+            if (line[i] == '-') i++;
+            if (line[i] == '0' && i + 1 < len && (line[i+1] == 'x' || line[i+1] == 'X')) {
+                i += 2;
+                while (i < len && isxdigit((unsigned char)line[i])) i++;
+            } else {
+                while (i < len && (isdigit((unsigned char)line[i]) || line[i] == '.' || line[i] == 'e' || line[i] == 'E' || line[i] == '+' || line[i] == '-')) i++;
+            }
+            cstring num = fossil_io_cstring_substring(line, start, i - start);
+            fossil_io_printf("{blue}%s{normal}", num);
+            fossil_io_cstring_free(num);
+            continue;
+        }
+        // Identifiers, keywords, types, literals, preprocessor
+        if (isalpha((unsigned char)line[i]) || line[i] == '_') {
+            size_t start = i;
+            while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '_')) i++;
+            cstring word = fossil_io_cstring_substring(line, start, i - start);
+            if (is_code_preproc(word))
+                fossil_io_printf("{magenta,bold}%s{normal}", word);
+            else if (is_code_keyword(word))
+                fossil_io_printf("{cyan,bold}%s{normal}", word);
+            else if (is_code_type(word))
+                fossil_io_printf("{yellow,bold}%s{normal}", word);
+            else if (is_code_literal(word))
+                fossil_io_printf("{magenta,bold}%s{normal}", word);
+            else
+                fossil_io_printf("%s", word);
+            fossil_io_cstring_free(word);
+            continue;
+        }
+        // Operators and punctuation
+        if (strchr("=+-*/%&|^~!<>?:;,()[]{}.", line[i])) {
+            fossil_io_printf("{blue}%c{normal}", line[i++]);
+            continue;
+        }
+        // Whitespace
+        if (line[i] == ' ' || line[i] == '\t') {
+            fossil_io_putchar(line[i++]);
+            continue;
+        }
+        // Default
+        fossil_io_putchar(line[i++]);
+    }
+}
+
+/* -----------------------------------------------------------------------
+    Structured data formatting (simple keyword highlighter for JSON/YAML/XML)
+    ----------------------------------------------------------------------- */
+static const char *KW_STRUCTURED[] = {
+    "true", "false", "null", "yes", "no", "on", "off", "none", NULL
+};
+
+static bool is_structured_keyword(ccstring word) {
+    for (int i = 0; KW_STRUCTURED[i]; i++) {
+        if (fossil_io_cstring_iequals(word, KW_STRUCTURED[i]))
+            return true;
+    }
+    return false;
+}
+
+static void format_structured_line(ccstring line, ccstring ext) {
+    size_t len = fossil_io_cstring_length(line);
+    size_t i = 0;
+    int indent = 0;
+
+    // Count leading spaces/tabs for indent
+    size_t indent_len = 0;
+    while (i < len && (line[i] == ' ' || line[i] == '\t')) {
+        indent_len++;
+        if (line[i] == '\t')
+            indent += 4;
+        else
+            indent++;
+        i++;
+    }
+    if (indent_len > 0)
+        fossil_io_printf("%.*s", (int)indent_len, line);
+
+    bool in_string = false;
+    char string_quote = 0;
+
+    // If extension is empty, treat as plain text
+    if (!ext || ext[0] == '\0') {
+        fossil_io_puts(line);
+        return;
+    }
+
+    // Markdown support
+    if (fossil_io_cstring_iequals(ext, "md") || fossil_io_cstring_iequals(ext, "markdown")) {
+        // Headings
+        if (line[0] == '#') {
+            int h = 0;
+            while (i < len && line[i] == '#') { h++; i++; }
+            while (i < len && (line[i] == ' ' || line[i] == '\t')) i++;
+            fossil_io_printf("{cyan,bold}%.*s{normal} ", h, line);
+            fossil_io_printf("{white,bold}%s{normal}", &line[i]);
+            if (line[len-1] != '\n') fossil_io_putchar('\n');
+            return;
+        }
+        // Lists
+        if (line[i] == '-' || line[i] == '*' || line[i] == '+') {
+            fossil_io_printf("{yellow,bold}%c{normal} ", line[i]);
+            i++;
+        }
+        // Blockquote
+        if (line[i] == '>') {
+            fossil_io_printf("{magenta,bold}>%s{normal}", &line[i+1]);
+            if (line[len-1] != '\n') fossil_io_putchar('\n');
+            return;
+        }
+        // Code block
+        if (fossil_io_cstring_starts_with(line, "```")) {
+            fossil_io_printf("{blue,bold}%s{normal}", line);
+            if (line[len-1] != '\n') fossil_io_putchar('\n');
+            return;
+        }
+        // Inline code
+        for (; i < len; i++) {
+            if (line[i] == '`') {
+                fossil_io_printf("{blue}`");
+                i++;
+                size_t start = i;
+                while (i < len && line[i] != '`') i++;
+                cstring code = fossil_io_cstring_substring(line, start, i - start);
+                fossil_io_printf("%s", code);
+                fossil_io_cstring_free(code);
+                if (i < len && line[i] == '`') {
+                    fossil_io_printf("`{normal}");
+                }
+            } else if (line[i] == '*' || line[i] == '_') {
+                // Bold/italic
+                int mark = line[i];
+                int cnt = 0;
+                while (i < len && line[i] == mark) { cnt++; i++; }
+                size_t start = i;
+                while (i < len && line[i] != mark) i++;
+                cstring txt = fossil_io_cstring_substring(line, start, i - start);
+                if (cnt == 2)
+                    fossil_io_printf("{bold}%s{normal}", txt);
+                else
+                    fossil_io_printf("{italic}%s{normal}", txt);
+                fossil_io_cstring_free(txt);
+                while (i < len && line[i] == mark) i++;
+            } else {
+                fossil_io_putchar(line[i]);
             }
         }
-        dst[di++] = src[si++];
+        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        return;
     }
-    dst[di] = '\0';
+
+    // CSV support
+    if (fossil_io_cstring_iequals(ext, "csv")) {
+        size_t col = 0;
+        while (i < len) {
+            if (line[i] == '"') {
+                fossil_io_printf("{yellow}\"");
+                i++;
+                size_t start = i;
+                while (i < len && line[i] != '"') i++;
+                cstring val = fossil_io_cstring_substring(line, start, i - start);
+                fossil_io_printf("%s", val);
+                fossil_io_cstring_free(val);
+                if (i < len && line[i] == '"') {
+                    fossil_io_printf("\"{normal}");
+                    i++;
+                }
+            } else if (line[i] == ',') {
+                fossil_io_printf("{blue},");
+                i++;
+                col++;
+            } else {
+                fossil_io_putchar(line[i++]);
+            }
+        }
+        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        return;
+    }
+
+    // HTML support
+    if (fossil_io_cstring_iequals(ext, "html") || fossil_io_cstring_iequals(ext, "htm")) {
+        while (i < len) {
+            if (line[i] == '<') {
+                fossil_io_printf("{yellow,bold}<");
+                i++;
+                size_t tag_start = i;
+                while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '-' || line[i] == '_')) i++;
+                cstring tag = fossil_io_cstring_substring(line, tag_start, i - tag_start);
+                fossil_io_printf("%s", tag);
+                fossil_io_cstring_free(tag);
+                // Attributes inside tag
+                while (i < len && line[i] != '>') {
+                    if (line[i] == '=') {
+                        fossil_io_printf("{yellow}={normal}");
+                        i++;
+                    } else if (line[i] == '"' || line[i] == '\'') {
+                        char quote = line[i++];
+                        fossil_io_printf("{yellow}%c", quote);
+                        size_t val_start = i;
+                        while (i < len && line[i] != quote) i++;
+                        cstring val = fossil_io_cstring_substring(line, val_start, i - val_start);
+                        fossil_io_printf("%s", val);
+                        fossil_io_cstring_free(val);
+                        if (i < len && line[i] == quote) {
+                            fossil_io_printf("%c{normal}", quote);
+                            i++;
+                        }
+                    } else {
+                        fossil_io_putchar(line[i++]);
+                    }
+                }
+                if (i < len && line[i] == '>') {
+                    fossil_io_printf("{yellow,bold}>");
+                    i++;
+                }
+                continue;
+            }
+            fossil_io_putchar(line[i++]);
+        }
+        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        return;
+    }
+
+    // FSON support (like JSON, but allow comments and trailing commas)
+    if (fossil_io_cstring_iequals(ext, "fson")) {
+        while (i < len) {
+            // Comments
+            if (line[i] == '/' && i + 1 < len && line[i+1] == '/') {
+                fossil_io_printf("{green}//%s{normal}", &line[i+2]);
+                break;
+            }
+            // Strings
+            if (!in_string && (line[i] == '"' || line[i] == '\'')) {
+                in_string = true;
+                string_quote = line[i];
+                fossil_io_printf("{yellow}%c", line[i++]);
+                size_t start = i;
+                while (i < len && (line[i] != string_quote || (i > start && line[i-1] == '\\'))) i++;
+                cstring str = fossil_io_cstring_substring(line, start, i - start);
+                fossil_io_printf("%s", str);
+                fossil_io_cstring_free(str);
+                if (i < len && line[i] == string_quote) {
+                    fossil_io_printf("%c{normal}", line[i]);
+                    i++;
+                }
+                in_string = false;
+                continue;
+            }
+            // Keys
+            if (line[i] == '"') {
+                size_t key_start = ++i;
+                while (i < len && line[i] != '"') i++;
+                cstring key = fossil_io_cstring_substring(line, key_start, i - key_start);
+                fossil_io_printf("{cyan,bold}\"%s\"{normal}", key);
+                fossil_io_cstring_free(key);
+                if (i < len && line[i] == '"') i++;
+                if (i < len && line[i] == ':') {
+                    fossil_io_printf("{yellow}:");
+                    i++;
+                }
+                continue;
+            }
+            // Numbers
+            if (isdigit((unsigned char)line[i]) ||
+                (line[i] == '-' && i + 1 < len && isdigit((unsigned char)line[i + 1]))) {
+                size_t start = i;
+                if (line[i] == '-') i++;
+                if (line[i] == '0' && i + 1 < len && (line[i+1] == 'x' || line[i+1] == 'X')) {
+                    i += 2;
+                    while (i < len && isxdigit((unsigned char)line[i])) i++;
+                } else {
+                    while (i < len && (isdigit((unsigned char)line[i]) || line[i] == '.')) i++;
+                }
+                cstring num = fossil_io_cstring_substring(line, start, i - start);
+                fossil_io_printf("{blue}%s{normal}", num);
+                fossil_io_cstring_free(num);
+                continue;
+            }
+            // Punctuation
+            if (strchr("{}[]:,=", line[i])) {
+                fossil_io_printf("{yellow}%c{normal}", line[i++]);
+                continue;
+            }
+            // Structured keywords
+            if (isalpha((unsigned char)line[i])) {
+                size_t start = i;
+                while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '_')) i++;
+                cstring word = fossil_io_cstring_substring(line, start, i - start);
+                if (is_structured_keyword(word))
+                    fossil_io_printf("{magenta,bold}%s{normal}", word);
+                else
+                    fossil_io_printf("%s", word);
+                fossil_io_cstring_free(word);
+                continue;
+            }
+            fossil_io_putchar(line[i++]);
+        }
+        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        return;
+    }
+
+    // JSON support
+    if (fossil_io_cstring_iequals(ext, "json")) {
+        while (i < len) {
+            // Strings
+            if (!in_string && (line[i] == '"' || line[i] == '\'')) {
+                in_string = true;
+                string_quote = line[i];
+                fossil_io_printf("{yellow}%c", line[i++]);
+                size_t start = i;
+                while (i < len && (line[i] != string_quote || (i > start && line[i-1] == '\\'))) i++;
+                cstring str = fossil_io_cstring_substring(line, start, i - start);
+                fossil_io_printf("%s", str);
+                fossil_io_cstring_free(str);
+                if (i < len && line[i] == string_quote) {
+                    fossil_io_printf("%c{normal}", line[i]);
+                    i++;
+                }
+                in_string = false;
+                continue;
+            }
+            // Keys
+            if (line[i] == '"') {
+                size_t key_start = ++i;
+                while (i < len && line[i] != '"') i++;
+                cstring key = fossil_io_cstring_substring(line, key_start, i - key_start);
+                fossil_io_printf("{cyan,bold}\"%s\"{normal}", key);
+                fossil_io_cstring_free(key);
+                if (i < len && line[i] == '"') i++;
+                if (i < len && line[i] == ':') {
+                    fossil_io_printf("{yellow}:");
+                    i++;
+                }
+                continue;
+            }
+            // Numbers
+            if (isdigit((unsigned char)line[i]) ||
+                (line[i] == '-' && i + 1 < len && isdigit((unsigned char)line[i + 1]))) {
+                size_t start = i;
+                if (line[i] == '-') i++;
+                if (line[i] == '0' && i + 1 < len && (line[i+1] == 'x' || line[i+1] == 'X')) {
+                    i += 2;
+                    while (i < len && isxdigit((unsigned char)line[i])) i++;
+                } else {
+                    while (i < len && (isdigit((unsigned char)line[i]) || line[i] == '.')) i++;
+                }
+                cstring num = fossil_io_cstring_substring(line, start, i - start);
+                fossil_io_printf("{blue}%s{normal}", num);
+                fossil_io_cstring_free(num);
+                continue;
+            }
+            // Punctuation
+            if (strchr("{}[]:,=", line[i])) {
+                fossil_io_printf("{yellow}%c{normal}", line[i++]);
+                continue;
+            }
+            // Structured keywords
+            if (isalpha((unsigned char)line[i])) {
+                size_t start = i;
+                while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '_')) i++;
+                cstring word = fossil_io_cstring_substring(line, start, i - start);
+                if (is_structured_keyword(word))
+                    fossil_io_printf("{magenta,bold}%s{normal}", word);
+                else
+                    fossil_io_printf("%s", word);
+                fossil_io_cstring_free(word);
+                continue;
+            }
+            fossil_io_putchar(line[i++]);
+        }
+        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        return;
+    }
+
+    // XML support
+    if (fossil_io_cstring_iequals(ext, "xml")) {
+        while (i < len) {
+            if (line[i] == '<') {
+                fossil_io_printf("{yellow,bold}<");
+                i++;
+                size_t tag_start = i;
+                while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '-' || line[i] == '_')) i++;
+                cstring tag = fossil_io_cstring_substring(line, tag_start, i - tag_start);
+                fossil_io_printf("%s", tag);
+                fossil_io_cstring_free(tag);
+                // Attributes inside tag
+                while (i < len && line[i] != '>') {
+                    if (line[i] == '=') {
+                        fossil_io_printf("{yellow}={normal}");
+                        i++;
+                    } else if (line[i] == '"' || line[i] == '\'') {
+                        char quote = line[i++];
+                        fossil_io_printf("{yellow}%c", quote);
+                        size_t val_start = i;
+                        while (i < len && line[i] != quote) i++;
+                        cstring val = fossil_io_cstring_substring(line, val_start, i - val_start);
+                        fossil_io_printf("%s", val);
+                        fossil_io_cstring_free(val);
+                        if (i < len && line[i] == quote) {
+                            fossil_io_printf("%c{normal}", quote);
+                            i++;
+                        }
+                    } else {
+                        fossil_io_putchar(line[i++]);
+                    }
+                }
+                if (i < len && line[i] == '>') {
+                    fossil_io_printf("{yellow,bold}>");
+                    i++;
+                }
+                continue;
+            }
+            fossil_io_putchar(line[i++]);
+        }
+        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        return;
+    }
+
+    // YAML/TOML/INI support
+    if (fossil_io_cstring_iequals(ext, "yaml") || fossil_io_cstring_iequals(ext, "yml") ||
+        fossil_io_cstring_iequals(ext, "toml") || fossil_io_cstring_iequals(ext, "ini")) {
+        while (i < len) {
+            // Comments
+            if (line[i] == '#') {
+                fossil_io_printf("{green}%s{normal}", &line[i]);
+                break;
+            }
+            // Strings
+            if (!in_string && (line[i] == '"' || line[i] == '\'')) {
+                in_string = true;
+                string_quote = line[i];
+                fossil_io_printf("{yellow}%c", line[i++]);
+                size_t start = i;
+                while (i < len && (line[i] != string_quote || (i > start && line[i-1] == '\\'))) i++;
+                cstring str = fossil_io_cstring_substring(line, start, i - start);
+                fossil_io_printf("%s", str);
+                fossil_io_cstring_free(str);
+                if (i < len && line[i] == string_quote) {
+                    fossil_io_printf("%c{normal}", line[i]);
+                    i++;
+                }
+                in_string = false;
+                continue;
+            }
+            // Key before ':' or '='
+            if ((isalpha((unsigned char)line[i]) || line[i] == '_')) {
+                size_t key_start = i;
+                while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '_' || line[i] == '-')) i++;
+                if (i < len && (line[i] == ':' || line[i] == '=')) {
+                    cstring key = fossil_io_cstring_substring(line, key_start, i - key_start);
+                    fossil_io_printf("{cyan,bold}%s{normal}", key);
+                    fossil_io_cstring_free(key);
+                    fossil_io_printf("{yellow}%c{normal}", line[i]);
+                    i++;
+                    continue;
+                }
+            }
+            // Structured keywords
+            if (isalpha((unsigned char)line[i])) {
+                size_t start = i;
+                while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '_')) i++;
+                cstring word = fossil_io_cstring_substring(line, start, i - start);
+                if (is_structured_keyword(word))
+                    fossil_io_printf("{magenta,bold}%s{normal}", word);
+                else
+                    fossil_io_printf("%s", word);
+                fossil_io_cstring_free(word);
+                continue;
+            }
+            // Numbers
+            if (isdigit((unsigned char)line[i]) ||
+                (line[i] == '-' && i + 1 < len && isdigit((unsigned char)line[i + 1]))) {
+                size_t start = i;
+                if (line[i] == '-') i++;
+                if (line[i] == '0' && i + 1 < len && (line[i+1] == 'x' || line[i+1] == 'X')) {
+                    i += 2;
+                    while (i < len && isxdigit((unsigned char)line[i])) i++;
+                } else {
+                    while (i < len && (isdigit((unsigned char)line[i]) || line[i] == '.')) i++;
+                }
+                cstring num = fossil_io_cstring_substring(line, start, i - start);
+                fossil_io_printf("{blue}%s{normal}", num);
+                fossil_io_cstring_free(num);
+                continue;
+            }
+            // Punctuation
+            if (strchr("{}[]:,=", line[i])) {
+                fossil_io_printf("{yellow}%c{normal}", line[i++]);
+                continue;
+            }
+            fossil_io_putchar(line[i++]);
+        }
+        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        return;
+    }
+
+    // Plain text fallback
+    fossil_io_puts(line);
 }
 
-/* ---------------------------------------------------------------------
-    The main function (integrated)
-    --------------------------------------------------------------------- */
-int fossil_shark_view(ccstring path, bool number_lines,
-                        bool number_non_blank, bool squeeze_blank,
-                        int head_lines, int tail_lines, bool show_time) {
+/* -----------------------------------------------------------------------
+    Meson build/options file formatting (enhanced keyword highlighter)
+    ----------------------------------------------------------------------- */
+static const char *KW_MESON[] = {
+    "project", "executable", "library", "shared_library", "static_library",
+    "dependency", "include_directories", "install", "true", "false", "option",
+    "default", "description", "buildtype", "debug", "release", "minimum_version",
+    "version", "sources", "files", "subdir", "target", "name", "type", "value",
+    "required", "test", "summary", "meson", "foreach", "if", "elif", "else",
+    "endif", "assert", "not_found", "get_option", "find_program", "find_library",
+    "join_paths", "configure_file", "message", "warning", "error", "run_command",
+    "environment", "install_data", "install_headers", "install_subdir", NULL
+};
 
-    if (path == cnull) {
-        fossil_io_fprintf(FOSSIL_STDERR, "{red}Error:{normal} File path must be specified.\n");
-        return 1;
+static bool is_meson_keyword(ccstring word) {
+    for (int i = 0; KW_MESON[i]; i++) {
+        if (fossil_io_cstring_iequals(word, KW_MESON[i]))
+            return true;
     }
+    return false;
+}
 
-    /* Determine file type by extension */
-    bool is_media = false, is_code = false, is_structured = false;
-    const char *ext = strrchr(path, '.');
-    if (ext) {
-        if (strcmp(ext, ".jpg") == 0 || strcmp(ext, ".jpeg") == 0 ||
-             strcmp(ext, ".png") == 0 || strcmp(ext, ".gif") == 0 ||
-             strcmp(ext, ".mp3") == 0 || strcmp(ext, ".mp4") == 0 ||
-             strcmp(ext, ".wav") == 0 || strcmp(ext, ".avi") == 0 ||
-             strcmp(ext, ".mov") == 0 || strcmp(ext, ".flac") == 0) {
-             is_media = true;
-        } else if (strcmp(ext, ".json") == 0 || strcmp(ext, ".xml") == 0 ||
-                    strcmp(ext, ".yaml") == 0 || strcmp(ext, ".yml") == 0 ||
-                    strcmp(ext, ".toml") == 0 || strcmp(ext, ".ini") == 0 ||
-                    strcmp(ext, ".csv") == 0) {
-             is_structured = true;
-        } else if (strcmp(ext, ".c") == 0 || strcmp(ext, ".cpp") == 0 ||
-                    strcmp(ext, ".h") == 0 || strcmp(ext, ".hpp") == 0 ||
-                    strcmp(ext, ".py") == 0 || strcmp(ext, ".js") == 0 ||
-                    strcmp(ext, ".java") == 0 || strcmp(ext, ".cs") == 0 ||
-                    strcmp(ext, ".go") == 0 || strcmp(ext, ".rs") == 0 ||
-                    strcmp(ext, ".sh") == 0 || strcmp(ext, ".html") == 0 ||
-                    strcmp(ext, ".css") == 0) {
-             is_code = true;
-        }
+static bool is_meson_builtin_func(ccstring word) {
+    const char *builtins[] = {
+        "get_option", "find_program", "find_library", "join_paths",
+        "configure_file", "message", "warning", "error", "run_command",
+        "environment", "install_data", "install_headers", "install_subdir", NULL
+    };
+    for (int i = 0; builtins[i]; i++) {
+        if (fossil_io_cstring_iequals(word, builtins[i]))
+            return true;
     }
+    return false;
+}
 
-    /* Open file */
-    fossil_fstream_t stream;
-    if (fossil_fstream_open(&stream, path, "r") != 0) {
-        fossil_io_fprintf(FOSSIL_STDERR, "{red}Error:{normal} ");
-        perror(path);
-        return 1;
+static void format_meson_line(ccstring line) {
+    size_t len = fossil_io_cstring_length(line);
+    size_t i = 0;
+    int indent = 0;
+
+    // Count leading spaces/tabs for indent
+    size_t indent_len = 0;
+    while (i < len && (line[i] == ' ' || line[i] == '\t')) {
+        indent_len++;
+        if (line[i] == '\t')
+            indent += 4;
+        else
+            indent++;
+        i++;
     }
+    if (indent_len > 0)
+        fossil_io_printf("%.*s", (int)indent_len, line);
 
-    /* Optional timestamp info */
-    if (show_time) {
-#ifdef _WIN32
-        struct _stat st;
-        if (_stat(path, &st) == 0) {
-             fossil_io_printf("{blue}File:{normal} %s\n", path);
-             fossil_io_printf("{blue}Size:{normal} %ld bytes\n", (long)st.st_size);
-             char time_buf[64];
-             struct tm *tm_info = localtime(&st.st_mtime);
-             if (tm_info) {
-                 strftime(time_buf, sizeof(time_buf), "%c", tm_info);
-                 fossil_io_printf("{blue}Modified:{normal} %s\n", time_buf);
-             }
-        }
-#else
-        struct stat st;
-        if (stat(path, &st) == 0) {
-             fossil_io_printf("{blue}File:{normal} %s\n", path);
-             fossil_io_printf("{blue}Size:{normal} %ld bytes\n", (long)st.st_size);
-             fossil_io_printf("{blue}Modified:{normal} %s", ctime(&st.st_mtime));
-        }
-#endif
-    }
-
-    /* Tail buffering support */
-    cstring *lines = cnull;
-    size_t count = 0, capacity = 0;
-    char buffer[8192];
-
-    while (fossil_io_gets_from_stream(buffer, sizeof(buffer), &stream)) {
-
-        /* Trim right newline but preserve leading/trailing spaces (we visualize them) */
-        fossil_io_trim(buffer);
-
-        if (squeeze_blank && strlen(buffer) == 0) {
-             if (count > 0 && cnotnull(lines) && strlen(lines[count - 1]) == 0) continue;
+    while (i < len) {
+        // Comments
+        if (line[i] == '#') {
+            fossil_io_printf("{green}%s{normal}", &line[i]);
+            break;
         }
 
-        /* Enhanced token-aware colorization */
-        char colored_buf[8192 * 4];
-        size_t j = 0;
+        // Strings (support for triple quotes)
+        if ((line[i] == '"' && i + 2 < len && line[i+1] == '"' && line[i+2] == '"') ||
+            (line[i] == '\'' && i + 2 < len && line[i+1] == '\'' && line[i+2] == '\'')) {
+            char quote = line[i];
+            fossil_io_printf("{yellow}%c%c%c", quote, quote, quote);
+            i += 3;
+            size_t start = i;
+            while (i + 2 < len && !(line[i] == quote && line[i+1] == quote && line[i+2] == quote)) i++;
+            cstring str = fossil_io_cstring_substring(line, start, i - start);
+            fossil_io_printf("%s", str);
+            fossil_io_cstring_free(str);
+            if (i + 2 < len && line[i] == quote && line[i+1] == quote && line[i+2] == quote) {
+                fossil_io_printf("%c%c%c{normal}", quote, quote, quote);
+                i += 3;
+            }
+            continue;
+        }
+        // Single/double quoted string
+        if (line[i] == '"' || line[i] == '\'') {
+            char quote = line[i++];
+            fossil_io_printf("{yellow}%c", quote);
+            size_t start = i;
+            while (i < len && line[i] != quote) {
+                // Handle escaped quotes
+                if (line[i] == '\\' && i + 1 < len && line[i+1] == quote) i++;
+                i++;
+            }
+            cstring str = fossil_io_cstring_substring(line, start, i - start);
+            fossil_io_printf("%s", str);
+            fossil_io_cstring_free(str);
+            if (i < len && line[i] == quote) {
+                fossil_io_printf("%c{normal}", quote);
+                i++;
+            }
+            continue;
+        }
 
-        int in_block_comment = 0;
+        // Keywords, builtins, and identifiers
+        if (isalpha((unsigned char)line[i]) || line[i] == '_') {
+            size_t start = i;
+            while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '_')) i++;
+            cstring word = fossil_io_cstring_substring(line, start, i - start);
+            if (is_meson_keyword(word))
+                fossil_io_printf("{cyan,bold}%s{normal}", word);
+            else if (is_meson_builtin_func(word))
+                fossil_io_printf("{magenta,bold}%s{normal}", word);
+            else
+                fossil_io_printf("%s", word);
+            fossil_io_cstring_free(word);
+            continue;
+        }
 
-        for (size_t i = 0; buffer[i] != '\0' && j < sizeof(colored_buf) - 128; ++i) {
-             unsigned char c = (unsigned char)buffer[i];
+        // Numbers (support for hex, float, negative)
+        if (isdigit((unsigned char)line[i]) ||
+            (line[i] == '-' && i + 1 < len && isdigit((unsigned char)line[i + 1]))) {
+            size_t start = i;
+            if (line[i] == '-') i++;
+            if (line[i] == '0' && i + 1 < len && (line[i+1] == 'x' || line[i+1] == 'X')) {
+                i += 2;
+                while (i < len && isxdigit((unsigned char)line[i])) i++;
+            } else {
+                while (i < len && (isdigit((unsigned char)line[i]) || line[i] == '.')) i++;
+            }
+            cstring num = fossil_io_cstring_substring(line, start, i - start);
+            fossil_io_printf("{blue}%s{normal}", num);
+            fossil_io_cstring_free(num);
+            continue;
+        }
 
-             /* -------------------------
-                (A) Visual whitespace
-                ------------------------- */
-             if (c == ' ') {
-                 j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                "{normal}{dim}·{normal}");
-                 continue;
+        // Punctuation and operators
+        if (strchr("=(),[]{}:+-*/%", line[i])) {
+            fossil_io_printf("{blue}%c{normal}", line[i++]);
+            continue;
+        }
+
+        // Default: print character
+        fossil_io_putchar(line[i++]);
+    }
+}
+
+/* -----------------------------------------------------------------------
+    Media: print only metadata
+    ----------------------------------------------------------------------- */
+static void show_media_info(const char *path) {
+    struct stat st;
+    if (stat(path, &st) != 0) {
+        perror("stat");
+        return;
+    }
+
+    fossil_io_printf("{yellow,bold}Media file:{normal} %s\n", path);
+    fossil_io_printf("{green}Size:{normal} %lld bytes\n", (long long)st.st_size);
+    fossil_io_printf("{blue}Modification time:{normal} %s", ctime(&st.st_mtime));
+}
+
+/* -----------------------------------------------------------------------
+    Print timestamps
+    ----------------------------------------------------------------------- */
+static void show_file_timestamps(const char *path) {
+    struct stat st;
+    if (stat(path, &st) != 0) {
+        perror("stat");
+        return;
+    }
+    fossil_io_printf("{magenta,bold}Created:{normal}      %s", ctime(&st.st_ctime));
+    fossil_io_printf("{green,bold}Modified:{normal}     %s", ctime(&st.st_mtime));
+    fossil_io_printf("{blue,bold}Accessed:{normal}     %s", ctime(&st.st_atime));
+}
+
+/* -----------------------------------------------------------------------
+    Main function: view file with options
+    ----------------------------------------------------------------------- */
+int fossil_shark_view(const char *path, bool number_lines,
+                             bool number_non_blank, bool squeeze_blank,
+                             int head_lines, int tail_lines, bool show_time)
+{
+     ccstring ext = get_extension(path);
+
+     // If no extension (no dot), treat as plain text
+     bool has_extension = strrchr(path, '.') != NULL && ext[0] != '\0';
+
+     /* MEDIA FILE HANDLING */
+     if (has_extension && is_media_ext(ext)) {
+          show_media_info(path);
+          return 0;
+     }
+
+     bool binary = is_binary_file(path);
+
+     fossil_fstream_t stream;
+     if (fossil_fstream_open(&stream, path, binary ? "rb" : "r") != 0) {
+          perror(path);
+          return 1;
+     }
+
+     if (show_time)
+          show_file_timestamps(path);
+
+     /* First: read all lines (needed for head/tail) */
+     cstring *lines = NULL;
+     size_t count = 0, capacity = 0;
+
+     char buf[2048];
+     while (fossil_io_gets_from_stream(buf, sizeof(buf), &stream)) {
+         if (count == capacity) {
+             size_t new_capacity = capacity ? capacity * 2 : 64;
+             if (lines == NULL) {
+                 lines = (cstring *)fossil_sys_memory_alloc(new_capacity * sizeof(cstring));
+                 if (!lines) {
+                     fossil_fstream_close(&stream);
+                     fprintf(stderr, "Memory allocation failed\n");
+                     return 1;
+                 }
+             } else {
+                 cstring *tmp = (cstring *)fossil_sys_memory_realloc(lines, new_capacity * sizeof(cstring));
+                 if (!tmp) {
+                     for (size_t j = 0; j < count; j++)
+                         fossil_io_cstring_free(lines[j]);
+                     fossil_sys_memory_free(lines);
+                     fossil_fstream_close(&stream);
+                     fprintf(stderr, "Memory allocation failed\n");
+                     return 1;
+                 }
+                 lines = tmp;
              }
-             if (c == '\t') {
-                 j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                "{cyan}{dim}→{normal}");
+             capacity = new_capacity;
+         }
+         lines[count] = fossil_io_cstring_create(buf);
+         if (!lines[count]) {
+             for (size_t j = 0; j < count; j++)
+                 fossil_io_cstring_free(lines[j]);
+             fossil_sys_memory_free(lines);
+             fossil_fstream_close(&stream);
+             fprintf(stderr, "Memory allocation failed\n");
+             return 1;
+         }
+         count++;
+     }
+     fossil_fstream_close(&stream);
+
+     int start = 0, end = (int)count;
+
+     if (head_lines > 0 && head_lines < (int)count)
+          end = head_lines;
+
+     if (tail_lines > 0 && tail_lines < (int)count)
+          start = (int)count - tail_lines;
+
+     bool last_blank = false;
+     int printed_ln = 0;
+
+    // Meson file detection (match any file with .meson extension or meson.* in filename)
+    bool is_meson_file =
+        fossil_io_cstring_iequals(ext, "meson") ||
+        fossil_io_cstring_iequals(ext, "wrap") ||
+        fossil_io_cstring_iequals(ext, "wrapdb") ||
+        fossil_io_cstring_iequals(ext, "wrapfile") ||
+        fossil_io_cstring_iequals(ext, "options") ||
+        fossil_io_cstring_iequals(ext, "option") ||
+        fossil_io_cstring_iequals(ext, "txt") ||
+        fossil_io_cstring_contains(path, "meson.build") ||
+        fossil_io_cstring_contains(path, "meson_options.txt") ||
+        fossil_io_cstring_contains(path, "meson.options") ||
+        fossil_io_cstring_contains(path, "meson.");
+
+    for (int i = start; i < end; i++) {
+        cstring line = lines[i];
+        bool blank = (line[0] == '\n' || line[0] == '\r' || line[0] == '\0');
+
+        if (squeeze_blank && blank) {
+             if (last_blank)
                  continue;
-             }
-
-             /* -------------------------
-                (B) Media files: magenta everything
-                ------------------------- */
-             if (is_media) {
-                 j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                "{magenta}%c{normal}", c);
-                 continue;
-             }
-
-             /* -------------------------
-                (C) Structured formats: JSON/YAML/TOML/INI/CSV
-                - punctuation -> cyan
-                - boolean/null -> green,bold
-                - numbers -> yellow,bold
-                - default -> normal
-                ------------------------- */
-             if (is_structured) {
-                 if (strchr(STR_PUNCT, c)) {
-                     j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                    "{cyan}%c{normal}", c);
-                     continue;
-                 }
-
-                 /* Simple token scans for keywords (true/false/null/etc.) */
-                 if (isalpha(c)) {
-                     char tok[128];
-                     size_t t = 0;
-                     while ((isalnum((unsigned char)buffer[i]) || buffer[i] == '_') && t < sizeof(tok)-1) {
-                          tok[t++] = buffer[i];
-                          i++;
-                     }
-                     tok[t] = '\0';
-                     i--; /* rewind one char as main loop will advance */
-
-                     if (is_in_table(tok, KW_STRUCT, sizeof(KW_STRUCT)/sizeof(KW_STRUCT[0]))) {
-                          j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                        "{green,bold}%s{normal}", tok);
-                     } else {
-                          j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                        "{normal}%s", tok);
-                     }
-                     continue;
-                 }
-
-                 /* Numbers */
-                 if (is_number_char(c)) {
-                     size_t k = i;
-                     char numtok[64];
-                     size_t nk = 0;
-                     while (buffer[k] != '\0' && is_number_char(buffer[k]) && nk < sizeof(numtok)-1) {
-                          numtok[nk++] = buffer[k++];
-                     }
-                     numtok[nk] = '\0';
-                     /* advance main index */
-                     i = k - 1;
-                     j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                    "{yellow,bold}%s{normal}", numtok);
-                     continue;
-                 }
-
-                 /* fallback */
-                 j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                "{normal}%c", c);
-                 continue;
-             }
-
-             /* -------------------------
-                (D) Code files: keywords, operators, comments, strings, numbers, tags
-                ------------------------- */
-             if (is_code) {
-
-                 /* (0) Color tag markup: {red}, {green,bold}, {pos:top}, etc. */
-                 if (c == '{') {
-                     size_t k = i;
-                     while (buffer[k] != '\0' && buffer[k] != '}') k++;
-                     if (buffer[k] == '}') {
-                          size_t taglen = k - i + 1;
-                          char tag[64];
-                          if (taglen < sizeof(tag)) {
-                              memcpy(tag, buffer + i, taglen);
-                              tag[taglen] = '\0';
-                              j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                             "%s", tag); // keep tag for later processing
-                              i = k;
-                              continue;
-                          }
-                     }
-                 }
-
-                 /* (1) Comments: // and # - rest of line; ... handled too */
-                 if (!in_block_comment && c == '/' && buffer[i+1] == '/') {
-                     j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                    "{lightblue}//");
-                     i += 2;
-                     /* Colorize the rest of the line as comment, no keywords */
-                     while (buffer[i] != '\0' && j < sizeof(colored_buf) - 1) {
-                         j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                       "%c", buffer[i]);
-                         i++;
-                     }
-                     break;
-                 }
-                 if (!in_block_comment && c == '#') {
-                     j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                    "{lightblue}#");
-                     i++;
-                     while (buffer[i] != '\0' && j < sizeof(colored_buf) - 1) {
-                         j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                       "%c", buffer[i]);
-                         i++;
-                     }
-                     break;
-                 }
-                 /* (1.1) Doxygen/Javadoc style comment: ... */
-                 if (!in_block_comment && c == '/' && buffer[i+1] == '*' && buffer[i+2] == '*') {
-                     size_t k = i + 3;
-                     in_block_comment = 1;
-                     j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                   "{lightblue,bold}/**");
-                     while (buffer[k] != '\0') {
-                          if (buffer[k] == '*' && buffer[k+1] == '/') {
-                              j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                            "%c%c", buffer[k], buffer[k+1]);
-                              k += 2;
-                              in_block_comment = 0;
-                              break;
-                          }
-                          j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                        "%c", buffer[k]);
-                          k++;
-                     }
-                     i = k - 1;
-                     continue;
-                 }
-                 /* (1.2) C-style block comment: ... */
-                 if (!in_block_comment && c == '/' && buffer[i+1] == '*') {
-                     size_t k = i + 2;
-                     in_block_comment = 1;
-                     j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                   "{lightblue}/*");
-                     while (buffer[k] != '\0') {
-                          if (buffer[k] == '*' && buffer[k+1] == '/') {
-                              j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                            "%c%c", buffer[k], buffer[k+1]);
-                              k += 2;
-                              in_block_comment = 0;
-                              break;
-                          }
-                          j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                        "%c", buffer[k]);
-                          k++;
-                     }
-                     i = k - 1;
-                     continue;
-                 }
-                 /* (1.3) Inside block comment: color everything light blue */
-                 if (in_block_comment) {
-                     while (buffer[i] != '\0' && j < sizeof(colored_buf) - 1) {
-                         if (buffer[i] == '*' && buffer[i+1] == '/') {
-                             j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                           "{lightblue}*/{normal}");
-                             i += 1;
-                             in_block_comment = 0;
-                             break;
-                         }
-                         j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                       "{lightblue}%c{normal}", buffer[i]);
-                         i++;
-                     }
-                     continue;
-                 }
-
-                 /* (2) Strings: "..." or '...' - punctuation cyan, contents magenta */
-                 if (c == '"' || c == '\'') {
-                     char q = c;
-                     j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                    "{cyan}%c{normal}", q);
-                     size_t k = i + 1;
-                     while (buffer[k] != '\0') {
-                          if (buffer[k] == '\\' && buffer[k+1] != '\0') {
-                              char esc[3] = { buffer[k], buffer[k+1], '\0' };
-                              j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                             "{magenta}%s{normal}", esc);
-                              k += 2;
-                              continue;
-                          }
-                          if (buffer[k] == q) {
-                              j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                             "{cyan}%c{normal}", q);
-                              break;
-                          }
-                          size_t run_start = k;
-                          while (buffer[k] != '\0' && buffer[k] != q && buffer[k] != '\\') k++;
-                          size_t run_len = k - run_start;
-                          if (run_len > 0) {
-                              char *run = (char *)fossil_sys_memory_alloc(run_len + 1);
-                              if (run) {
-                                  memcpy(run, buffer + run_start, run_len);
-                                  run[run_len] = '\0';
-                                  j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                                 "{magenta}%s{normal}", run);
-                                  fossil_sys_memory_free(run);
-                              } else {
-                                  for (size_t z = run_start; z < run_start + run_len; ++z) {
-                                       j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                                     "{magenta}%c{normal}", buffer[z]);
-                                  }
-                              }
-                          }
-                     }
-                     while (buffer[i+1] != '\0' && buffer[i+1] != q) i++;
-                     if (buffer[i+1] == q) i++;
-                     continue;
-                 }
-
-                 /* (3) Operators & punctuation */
-                 if (strchr(OPS_CODE, c)) {
-                     j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                    "{yellow}%c{normal}", c);
-                     continue;
-                 }
-                 if (strchr(STR_PUNCT, c)) {
-                     j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                    "{cyan}%c{normal}", c);
-                     continue;
-                 }
-
-                 /* (4) Numbers: digit or -/.\ leading */
-                 if (is_number_char(c)) {
-                     size_t k = i;
-                     char numtok[128];
-                     size_t nk = 0;
-                     while (buffer[k] != '\0' && (isdigit((unsigned char)buffer[k]) || buffer[k] == '.' || buffer[k] == '-' || buffer[k] == '+' || buffer[k] == 'e' || buffer[k] == 'E') && nk < sizeof(numtok)-1) {
-                          numtok[nk++] = buffer[k++];
-                     }
-                     numtok[nk] = '\0';
-                     i = k - 1;
-                     j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                    "{yellow,bold}%s{normal}", numtok);
-                     continue;
-                 }
-
-                 /* (5) Identifiers / keywords */
-                 if (isalpha(c) || c == '_') {
-                     char tok[256];
-                     size_t t = 0;
-                     size_t k = i;
-                     while ((isalnum((unsigned char)buffer[k]) || buffer[k] == '_') && t < sizeof(tok)-1) {
-                          tok[t++] = buffer[k++];
-                     }
-                     tok[t] = '\0';
-                     i = k - 1;
-
-                     if (is_in_table(tok, KW_CODE, sizeof(KW_CODE)/sizeof(KW_CODE[0]))) {
-                          j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                        "{blue,bold}%s{normal}", tok);
-                          continue;
-                     }
-                     if (is_in_table(tok, KW_STRUCT, sizeof(KW_STRUCT)/sizeof(KW_STRUCT[0]))) {
-                          j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                        "{green,bold}%s{normal}", tok);
-                          continue;
-                     }
-                     j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                    "{normal}%s", tok);
-                     continue;
-                 }
-
-                 /* fallback single char */
-                 j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                                "{normal}%c", c);
-                 continue;
-             } /* end is_code */
-
-             /* -------------------------
-                (E) Default: color green
-                ------------------------- */
-             j += snprintf(colored_buf + j, sizeof(colored_buf) - j,
-                            "{green}%c{normal}", c);
-        } /* end for */
-
-        colored_buf[j] = '\0';
-
-        /* Apply color tags to output buffer */
-        char ansi_buf[sizeof(colored_buf) * 2];
-        apply_color_tags(colored_buf, ansi_buf, sizeof(ansi_buf));
-
-        /* Output or buffer for tail-lines */
-        if (tail_lines > 0) {
-             if (count >= capacity) {
-                 capacity = capacity ? capacity * 2 : 128;
-                 cstring *new_lines;
-                 if (lines == cnull) {
-                     new_lines = (cstring *)fossil_sys_memory_alloc(capacity * sizeof(cstring));
-                 } else {
-                     new_lines = (cstring *)fossil_sys_memory_realloc(lines, capacity * sizeof(cstring));
-                 }
-                 if (new_lines == cnull) cpanic("Memory allocation failed for lines buffer");
-                 lines = new_lines;
-             }
-             lines[count++] = fossil_io_cstring_dup_safe(ansi_buf, strlen(ansi_buf));
+             last_blank = true;
         } else {
-             if (head_lines == 0 || (int)count < head_lines) {
-                 if (number_lines)
-                     fossil_io_printf("{blue}%6zu{normal}\t%s\n", count + 1, ansi_buf);
-                 else if (number_non_blank && strlen(buffer) > 0)
-                     fossil_io_printf("{blue}%6zu{normal}\t%s\n", count + 1, ansi_buf);
-                 else
-                     fossil_io_printf("%s\n", ansi_buf);
-             }
-             count++;
-             if (head_lines > 0 && (int)count >= head_lines) break;
+             last_blank = blank;
         }
-    } /* end while */
 
-    fossil_fstream_close(&stream);
+        if (number_lines && !(number_non_blank && blank))
+             fossil_io_printf("{white,bold}%6d{normal}  ", ++printed_ln);
 
-    /* Tail output flush */
-    if (tail_lines > 0 && count > 0 && cnotnull(lines)) {
-        size_t start = count > (size_t)tail_lines ? count - tail_lines : 0;
-        for (size_t i = start; i < count; i++) {
-             if (number_lines)
-                 fossil_io_printf("{blue}%6zu{normal}\t%s\n", i + 1, lines[i]);
-             else if (number_non_blank && strlen(lines[i]) > 0)
-                 fossil_io_printf("{blue}%6zu{normal}\t%s\n", i + 1, lines[i]);
-             else
-                 fossil_io_printf("%s\n", lines[i]);
-             fossil_io_cstring_free_safe(&lines[i]);
+        // If no extension, treat as plain text (preserve whitespace/newlines)
+        if (!has_extension) {
+            fossil_io_puts(line);
+            continue;
         }
-        fossil_sys_memory_free(lines);
-        cnullify(lines);
+
+        /* Use all three formatters if all match */
+        if (is_structured_ext(ext) && is_code_ext(ext) && is_meson_file) {
+             format_structured_line(line, ext);
+             format_code_line(line);
+             format_meson_line(line);
+             if (line[fossil_io_cstring_length(line)-1] != '\n')
+                 fossil_io_putchar('\n');
+             continue;
+        }
+
+        /* Use both structured and code formatting if both match */
+        if (is_structured_ext(ext) && is_code_ext(ext)) {
+             format_structured_line(line, ext);
+             format_code_line(line);
+             if (line[fossil_io_cstring_length(line)-1] != '\n')
+                 fossil_io_putchar('\n');
+             continue;
+        }
+
+        /* Use both structured and meson formatting if both match */
+        if (is_structured_ext(ext) && is_meson_file) {
+             format_structured_line(line, ext);
+             format_meson_line(line);
+             if (line[fossil_io_cstring_length(line)-1] != '\n')
+                 fossil_io_putchar('\n');
+             continue;
+        }
+
+        /* Meson formatting */
+        if (is_meson_file) {
+             format_meson_line(line);
+             if (line[fossil_io_cstring_length(line)-1] != '\n')
+                 fossil_io_putchar('\n');
+             continue;
+        }
+
+        /* Structured data pretty-print */
+        if (is_structured_ext(ext)) {
+             format_structured_line(line, ext);
+             if (line[fossil_io_cstring_length(line)-1] != '\n')
+                 fossil_io_putchar('\n');
+             continue;
+        }
+
+        /* Code formatting */
+        if (is_code_ext(ext)) {
+             format_code_line(line);
+             if (line[fossil_io_cstring_length(line)-1] != '\n')
+                 fossil_io_putchar('\n');
+             continue;
+        }
+
+        /* Default: just print the line (preserve whitespace/newlines) */
+        fossil_io_puts(line);
     }
 
-    return 0;
+     if (lines) {
+         for (size_t i = 0; i < count; i++)
+             fossil_io_cstring_free(lines[i]);
+         fossil_sys_memory_free(lines);
+     }
+
+     return 0;
 }
