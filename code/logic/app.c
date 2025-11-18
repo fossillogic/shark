@@ -19,131 +19,131 @@ int FOSSIL_IO_VERBOSE = false; // Verbose output flag
 
 void show_commands(char* app_name) {
     fossil_io_printf("{blue}Usage: {cyan}%s{blue} <command> [options]{reset}\n\n", app_name);
-    
+
     fossil_io_printf("{blue}🗂 Core File Operations:{reset}\n");
     fossil_io_printf("{cyan}  show             {reset}Display files and directories\n");
-    fossil_io_printf("{yellow}                   -a, --all         Show hidden files\n");
-    fossil_io_printf("                   -l, --long        Detailed info\n");
-    fossil_io_printf("                   -h, --human       Human-readable sizes\n");
-    fossil_io_printf("                   -r, --recursive   Include subdirs\n");
-    fossil_io_printf("                   -d, --depth <n>   Limit recursion depth\n");
-    fossil_io_printf("                   --as <format>     Format: list, tree, graph\n");
-    fossil_io_printf("                   --time            Show timestamps{reset}\n");
+    fossil_io_printf("{yellow}                   -a, --all         {reset}{bright_black}Show hidden files{reset}\n");
+    fossil_io_printf("{yellow}                   -l, --long        {reset}{bright_black}Detailed info{reset}\n");
+    fossil_io_printf("{yellow}                   -h, --human       {reset}{bright_black}Human-readable sizes{reset}\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
+    fossil_io_printf("{yellow}                   -d, --depth <n>   {reset}{bright_black}Limit recursion depth{reset}\n");
+    fossil_io_printf("{yellow}                   --as <format>     {reset}{bright_black}Format: list, tree, graph{reset}\n");
+    fossil_io_printf("{yellow}                   --time            {reset}{bright_black}Show timestamps{reset}\n");
 
     fossil_io_printf("{cyan}  move             {reset}Move or rename files/directories\n");
-    fossil_io_printf("{yellow}                   -f, --force       Overwrite without prompt\n");
-    fossil_io_printf("                   -i, --interactive Ask before overwrite\n");
-    fossil_io_printf("                   -b, --backup      Backup before move{reset}\n");
+    fossil_io_printf("{yellow}                   -f, --force       {reset}{bright_black}Overwrite without prompt{reset}\n");
+    fossil_io_printf("{yellow}                   -i, --interactive {reset}{bright_black}Ask before overwrite{reset}\n");
+    fossil_io_printf("{yellow}                   -b, --backup      {reset}{bright_black}Backup before move{reset}\n");
 
     fossil_io_printf("{cyan}  copy             {reset}Copy files or directories\n");
-    fossil_io_printf("{yellow}                   -r, --recursive   Copy subdirectories\n");
-    fossil_io_printf("                   -u, --update      Only copy newer\n");
-    fossil_io_printf("                   -p, --preserve    Keep permissions/timestamps{reset}\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Copy subdirectories{reset}\n");
+    fossil_io_printf("{yellow}                   -u, --update      {reset}{bright_black}Only copy newer{reset}\n");
+    fossil_io_printf("{yellow}                   -p, --preserve    {reset}{bright_black}Keep permissions/timestamps{reset}\n");
 
     fossil_io_printf("{cyan}  remove/delete    {reset}Delete files or directories\n");
-    fossil_io_printf("{yellow}                   -r, --recursive   Delete contents\n");
-    fossil_io_printf("                   -f, --force       No confirmation\n");
-    fossil_io_printf("                   -i, --interactive Confirm per file\n");
-    fossil_io_printf("                   --trash           Move to system trash{reset}\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Delete contents{reset}\n");
+    fossil_io_printf("{yellow}                   -f, --force       {reset}{bright_black}No confirmation{reset}\n");
+    fossil_io_printf("{yellow}                   -i, --interactive {reset}{bright_black}Confirm per file{reset}\n");
+    fossil_io_printf("{yellow}                   --trash           {reset}{bright_black}Move to system trash{reset}\n");
 
     fossil_io_printf("{cyan}  rename           {reset}Rename files or directories\n");
-    fossil_io_printf("{yellow}                   -f, --force       Overwrite target\n");
-    fossil_io_printf("                   -i, --interactive Confirm before overwrite{reset}\n");
+    fossil_io_printf("{yellow}                   -f, --force       {reset}{bright_black}Overwrite target{reset}\n");
+    fossil_io_printf("{yellow}                   -i, --interactive {reset}{bright_black}Confirm before overwrite{reset}\n");
 
     fossil_io_printf("{cyan}  create           {reset}Create new directories or files\n");
-    fossil_io_printf("{yellow}                   -p, --parents     Create parent dirs\n");
-    fossil_io_printf("                   -t, --type        Creates either file or dir{reset}\n");
+    fossil_io_printf("{yellow}                   -p, --parents     {reset}{bright_black}Create parent dirs{reset}\n");
+    fossil_io_printf("{yellow}                   -t, --type        {reset}{bright_black}Creates either file or dir{reset}\n");
 
     fossil_io_printf("{cyan}  search           {reset}Find files by name or content\n");
-    fossil_io_printf("{yellow}                   -r, --recursive   Include subdirs\n");
-    fossil_io_printf("                   -n, --name        Match filename\n");
-    fossil_io_printf("                   -c, --content     Search in file contents\n");
-    fossil_io_printf("                   -i, --ignore-case Case-insensitive{reset}\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
+    fossil_io_printf("{yellow}                   -n, --name        {reset}{bright_black}Match filename{reset}\n");
+    fossil_io_printf("{yellow}                   -c, --content     {reset}{bright_black}Search in file contents{reset}\n");
+    fossil_io_printf("{yellow}                   -i, --ignore-case {reset}{bright_black}Case-insensitive{reset}\n");
 
     fossil_io_printf("{cyan}  archive          {reset}Create, extract, or list archives\n");
-    fossil_io_printf("{yellow}                   -c, --create      New archive\n");
-    fossil_io_printf("                   -x, --extract     Extract contents\n");
-    fossil_io_printf("                   -l, --list        List archive\n");
-    fossil_io_printf("                   -f <format>       Format: zip/tar/gz\n");
-    fossil_io_printf("                   -p, --password    Encrypt archive{reset}\n");
+    fossil_io_printf("{yellow}                   -c, --create      {reset}{bright_black}New archive{reset}\n");
+    fossil_io_printf("{yellow}                   -x, --extract     {reset}{bright_black}Extract contents{reset}\n");
+    fossil_io_printf("{yellow}                   -l, --list        {reset}{bright_black}List archive{reset}\n");
+    fossil_io_printf("{yellow}                   -f <format>       {reset}{bright_black}Format: zip/tar/gz{reset}\n");
+    fossil_io_printf("{yellow}                   -p, --password    {reset}{bright_black}Encrypt archive{reset}\n");
 
     fossil_io_printf("{cyan}  view             {reset}Output file contents to terminal\n");
-    fossil_io_printf("{yellow}                   -n, --number      Number all lines\n");
-    fossil_io_printf("                   -b, --non-blank   Number non-empty lines\n");
-    fossil_io_printf("                   -s, --squeeze     Remove blank lines\n");
-    fossil_io_printf("                   -h, --head <n>    First n lines\n");
-    fossil_io_printf("                   -t, --tail <n>    Last n lines\n");
-    fossil_io_printf("                   --time            Show timestamps{reset}\n");
+    fossil_io_printf("{yellow}                   -n, --number      {reset}{bright_black}Number all lines{reset}\n");
+    fossil_io_printf("{yellow}                   -b, --non-blank   {reset}{bright_black}Number non-empty lines{reset}\n");
+    fossil_io_printf("{yellow}                   -s, --squeeze     {reset}{bright_black}Remove blank lines{reset}\n");
+    fossil_io_printf("{yellow}                   -h, --head <n>    {reset}{bright_black}First n lines{reset}\n");
+    fossil_io_printf("{yellow}                   -t, --tail <n>    {reset}{bright_black}Last n lines{reset}\n");
+    fossil_io_printf("{yellow}                   --time            {reset}{bright_black}Show timestamps{reset}\n");
 
     fossil_io_printf("{cyan}  compare          {reset}Compare two files/directories\n");
-    fossil_io_printf("{yellow}                   -t, --text        Line diff\n");
-    fossil_io_printf("                   -b, --binary      Binary diff\n");
-    fossil_io_printf("                   --context <n>     Show context lines\n");
-    fossil_io_printf("                   --ignore-case     Ignore case differences{reset}\n");
+    fossil_io_printf("{yellow}                   -t, --text        {reset}{bright_black}Line diff{reset}\n");
+    fossil_io_printf("{yellow}                   -b, --binary      {reset}{bright_black}Binary diff{reset}\n");
+    fossil_io_printf("{yellow}                   --context <n>     {reset}{bright_black}Show context lines{reset}\n");
+    fossil_io_printf("{yellow}                   --ignore-case     {reset}{bright_black}Ignore case differences{reset}\n");
 
     fossil_io_printf("{cyan}  info             {reset}Show detailed metadata about a file or directory\n");
-    fossil_io_printf("{yellow}                   -p, --permissions Show permissions\n");
-    fossil_io_printf("                   -o, --owner       Show owner/group\n");
-    fossil_io_printf("                   -s, --size        Show size\n");
-    fossil_io_printf("                   -t, --timestamps  Show times{reset}\n");
+    fossil_io_printf("{yellow}                   -p, --permissions {reset}{bright_black}Show permissions{reset}\n");
+    fossil_io_printf("{yellow}                   -o, --owner       {reset}{bright_black}Show owner/group{reset}\n");
+    fossil_io_printf("{yellow}                   -s, --size        {reset}{bright_black}Show size{reset}\n");
+    fossil_io_printf("{yellow}                   -t, --timestamps  {reset}{bright_black}Show times{reset}\n");
 
     fossil_io_printf("{cyan}  sync             {reset}Synchronize files/directories\n");
-    fossil_io_printf("{yellow}                   -r, --recursive   Include subdirs\n");
-    fossil_io_printf("                   -u, --update      Copy only newer\n");
-    fossil_io_printf("                   --delete          Remove extraneous files from target{reset}\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
+    fossil_io_printf("{yellow}                   -u, --update      {reset}{bright_black}Copy only newer{reset}\n");
+    fossil_io_printf("{yellow}                   --delete          {reset}{bright_black}Remove extraneous files from target{reset}\n");
 
     fossil_io_printf("{cyan}  watch            {reset}Continuously monitor files or directories\n");
-    fossil_io_printf("{yellow}                   -r, --recursive   Include subdirs\n");
-    fossil_io_printf("                   -e, --events <list> Filter events: create/modify/delete\n");
-    fossil_io_printf("                   -t, --interval <n> Poll interval in seconds{reset}\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
+    fossil_io_printf("{yellow}                   -e, --events <list> {reset}{bright_black}Filter events: create/modify/delete{reset}\n");
+    fossil_io_printf("{yellow}                   -t, --interval <n> {reset}{bright_black}Poll interval in seconds{reset}\n");
 
     fossil_io_printf("{cyan}  help             {reset}Display help for supported commands\n");
-    fossil_io_printf("{yellow}                   --examples        Show usage examples\n");
-    fossil_io_printf("                   --man             Full manual{reset}\n\n");
+    fossil_io_printf("{yellow}                   --examples        {reset}{bright_black}Show usage examples{reset}\n");
+    fossil_io_printf("{yellow}                   --man             {reset}{bright_black}Full manual{reset}\n\n");
 
     fossil_io_printf("{cyan}  rewrite          {reset}Modify or update file contents, timestamps, or size\n");
-    fossil_io_printf("{yellow}                   --in-place       Modify file directly (default)\n");
-    fossil_io_printf("                   -a, --append      Append content instead of overwriting\n");
-    fossil_io_printf("                   --size <n>        Truncate or extend file to exact size\n");
-    fossil_io_printf("                   --access-time     Update file access time\n");
-    fossil_io_printf("                   --mod-time        Update file modification time\n");
-    fossil_io_printf("                   <content>         Optional content to write{reset}\n");
+    fossil_io_printf("{yellow}                   --in-place        {reset}{bright_black}Modify file directly (default){reset}\n");
+    fossil_io_printf("{yellow}                   -a, --append      {reset}{bright_black}Append content instead of overwriting{reset}\n");
+    fossil_io_printf("{yellow}                   --size <n>        {reset}{bright_black}Truncate or extend file to exact size{reset}\n");
+    fossil_io_printf("{yellow}                   --access-time     {reset}{bright_black}Update file access time{reset}\n");
+    fossil_io_printf("{yellow}                   --mod-time        {reset}{bright_black}Update file modification time{reset}\n");
+    fossil_io_printf("{yellow}                   <content>         {reset}{bright_black}Optional content to write{reset}\n");
 
     fossil_io_printf("{cyan}  introspect       {reset}Examine file contents, type, or metadata\n");
-    fossil_io_printf("{yellow}                   --head <n>       Show first n lines\n");
-    fossil_io_printf("                   --tail <n>        Show last n lines\n");
-    fossil_io_printf("                   --count           Count lines, words, bytes\n");
-    fossil_io_printf("                   --type            Show file type or MIME\n");
-    fossil_io_printf("                   --fson            Output metadata in FSON format\n");
+    fossil_io_printf("{yellow}                   --head <n>        {reset}{bright_black}Show first n lines{reset}\n");
+    fossil_io_printf("{yellow}                   --tail <n>        {reset}{bright_black}Show last n lines{reset}\n");
+    fossil_io_printf("{yellow}                   --count           {reset}{bright_black}Count lines, words, bytes{reset}\n");
+    fossil_io_printf("{yellow}                   --type            {reset}{bright_black}Show file type or MIME{reset}\n");
+    fossil_io_printf("{yellow}                   --fson            {reset}{bright_black}Output metadata in FSON format{reset}\n");
 
     fossil_io_printf("{blue}🤖 AI Commands (Jellyfish Integration):{reset}\n");
     fossil_io_printf("{cyan}  chat             {reset}Start an interactive AI chat session\n");
-    fossil_io_printf("{yellow}                   -f, --file <path> Use file content\n");
-    fossil_io_printf("                   -m, --model <name> Select model\n");
-    fossil_io_printf("                   -s, --system <role> AI persona\n");
-    fossil_io_printf("                   --save <path>     Save chat transcript\n");
-    fossil_io_printf("                   --context         Keep session history{reset}\n");
+    fossil_io_printf("{yellow}                   -f, --file <path> {reset}{bright_black}Use file content{reset}\n");
+    fossil_io_printf("{yellow}                   -m, --model <name> {reset}{bright_black}Select model{reset}\n");
+    fossil_io_printf("{yellow}                   -s, --system <role> {reset}{bright_black}AI persona{reset}\n");
+    fossil_io_printf("{yellow}                   --save <path>     {reset}{bright_black}Save chat transcript{reset}\n");
+    fossil_io_printf("{yellow}                   --context         {reset}{bright_black}Keep session history{reset}\n");
 
     fossil_io_printf("{cyan}  ask              {reset}Ask Jellyfish AI a one-shot question\n");
-    fossil_io_printf("{yellow}                   -f, --file <path> Provide file context\n");
-    fossil_io_printf("                   --explain         Force explanation\n");
-    fossil_io_printf("                   --analyze         Deep analysis\n");
-    fossil_io_printf("                   -q, --quiet       Minimal output{reset}\n");
+    fossil_io_printf("{yellow}                   -f, --file <path> {reset}{bright_black}Provide file context{reset}\n");
+    fossil_io_printf("{yellow}                   --explain         {reset}{bright_black}Force explanation{reset}\n");
+    fossil_io_printf("{yellow}                   --analyze         {reset}{bright_black}Deep analysis{reset}\n");
+    fossil_io_printf("{yellow}                   -q, --quiet       {reset}{bright_black}Minimal output{reset}\n");
 
     fossil_io_printf("{cyan}  summery          {reset}Generate AI summary of file/directory\n");
-    fossil_io_printf("{yellow}                   -f, --file <path> Use file content\n");
-    fossil_io_printf("                   --depth <level>   Summary depth\n");
-    fossil_io_printf("                   -q, --quiet       Minimal output\n");
-    fossil_io_printf("                   --color           Highlight key items\n");
-    fossil_io_printf("                   --time            Include timestamps{reset}\n\n");
+    fossil_io_printf("{yellow}                   -f, --file <path> {reset}{bright_black}Use file content{reset}\n");
+    fossil_io_printf("{yellow}                   --depth <level>   {reset}{bright_black}Summary depth{reset}\n");
+    fossil_io_printf("{yellow}                   -q, --quiet       {reset}{bright_black}Minimal output{reset}\n");
+    fossil_io_printf("{yellow}                   --color           {reset}{bright_black}Highlight key items{reset}\n");
+    fossil_io_printf("{yellow}                   --time            {reset}{bright_black}Include timestamps{reset}\n\n");
 
     fossil_io_printf("{blue}🌍 Global Options:{reset}\n");
-    fossil_io_printf("{cyan}  --help           {reset}Display help information\n");
-    fossil_io_printf("{cyan}  --version        {reset}Display current version\n");
-    fossil_io_printf("{cyan}  --name           {reset}Display app name\n");
-    fossil_io_printf("{cyan}  --verbose        {reset}Enable detailed output\n");
-    fossil_io_printf("{cyan}  --color          {reset}Set color mode: enable, disable, auto\n");
-    fossil_io_printf("{cyan}  --clear          {reset}Clear terminal screen\n");
+    fossil_io_printf("{cyan}  --help           {reset}{bright_black}Display help information{reset}\n");
+    fossil_io_printf("{cyan}  --version        {reset}{bright_black}Display current version{reset}\n");
+    fossil_io_printf("{cyan}  --name           {reset}{bright_black}Display app name{reset}\n");
+    fossil_io_printf("{cyan}  --verbose        {reset}{bright_black}Enable detailed output{reset}\n");
+    fossil_io_printf("{cyan}  --color          {reset}{bright_black}Set color mode: enable, disable, auto{reset}\n");
+    fossil_io_printf("{cyan}  --clear          {reset}{bright_black}Clear terminal screen{reset}\n");
     
     exit(FOSSIL_IO_SUCCESS);
 }
