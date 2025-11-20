@@ -139,7 +139,87 @@ typedef struct fossil_ti_reason_s {
     const char *reason;                /**< Human-readable explanation */
 } fossil_ti_reason_t;
 
-// AI magic helpers here
+/* ==========================================================================
+ * Similarity Utilities
+ * ========================================================================== */
+
+/**
+ * @brief Compute Jaccard Index (token overlap) between two strings.
+ */
+int fossil_it_magic_jaccard_index(const char *s1, const char *s2);
+
+/**
+ * @brief Compute Levenshtein distance between two strings.
+ */
+int fossil_it_magic_levenshtein_distance(const char *s1, const char *s2);
+
+/**
+ * @brief Compute a normalized similarity score (0.0 - 1.0) between two strings.
+ */
+float fossil_it_magic_similarity(const char *a, const char *b);
+
+/* ==========================================================================
+ * Command Suggestion
+ * ========================================================================== */
+
+/**
+ * @brief Suggest the closest matching command from a list of candidates.
+ * @param input Input string to match
+ * @param commands Array of candidate strings
+ * @param num_commands Number of candidates
+ * @param out_reason Optional pointer to fossil_ti_reason_t for detailed scoring
+ * @return Pointer to best matching command, or NULL if none meets threshold
+ */
+const char *fossil_it_magic_suggest_command(
+    const char *input,
+    const char **commands,
+    int num_commands,
+    fossil_ti_reason_t *out_reason
+);
+
+/* ==========================================================================
+ * Path Auto-Correction
+ * ========================================================================== */
+
+/**
+ * @brief Suggest paths based on similarity to a “bad” path.
+ */
+void fossil_it_magic_path_suggest(
+    const char *bad_path,
+    const char *base_dir,
+    fossil_ti_path_suggestion_set_t *out
+);
+
+/**
+ * @brief Recover a token from a list of candidates.
+ */
+void fossil_it_magic_autorecovery_token(
+    const char *token,
+    const char *candidates[],
+    int candidate_count,
+    fossil_ti_autorecovery_t *out
+);
+
+/* ==========================================================================
+ * Danger Detection
+ * ========================================================================== */
+
+/**
+ * @brief Analyze a single path for potential danger.
+ */
+void fossil_it_magic_danger_analyze(
+    const char *path,
+    fossil_ti_danger_item_t *out
+);
+
+/**
+ * @brief Analyze multiple paths for potential danger and summarize.
+ */
+void fossil_it_magic_danger_report(
+    const char *paths[],
+    int path_count,
+    fossil_ti_danger_report_t *report
+);
 
 #ifdef __cplusplus
 }
