@@ -24,7 +24,18 @@
  */
 #include "fossil/code/app.h"
 #include <unistd.h>
+#include <limits.h>
+#define DP(i, j) dp[(i) * (len2 + 1) + (j)]
 
+#ifdef _WIN32
+#include <io.h>
+#define isatty _isatty
+#ifndef STDOUT_FILENO
+#define STDOUT_FILENO _fileno(stdout)
+#endif
+#else
+#include <unistd.h>
+#endif
 
 int FOSSIL_IO_VERBOSE = false; // Verbose output flag
 
@@ -172,9 +183,201 @@ void show_name(void) {
     exit(FOSSIL_IO_SUCCESS);
 }
 
+/*
+ * ==================================================================
+ * TI Reasoning Metadata (advanced struct for audit/debug)
+ * ==================================================================
+ */
+typedef struct {
+    const char *input;
+    const char *suggested;
+    int edit_distance;
+    float confidence_score; // 0.0 to 1.0
+    int jaccard_index;      // 0-100, string similarity by token overlap
+    int prefix_match;       // 1 if input is prefix of suggested, else 0
+    int suffix_match;       // 1 if input is suffix of suggested, else 0
+    int case_insensitive;   // 1 if match is case-insensitive, else 0
+    const char *reason;
+} fossil_ti_reason_t;
+
+/*
+ * ==================================================================
+ * Jaccard Index (token overlap for advanced similarity)
+ * ==================================================================
+ */
+static int shark_jaccard_index(const char *s1, const char *s2) {
+    if (!s1 || !s2) return 0;
+    int match = 0, total = 0;
+    size_t len1 = strlen(s1), len2 = strlen(s2);
+    int used[256] = {0};
+    for (size_t i = 0; i < len1; ++i) {
+        used[(unsigned char)s1[i]] = 1;
+    }
+    for (size_t i = 0; i < len2; ++i) {
+        if (used[(unsigned char)s2[i]]) match++;
+        used[(unsigned char)s2[i]] = 2;
+    }
+    for (int i = 0; i < 256; ++i) {
+        if (used[i]) total++;
+    }
+    return total ? (100 * match / total) : 0;
+}
+
+/*
+ * ==================================================================
+ * Levenshtein Distance (Unchanged Core)
+ * ==================================================================
+ */
+int shark_levenshtein_distance(const char *s1, const char *s2) {
+    if (!s1 || !s2) return INT_MAX;
+    int len1 = (int)strlen(s1), len2 = (int)strlen(s2);
+    int i, j;
+    int *dp = (int *)calloc((size_t)(len1 + 1) * (size_t)(len2 + 1), sizeof(int));
+    if (!dp) return INT_MAX;
+    for (i = 0; i <= len1; i++) DP(i, 0) = i;
+    for (j = 0; j <= len2; j++) DP(0, j) = j;
+    for (i = 1; i <= len1; i++) {
+        for (j = 1; j <= len2; j++) {
+            int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
+            int del = DP(i - 1, j) + 1;
+            int ins = DP(i, j - 1) + 1;
+            int sub = DP(i - 1, j - 1) + cost;
+            int min = del < ins ? del : ins;
+            min = min < sub ? min : sub;
+            DP(i, j) = min;
+        }
+    }
+    int result = DP(len1, len2);
+    free(dp);
+    return result;
+}
+
+/*
+ * ==================================================================
+ * TI-Aware Command Suggestion (advanced reasoning)
+ * ==================================================================
+ */
+const char* shark_suggest_command_ti(const char *input, const char **commands, int num_commands, fossil_ti_reason_t *out_reason) {
+    if (!input || !commands || num_commands <= 0) return NULL;
+
+    const char *best_match = NULL;
+    int min_distance = INT_MAX;
+    int best_length = 1;
+    int best_jaccard = 0;
+    int best_prefix = 0;
+    int best_suffix = 0;
+    int best_case_insensitive = 0;
+
+    for (int i = 0; i < num_commands; ++i) {
+        if (commands[i]) {
+            int distance = shark_levenshtein_distance(input, commands[i]);
+            int jaccard = shark_jaccard_index(input, commands[i]);
+            int prefix = (strncmp(input, commands[i], strlen(input)) == 0) ? 1 : 0;
+            int suffix = 0;
+            size_t inlen = strlen(input), cmdlen = strlen(commands[i]);
+            if (inlen <= cmdlen && strcmp(input, commands[i] + cmdlen - inlen) == 0) suffix = 1;
+            int case_insensitive = fossil_io_cstring_iequals(input, commands[i]);
+
+            // Prefer prefix, then lowest distance, then jaccard
+            if (prefix ||
+                (distance < min_distance) ||
+                (distance == min_distance && jaccard > best_jaccard)) {
+                min_distance = distance;
+                best_match = commands[i];
+                best_length = (int)strlen(commands[i]);
+                best_jaccard = jaccard;
+                best_prefix = prefix;
+                best_suffix = suffix;
+                best_case_insensitive = case_insensitive;
+            }
+        }
+    }
+
+    if (!best_match) return NULL;
+
+    float confidence = 1.0f - ((float)min_distance / (float)best_length);
+    confidence += (float)best_jaccard / 200.0f; // boost by jaccard
+    if (best_prefix) confidence += 0.15f;
+    if (best_suffix) confidence += 0.10f;
+    if (best_case_insensitive) confidence += 0.05f;
+    confidence = (confidence < 0.0f) ? 0.0f : (confidence > 1.0f) ? 1.0f : confidence;
+
+    if (out_reason) {
+        out_reason->input = input;
+        out_reason->suggested = best_match;
+        out_reason->edit_distance = min_distance;
+        out_reason->confidence_score = confidence;
+        out_reason->jaccard_index = best_jaccard;
+        out_reason->prefix_match = best_prefix;
+        out_reason->suffix_match = best_suffix;
+        out_reason->case_insensitive = best_case_insensitive;
+        if (confidence >= 0.85f)
+            out_reason->reason = "Strong semantic and token match";
+        else if (confidence >= 0.7f)
+            out_reason->reason = "Close semantic match";
+        else if (best_prefix)
+            out_reason->reason = "Prefix match";
+        else if (best_case_insensitive)
+            out_reason->reason = "Case-insensitive match";
+        else
+            out_reason->reason = "Low confidence match";
+    }
+
+    return (confidence >= 0.7f) ? best_match : NULL;
+}
+
 bool app_entry(int argc, char** argv) {
+    // List of supported commands for suggestion
+    static const char *supported_commands[] = {
+        "show", "move", "copy", "remove", "delete", "rename", "create", "search",
+        "archive", "view", "compare", "help", "ask", "chat", "summary", "sync",
+        "watch", "rewrite", "introspect", "grammar",
+        "--help", "--version", "--name", "--verbose", "--color", "--clear"
+    };
+    const int num_supported = sizeof(supported_commands) / sizeof(supported_commands[0]);
+
     for (i32 i = 1; i < argc; ++i) {
         if (argv[i] == cnullptr) continue;
+
+        // Try TI-aware suggestion for unknown commands
+        bool handled = false;
+        fossil_ti_reason_t ti_reason = {0};
+        for (int k = 0; k < num_supported; ++k) {
+            if (fossil_io_cstring_compare(argv[i], supported_commands[k]) == 0) {
+                handled = true;
+                break;
+            }
+        }
+
+        if (!handled && argv[i][0] != '-') {
+            const char *suggested = shark_suggest_command_ti(argv[i], supported_commands, num_supported, &ti_reason);
+            if (suggested) {
+                fossil_io_printf(
+                    "{yellow}Did you mean: {cyan}%s{yellow}?{reset}\n"
+                    "  {bright_black}TI Reasoning:{reset}\n"
+                    "    Edit Distance: %d\n"
+                    "    Confidence: %.2f\n"
+                    "    Jaccard Index: %d\n"
+                    "    Prefix Match: %d\n"
+                    "    Suffix Match: %d\n"
+                    "    Case-Insensitive: %d\n"
+                    "    Reason: %s\n",
+                    suggested,
+                    ti_reason.edit_distance,
+                    ti_reason.confidence_score,
+                    ti_reason.jaccard_index,
+                    ti_reason.prefix_match,
+                    ti_reason.suffix_match,
+                    ti_reason.case_insensitive,
+                    ti_reason.reason
+                );
+            } else {
+                fossil_io_printf(
+                    "{red}Unknown command: %s{reset}\n", argv[i]
+                );
+            }
+            return false;
+        }
 
         if (fossil_io_cstring_compare(argv[i], "--help") == 0) {
             show_commands(argv[0]);
@@ -630,9 +833,6 @@ bool app_entry(int argc, char** argv) {
                     fossil_io_printf("{red}Grammar analysis failed: %s{reset}\n", file_path);
                 }
             }
-        } else {
-            fossil_io_printf("{red}Unknown command: %s{reset}\n", argv[i]);
-            return false;
         }
     }
     return 0;
