@@ -273,17 +273,6 @@ typedef struct {
     const char *reason;
 } fossil_ti_reason_t;
 
-static float fossil_ti_similarity(const char *a, const char *b) {
-    if (!a || !b) return 0.0f;
-    int len_a = (int)strlen(a);
-    int len_b = (int)strlen(b);
-    if (len_a == 0 && len_b == 0) return 1.0f;
-
-    int dist = shark_levenshtein_distance(a, b);
-    int max_len = len_a > len_b ? len_a : len_b;
-    return 1.0f - ((float)dist / (float)max_len);
-}
-
 /*
  * ==================================================================
  * Jaccard Index (token overlap for advanced similarity)
@@ -408,6 +397,17 @@ const char* shark_suggest_command_ti(const char *input, const char **commands, i
     }
 
     return (confidence >= 0.7f) ? best_match : NULL;
+}
+
+static float fossil_ti_similarity(const char *a, const char *b) {
+    if (!a || !b) return 0.0f;
+    int len_a = (int)strlen(a);
+    int len_b = (int)strlen(b);
+    if (len_a == 0 && len_b == 0) return 1.0f;
+
+    int dist = shark_levenshtein_distance(a, b);
+    int max_len = len_a > len_b ? len_a : len_b;
+    return 1.0f - ((float)dist / (float)max_len);
 }
 
 static void fossil_ti_path_suggest(
