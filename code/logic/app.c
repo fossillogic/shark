@@ -25,6 +25,8 @@
 #include "fossil/code/app.h"
 #include <unistd.h>
 #include <limits.h>
+#include <dirent.h>
+#include <sys/stat.h>
 #define DP(i, j) dp[(i) * (len2 + 1) + (j)]
 
 #ifdef _WIN32
@@ -183,6 +185,70 @@ void show_name(void) {
     exit(FOSSIL_IO_SUCCESS);
 }
 
+/**
+ * @brief A scored path suggestion result.
+ */
+typedef struct fossil_ti_path_suggestion_s {
+    char  candidate_path[512];   // valid path on filesystem
+    float similarity_score;      // 0.0 - 1.0 ("edit distance" ↔ "semantic")
+    int   exists;                // confirm real path
+} fossil_ti_path_suggestion_t;
+
+/**
+ * @brief Ranked list of possible auto-corrections for a single incorrect path.
+ */
+typedef struct fossil_ti_path_suggestion_set_s {
+    fossil_ti_path_suggestion_t list[16]; // up to 16 ranked matches
+    int count;
+} fossil_ti_path_suggestion_set_t;
+
+/**
+ * @brief High-level wrapper containing path suggestions for all arguments.
+ */
+typedef struct fossil_ti_path_ai_report_s {
+    fossil_ti_path_suggestion_set_t sets[8]; // up to 8 tokens needing help
+    int set_count;
+} fossil_ti_path_ai_report_t;
+
+/**
+ * @brief Enumerated danger levels for operations.
+ */
+typedef enum {
+    FOSSIL_TI_DANGER_NONE = 0,     // safe
+    FOSSIL_TI_DANGER_LOW,          // mild (overwrites small file)
+    FOSSIL_TI_DANGER_MEDIUM,       // questionable (move large tree)
+    FOSSIL_TI_DANGER_HIGH,         // risky but reversible
+    FOSSIL_TI_DANGER_CRITICAL      // destructive (rm -r, wiping codebase)
+} fossil_ti_danger_level_t;
+
+/**
+ * @brief Structured danger analysis results for a single path or target.
+ */
+typedef struct fossil_ti_danger_item_s {
+    char  target_path[512];
+    fossil_ti_danger_level_t level;
+
+    int is_directory;
+    int contains_code;             // .c, .h, .cpp, .py, .cs, .go, etc.
+    int contains_vcs;              // .git or .svn detected
+    int contains_secrets;          // .env, .key, .pem
+    int large_size;                // > predefined threshold
+    int writable;                  // permission check
+} fossil_ti_danger_item_t;
+
+/**
+ * @brief Combined safety analysis for multi-target command operations.
+ */
+typedef struct fossil_ti_danger_report_s {
+    fossil_ti_danger_item_t items[8];
+    int item_count;
+
+    fossil_ti_danger_level_t overall_level;  // max level across items
+
+    int block_recommended;   // 1 = halt unless --force is present
+    int warning_required;    // 1 = display multi-line warning
+} fossil_ti_danger_report_t;
+
 /*
  * ==================================================================
  * TI Reasoning Metadata (advanced struct for audit/debug)
@@ -325,6 +391,197 @@ const char* shark_suggest_command_ti(const char *input, const char **commands, i
 
     return (confidence >= 0.7f) ? best_match : NULL;
 }
+
+static void fossil_ti_path_suggest(
+        const char *bad_path,
+        const char *base_dir,
+        fossil_ti_path_suggestion_set_t *out)
+{
+    out->count = 0;
+
+    DIR *d = opendir(base_dir);
+    if (!d) return;
+
+    struct dirent *ent;
+
+    while ((ent = readdir(d)) != NULL && out->count < 16) {
+        float score = fossil_ti_similarity(bad_path, ent->d_name);
+        if (score < 0.25f) continue; // ignore junk
+
+        snprintf(out->list[out->count].candidate_path,
+                 sizeof(out->list[out->count].candidate_path),
+                 "%s/%s", base_dir, ent->d_name);
+
+        out->list[out->count].similarity_score = score;
+
+        struct stat st;
+        out->list[out->count].exists =
+            (stat(out->list[out->count].candidate_path, &st) == 0);
+
+        out->count++;
+    }
+
+    closedir(d);
+}
+
+void fossil_ti_autorecovery_token(
+        const char *token,
+        const char *candidates[],
+        int candidate_count,
+        fossil_ti_autorecovery_t *out)
+{
+    float best_score = 0.0f;
+    const char *best = NULL;
+
+    for (int i = 0; i < candidate_count; i++) {
+        float score = fossil_ti_similarity(token, candidates[i]);
+        if (score > best_score) {
+            best_score = score;
+            best = candidates[i];
+        }
+    }
+
+    strncpy(out->original_token, token, sizeof(out->original_token)-1);
+    out->original_token[sizeof(out->original_token)-1] = 0;
+
+    if (best) {
+        strncpy(out->recovered_token, best, sizeof(out->recovered_token)-1);
+        out->confidence = best_score;
+        out->applied = (best_score > 0.83f);   // auto-apply threshold
+    } else {
+        out->recovered_token[0] = 0;
+        out->confidence = 0.0f;
+        out->applied = 0;
+    }
+}
+
+// danger detection 
+
+static int fossil_ti_is_code_file(const char *path) {
+    const char *ext = strrchr(path, '.');
+    if (!ext) return 0;
+
+    const char *code_exts[] = {
+        ".c", ".h", ".cpp", ".hpp", ".py",
+        ".java", ".cs", ".go", ".rs", ".js", ".ts"
+    };
+
+    for (int i = 0; i < 11; i++)
+        if (strcmp(ext, code_exts[i]) == 0)
+            return 1;
+    return 0;
+}
+
+static int fossil_ti_contains_git(const char *path) {
+    char buf[600];
+    snprintf(buf, sizeof(buf), "%s/.git", path);
+    struct stat st;
+    return (stat(buf, &st) == 0);
+}
+
+static int fossil_ti_contains_secret(const char *path) {
+    char buf[600];
+    const char *secret_files[] = {
+        ".env", "secret.key", "id_rsa", "private.pem"
+    };
+
+    for (int i = 0; i < 4; i++) {
+        snprintf(buf, sizeof(buf), "%s/%s", path, secret_files[i]);
+        struct stat st;
+        if (stat(buf, &st) == 0)
+            return 1;
+    }
+    return 0;
+}
+
+static long fossil_ti_directory_size(const char *path) {
+    long total = 0;
+    DIR *d = opendir(path);
+    if (!d) return 0;
+
+    struct dirent *ent;
+    struct stat st;
+
+    char full[600];
+
+    while ((ent = readdir(d)) != NULL) {
+        if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
+            continue;
+
+        snprintf(full, sizeof(full), "%s/%s", path, ent->d_name);
+
+        if (stat(full, &st) == 0)
+            total += st.st_size;
+    }
+    closedir(d);
+    return total;
+}
+
+void fossil_ti_danger_analyze(
+        const char *path,
+        fossil_ti_danger_item_t *out)
+{
+    struct stat st;
+    memset(out, 0, sizeof(*out));
+
+    strncpy(out->target_path, path, sizeof(out->target_path)-1);
+
+    if (stat(path, &st) != 0) {
+        out->level = FOSSIL_TI_DANGER_NONE;
+        return;
+    }
+
+    out->is_directory = S_ISDIR(st.st_mode);
+
+    // permissions
+    out->writable = (st.st_mode & S_IWUSR) != 0;
+
+    // code
+    out->contains_code = out->is_directory ?
+                         fossil_ti_contains_git(path) :
+                         fossil_ti_is_code_file(path);
+
+    // secrets
+    out->contains_secrets = out->is_directory ?
+                            fossil_ti_contains_secret(path) : 0;
+
+    // large?
+    long sz = out->is_directory ? fossil_ti_directory_size(path) : st.st_size;
+    out->large_size = (sz > 10 * 1024 * 1024); // >10MB
+
+    // final scoring
+    out->level = FOSSIL_TI_DANGER_NONE;
+
+    if (out->contains_code)      out->level = FOSSIL_TI_DANGER_HIGH;
+    if (out->contains_secrets)   out->level = FOSSIL_TI_DANGER_CRITICAL;
+    if (out->large_size && out->level < FOSSIL_TI_DANGER_MEDIUM)
+        out->level = FOSSIL_TI_DANGER_MEDIUM;
+}
+
+void fossil_ti_danger_report(
+        const char *paths[],
+        int path_count,
+        fossil_ti_danger_report_t *report)
+{
+    memset(report, 0, sizeof(*report));
+
+    fossil_ti_danger_level_t maxLevel = FOSSIL_TI_DANGER_NONE;
+
+    for (int i = 0; i < path_count && i < 8; i++) {
+        fossil_ti_danger_analyze(paths[i], &report->items[i]);
+        report->item_count++;
+
+        if (report->items[i].level > maxLevel)
+            maxLevel = report->items[i].level;
+    }
+
+    report->overall_level = maxLevel;
+
+    // policy rules
+    report->warning_required   = (maxLevel >= FOSSIL_TI_DANGER_MEDIUM);
+    report->block_recommended  = (maxLevel >= FOSSIL_TI_DANGER_CRITICAL);
+}
+
 
 bool app_entry(int argc, char** argv) {
     // List of supported commands for suggestion
