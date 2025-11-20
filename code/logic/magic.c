@@ -39,8 +39,124 @@ static int fossil_it_magic_is_code_file(const char *path) {
     if (!ext) return 0;
 
     const char *code_exts[] = {
-        ".c", ".h", ".cpp", ".hpp", ".py",
-        ".java", ".cs", ".go", ".rs", ".js", ".ts"
+        // C/C++
+        ".c", ".h", ".cpp", ".hpp", ".cc", ".cxx", ".hxx", ".hh",
+        // Python
+        ".py", ".pyw", ".ipynb", ".pyc", ".pyo", ".pyd",
+        // Java
+        ".java", ".class", ".jar", ".jad", ".jmod",
+        // C#
+        ".cs", ".vb", ".fs",
+        // Go
+        ".go", ".mod", ".sum",
+        // Rust
+        ".rs", ".rlib", ".toml",
+        // JavaScript/TypeScript
+        ".js", ".jsx", ".mjs", ".cjs",
+        ".ts", ".tsx",
+        // PHP
+        ".php", ".phtml", ".php3", ".php4", ".php5", ".phps",
+        // Ruby
+        ".rb", ".erb", ".rake", ".gemspec",
+        // Perl
+        ".pl", ".pm", ".pod", ".t",
+        // Swift
+        ".swift",
+        // Kotlin
+        ".kt", ".kts",
+        // Scala
+        ".scala", ".sc",
+        // Shell
+        ".sh", ".bash", ".zsh", ".csh", ".tcsh", ".ksh",
+        // Batch/PowerShell
+        ".bat", ".cmd", ".ps1", ".psm1",
+        // Lua
+        ".lua",
+        // SQL
+        ".sql", ".sqlite", ".db",
+        // Web
+        ".html", ".htm", ".xhtml",
+        ".css", ".scss", ".less",
+        ".xml", ".xsd", ".xslt",
+        ".json", ".yaml", ".yml",
+        // Dart
+        ".dart",
+        // Groovy
+        ".groovy", ".gradle",
+        // R
+        ".r", ".R", ".Rmd",
+        // Objective-C
+        ".m", ".mm",
+        // Assembly
+        ".asm", ".s", ".S",
+        // Verilog/VHDL
+        ".v", ".vh", ".sv", ".vhd", ".vhdl",
+        // CoffeeScript
+        ".coffee",
+        // Clojure/EDN
+        ".clj", ".cljs", ".cljc", ".edn",
+        // Haskell
+        ".hs", ".lhs", ".ghc",
+        // OCaml
+        ".ml", ".mli", ".ocaml",
+        // Ada
+        ".ada", ".adb", ".ads",
+        // Fortran
+        ".for", ".f90", ".f95", ".f03", ".f08", ".f", ".f77",
+        // Prolog/Tcl
+        ".pro", ".pl", ".tcl",
+        // TeX
+        ".tex", ".sty", ".cls",
+        // Nim
+        ".nim",
+        // Crystal
+        ".cr",
+        // Elixir
+        ".ex", ".exs",
+        // Elm
+        ".elm",
+        // Erlang
+        ".erl", ".hrl",
+        // Lisp/Scheme
+        ".lisp", ".el", ".scm", ".cl", ".lsp",
+        // Pascal
+        ".pas", ".pp", ".p",
+        // D
+        ".d",
+        // Vala
+        ".vala",
+        // VBScript
+        ".vbs",
+        // AWK
+        ".awk",
+        // PostScript
+        ".ps",
+        // Raku/Perl 6
+        ".raku", ".pl6", ".pm6",
+        // Solidity
+        ".sol",
+        // CMake
+        ".cmake",
+        // Meson build files
+        ".build", ".options",
+        // Dockerfile
+        ".dockerfile",
+        // Config/INI
+        ".ini", ".conf", ".cfg",
+        // TOML
+        ".toml",
+        // TypeScript JSX (duplicate, but kept for completeness)
+        ".tsx",
+        // Visual Studio
+        ".sln", ".vcxproj", ".csproj",
+        // Xcode
+        ".xcodeproj", ".xcworkspace",
+        // Bazel
+        ".bazel", ".bzl", "BUILD", "WORKSPACE",
+        // Ninja
+        ".ninja",
+        // Others
+        ".gitignore", ".gitattributes", ".editorconfig", ".env"
     };
 
     for (int i = 0; i < 11; i++)
@@ -105,9 +221,10 @@ int fossil_it_magic_jaccard_index(const char *s1, const char *s2) {
 
     for (size_t i = 0; i < len1; ++i)
         used[(unsigned char)s1[i]] = 1;
-    for (size_t i = 0; i < len2; ++i)
+    for (size_t i = 0; i < len2; ++i) {
         if (used[(unsigned char)s2[i]]) match++;
         used[(unsigned char)s2[i]] = 2;
+    }
 
     for (int i = 0; i < 256; ++i)
         if (used[i]) total++;
