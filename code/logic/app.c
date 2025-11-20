@@ -194,6 +194,13 @@ typedef struct fossil_ti_path_suggestion_s {
     int   exists;                // confirm real path
 } fossil_ti_path_suggestion_t;
 
+typedef struct fossil_ti_autorecovery_s {
+    char original_token[256];    // input token
+    char recovered_token[256];   // suggested correction
+    float confidence;            // 0.0 - 1.0
+    int applied;                 // 1 = auto-applied, 0 = manual review
+} fossil_ti_autorecovery_t;
+
 /**
  * @brief Ranked list of possible auto-corrections for a single incorrect path.
  */
@@ -265,6 +272,17 @@ typedef struct {
     int case_insensitive;   // 1 if match is case-insensitive, else 0
     const char *reason;
 } fossil_ti_reason_t;
+
+static float fossil_ti_similarity(const char *a, const char *b) {
+    if (!a || !b) return 0.0f;
+    int len_a = (int)strlen(a);
+    int len_b = (int)strlen(b);
+    if (len_a == 0 && len_b == 0) return 1.0f;
+
+    int dist = shark_levenshtein_distance(a, b);
+    int max_len = len_a > len_b ? len_a : len_b;
+    return 1.0f - ((float)dist / (float)max_len);
+}
 
 /*
  * ==================================================================
