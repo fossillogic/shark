@@ -28,6 +28,7 @@
  * Display help information and usage examples
  */
 int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
+    // Show overview if command is NULL or "all" (default to "all" if command is NULL)
     if (!command || fossil_io_cstring_equals(command, "all")) {
         fossil_io_printf("{pos:top}{cyan,bold,underline}Fossil Shark - Command Overview:{normal}\n");
         fossil_io_printf("{cyan,italic}------------------------------------------------------------{normal}\n");
@@ -61,7 +62,8 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         fossil_io_printf("  {cyan,bold}--time{normal}        - Display timestamps in output\n");
         fossil_io_printf("{cyan,italic}------------------------------------------------------------{normal}\n");
 
-        if (cunlikely(!command)) return 0; // general overview only
+        // Always return after showing overview (default is "all")
+        return 0;
     }
 
     // Detailed help for specific command
