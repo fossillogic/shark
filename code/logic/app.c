@@ -105,22 +105,6 @@ void show_commands(char* app_name) {
     fossil_io_printf("{yellow}                   --context <n>     {reset}{bright_black}Show context lines{reset}\n");
     fossil_io_printf("{yellow}                   --ignore-case     {reset}{bright_black}Ignore case differences{reset}\n");
 
-    fossil_io_printf("{cyan}  info             {reset}Show detailed metadata about a file or directory\n");
-    fossil_io_printf("{yellow}                   -p, --permissions {reset}{bright_black}Show permissions{reset}\n");
-    fossil_io_printf("{yellow}                   -o, --owner       {reset}{bright_black}Show owner/group{reset}\n");
-    fossil_io_printf("{yellow}                   -s, --size        {reset}{bright_black}Show size{reset}\n");
-    fossil_io_printf("{yellow}                   -t, --timestamps  {reset}{bright_black}Show times{reset}\n");
-
-    fossil_io_printf("{cyan}  sync             {reset}Synchronize files/directories\n");
-    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
-    fossil_io_printf("{yellow}                   -u, --update      {reset}{bright_black}Copy only newer{reset}\n");
-    fossil_io_printf("{yellow}                   --delete          {reset}{bright_black}Remove extraneous files from target{reset}\n");
-
-    fossil_io_printf("{cyan}  watch            {reset}Continuously monitor files or directories\n");
-    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
-    fossil_io_printf("{yellow}                   -e, --events <list> {reset}{bright_black}Filter events: create/modify/delete{reset}\n");
-    fossil_io_printf("{yellow}                   -t, --interval <n> {reset}{bright_black}Poll interval in seconds{reset}\n");
-
     fossil_io_printf("{cyan}  help             {reset}Display help for supported commands\n");
     fossil_io_printf("{yellow}                   --examples        {reset}{bright_black}Show usage examples{reset}\n");
     fossil_io_printf("{yellow}                   --man             {reset}{bright_black}Full manual{reset}\n\n");
@@ -164,6 +148,16 @@ void show_commands(char* app_name) {
     fossil_io_printf("{yellow}                   --depth <n>        {reset}{bright_black}Summary depth{reset}\n");
     fossil_io_printf("{yellow}                   --time             {reset}{bright_black}Show timestamps{reset}\n\n");
 
+    fossil_io_printf("{cyan}  sync             {reset}Synchronize files/directories\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
+    fossil_io_printf("{yellow}                   -u, --update      {reset}{bright_black}Copy only newer{reset}\n");
+    fossil_io_printf("{yellow}                   --delete          {reset}{bright_black}Remove extraneous files from target{reset}\n");
+
+    fossil_io_printf("{cyan}  watch            {reset}Continuously monitor files or directories\n");
+    fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
+    fossil_io_printf("{yellow}                   -e, --events <list> {reset}{bright_black}Filter events: create/modify/delete{reset}\n");
+    fossil_io_printf("{yellow}                   -t, --interval <n> {reset}{bright_black}Poll interval in seconds{reset}\n");
+
     fossil_io_printf("{blue}🌍 Global Options:{reset}\n");
     fossil_io_printf("{cyan}  --help           {reset}{bright_black}Display help information{reset}\n");
     fossil_io_printf("{cyan}  --version        {reset}{bright_black}Display current version{reset}\n");
@@ -171,7 +165,7 @@ void show_commands(char* app_name) {
     fossil_io_printf("{cyan}  --verbose        {reset}{bright_black}Enable detailed output{reset}\n");
     fossil_io_printf("{cyan}  --color          {reset}{bright_black}Set color mode: enable, disable, auto{reset}\n");
     fossil_io_printf("{cyan}  --clear          {reset}{bright_black}Clear terminal screen{reset}\n");
-    
+
     exit(FOSSIL_IO_SUCCESS);
 }
 
@@ -183,333 +177,6 @@ void show_version(void) {
 void show_name(void) {
     fossil_io_printf("{blue}App Name: {cyan}%s{reset}\n", FOSSIL_APP_NAME);
     exit(FOSSIL_IO_SUCCESS);
-}
-
-/*
- * ==================================================================
- * Jaccard Index (token overlap for advanced similarity)
- * ==================================================================
- */
-static int shark_jaccard_index(const char *s1, const char *s2) {
-    if (!s1 || !s2) return 0;
-    int match = 0, total = 0;
-    size_t len1 = strlen(s1), len2 = strlen(s2);
-    int used[256] = {0};
-    for (size_t i = 0; i < len1; ++i) {
-        used[(unsigned char)s1[i]] = 1;
-    }
-    for (size_t i = 0; i < len2; ++i) {
-        if (used[(unsigned char)s2[i]]) match++;
-        used[(unsigned char)s2[i]] = 2;
-    }
-    for (int i = 0; i < 256; ++i) {
-        if (used[i]) total++;
-    }
-    return total ? (100 * match / total) : 0;
-}
-
-/*
- * ==================================================================
- * Levenshtein Distance (Unchanged Core)
- * ==================================================================
- */
-int shark_levenshtein_distance(const char *s1, const char *s2) {
-    if (!s1 || !s2) return INT_MAX;
-    int len1 = (int)strlen(s1), len2 = (int)strlen(s2);
-    int i, j;
-    int *dp = (int *)calloc((size_t)(len1 + 1) * (size_t)(len2 + 1), sizeof(int));
-    if (!dp) return INT_MAX;
-    for (i = 0; i <= len1; i++) DP(i, 0) = i;
-    for (j = 0; j <= len2; j++) DP(0, j) = j;
-    for (i = 1; i <= len1; i++) {
-        for (j = 1; j <= len2; j++) {
-            int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
-            int del = DP(i - 1, j) + 1;
-            int ins = DP(i, j - 1) + 1;
-            int sub = DP(i - 1, j - 1) + cost;
-            int min = del < ins ? del : ins;
-            min = min < sub ? min : sub;
-            DP(i, j) = min;
-        }
-    }
-    int result = DP(len1, len2);
-    free(dp);
-    return result;
-}
-
-/*
- * ==================================================================
- * TI-Aware Command Suggestion (advanced reasoning)
- * ==================================================================
- */
-const char* shark_suggest_command_ti(const char *input, const char **commands, int num_commands, fossil_ti_reason_t *out_reason) {
-    if (!input || !commands || num_commands <= 0) return NULL;
-
-    const char *best_match = NULL;
-    int min_distance = INT_MAX;
-    int best_length = 1;
-    int best_jaccard = 0;
-    int best_prefix = 0;
-    int best_suffix = 0;
-    int best_case_insensitive = 0;
-
-    for (int i = 0; i < num_commands; ++i) {
-        if (commands[i]) {
-            int distance = shark_levenshtein_distance(input, commands[i]);
-            int jaccard = shark_jaccard_index(input, commands[i]);
-            int prefix = (strncmp(input, commands[i], strlen(input)) == 0) ? 1 : 0;
-            int suffix = 0;
-            size_t inlen = strlen(input), cmdlen = strlen(commands[i]);
-            if (inlen <= cmdlen && strcmp(input, commands[i] + cmdlen - inlen) == 0) suffix = 1;
-            int case_insensitive = fossil_io_cstring_iequals(input, commands[i]);
-
-            // Prefer prefix, then lowest distance, then jaccard
-            if (prefix ||
-                (distance < min_distance) ||
-                (distance == min_distance && jaccard > best_jaccard)) {
-                min_distance = distance;
-                best_match = commands[i];
-                best_length = (int)strlen(commands[i]);
-                best_jaccard = jaccard;
-                best_prefix = prefix;
-                best_suffix = suffix;
-                best_case_insensitive = case_insensitive;
-            }
-        }
-    }
-
-    if (!best_match) return NULL;
-
-    float confidence = 1.0f - ((float)min_distance / (float)best_length);
-    confidence += (float)best_jaccard / 200.0f; // boost by jaccard
-    if (best_prefix) confidence += 0.15f;
-    if (best_suffix) confidence += 0.10f;
-    if (best_case_insensitive) confidence += 0.05f;
-    confidence = (confidence < 0.0f) ? 0.0f : (confidence > 1.0f) ? 1.0f : confidence;
-
-    if (out_reason) {
-        out_reason->input = input;
-        out_reason->suggested = best_match;
-        out_reason->edit_distance = min_distance;
-        out_reason->confidence_score = confidence;
-        out_reason->jaccard_index = best_jaccard;
-        out_reason->prefix_match = best_prefix;
-        out_reason->suffix_match = best_suffix;
-        out_reason->case_insensitive = best_case_insensitive;
-        if (confidence >= 0.85f)
-            out_reason->reason = "Strong semantic and token match";
-        else if (confidence >= 0.7f)
-            out_reason->reason = "Close semantic match";
-        else if (best_prefix)
-            out_reason->reason = "Prefix match";
-        else if (best_case_insensitive)
-            out_reason->reason = "Case-insensitive match";
-        else
-            out_reason->reason = "Low confidence match";
-    }
-
-    return (confidence >= 0.7f) ? best_match : NULL;
-}
-
-static float fossil_ti_similarity(const char *a, const char *b) {
-    if (!a || !b) return 0.0f;
-    int len_a = (int)strlen(a);
-    int len_b = (int)strlen(b);
-    if (len_a == 0 && len_b == 0) return 1.0f;
-
-    int dist = shark_levenshtein_distance(a, b);
-    int max_len = len_a > len_b ? len_a : len_b;
-    return 1.0f - ((float)dist / (float)max_len);
-}
-
-static void fossil_ti_path_suggest(
-        const char *bad_path,
-        const char *base_dir,
-        fossil_ti_path_suggestion_set_t *out)
-{
-    out->count = 0;
-
-    DIR *d = opendir(base_dir);
-    if (!d) return;
-
-    struct dirent *ent;
-
-    while ((ent = readdir(d)) != NULL && out->count < 16) {
-        float score = fossil_ti_similarity(bad_path, ent->d_name);
-        if (score < 0.25f) continue; // ignore junk
-
-        snprintf(out->list[out->count].candidate_path,
-                 sizeof(out->list[out->count].candidate_path),
-                 "%s/%s", base_dir, ent->d_name);
-
-        out->list[out->count].similarity_score = score;
-
-        struct stat st;
-        out->list[out->count].exists =
-            (stat(out->list[out->count].candidate_path, &st) == 0);
-
-        out->count++;
-    }
-
-    closedir(d);
-}
-
-void fossil_ti_autorecovery_token(
-        const char *token,
-        const char *candidates[],
-        int candidate_count,
-        fossil_ti_autorecovery_t *out)
-{
-    float best_score = 0.0f;
-    const char *best = NULL;
-
-    for (int i = 0; i < candidate_count; i++) {
-        float score = fossil_ti_similarity(token, candidates[i]);
-        if (score > best_score) {
-            best_score = score;
-            best = candidates[i];
-        }
-    }
-
-    strncpy(out->original_token, token, sizeof(out->original_token)-1);
-    out->original_token[sizeof(out->original_token)-1] = 0;
-
-    if (best) {
-        strncpy(out->recovered_token, best, sizeof(out->recovered_token)-1);
-        out->confidence = best_score;
-        out->applied = (best_score > 0.83f);   // auto-apply threshold
-    } else {
-        out->recovered_token[0] = 0;
-        out->confidence = 0.0f;
-        out->applied = 0;
-    }
-}
-
-// danger detection 
-
-static int fossil_ti_is_code_file(const char *path) {
-    const char *ext = strrchr(path, '.');
-    if (!ext) return 0;
-
-    const char *code_exts[] = {
-        ".c", ".h", ".cpp", ".hpp", ".py",
-        ".java", ".cs", ".go", ".rs", ".js", ".ts"
-    };
-
-    for (int i = 0; i < 11; i++)
-        if (strcmp(ext, code_exts[i]) == 0)
-            return 1;
-    return 0;
-}
-
-static int fossil_ti_contains_git(const char *path) {
-    char buf[600];
-    snprintf(buf, sizeof(buf), "%s/.git", path);
-    struct stat st;
-    return (stat(buf, &st) == 0);
-}
-
-static int fossil_ti_contains_secret(const char *path) {
-    char buf[600];
-    const char *secret_files[] = {
-        ".env", "secret.key", "id_rsa", "private.pem"
-    };
-
-    for (int i = 0; i < 4; i++) {
-        snprintf(buf, sizeof(buf), "%s/%s", path, secret_files[i]);
-        struct stat st;
-        if (stat(buf, &st) == 0)
-            return 1;
-    }
-    return 0;
-}
-
-static long fossil_ti_directory_size(const char *path) {
-    long total = 0;
-    DIR *d = opendir(path);
-    if (!d) return 0;
-
-    struct dirent *ent;
-    struct stat st;
-
-    char full[600];
-
-    while ((ent = readdir(d)) != NULL) {
-        if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
-            continue;
-
-        snprintf(full, sizeof(full), "%s/%s", path, ent->d_name);
-
-        if (stat(full, &st) == 0)
-            total += st.st_size;
-    }
-    closedir(d);
-    return total;
-}
-
-void fossil_ti_danger_analyze(
-        const char *path,
-        fossil_ti_danger_item_t *out)
-{
-    struct stat st;
-    memset(out, 0, sizeof(*out));
-
-    strncpy(out->target_path, path, sizeof(out->target_path)-1);
-
-    if (stat(path, &st) != 0) {
-        out->level = FOSSIL_TI_DANGER_NONE;
-        return;
-    }
-
-    out->is_directory = S_ISDIR(st.st_mode);
-
-    // permissions
-    out->writable = (st.st_mode & S_IWUSR) != 0;
-
-    // code
-    out->contains_code = out->is_directory ?
-                         fossil_ti_contains_git(path) :
-                         fossil_ti_is_code_file(path);
-
-    // secrets
-    out->contains_secrets = out->is_directory ?
-                            fossil_ti_contains_secret(path) : 0;
-
-    // large?
-    long sz = out->is_directory ? fossil_ti_directory_size(path) : st.st_size;
-    out->large_size = (sz > 10 * 1024 * 1024); // >10MB
-
-    // final scoring
-    out->level = FOSSIL_TI_DANGER_NONE;
-
-    if (out->contains_code)      out->level = FOSSIL_TI_DANGER_HIGH;
-    if (out->contains_secrets)   out->level = FOSSIL_TI_DANGER_CRITICAL;
-    if (out->large_size && out->level < FOSSIL_TI_DANGER_MEDIUM)
-        out->level = FOSSIL_TI_DANGER_MEDIUM;
-}
-
-void fossil_ti_danger_report(
-        const char *paths[],
-        int path_count,
-        fossil_ti_danger_report_t *report)
-{
-    memset(report, 0, sizeof(*report));
-
-    fossil_ti_danger_level_t maxLevel = FOSSIL_TI_DANGER_NONE;
-
-    for (int i = 0; i < path_count && i < 8; i++) {
-        fossil_ti_danger_analyze(paths[i], &report->items[i]);
-        report->item_count++;
-
-        if (report->items[i].level > maxLevel)
-            maxLevel = report->items[i].level;
-    }
-
-    report->overall_level = maxLevel;
-
-    // policy rules
-    report->warning_required   = (maxLevel >= FOSSIL_TI_DANGER_MEDIUM);
-    report->block_recommended  = (maxLevel >= FOSSIL_TI_DANGER_CRITICAL);
 }
 
 
@@ -537,7 +204,7 @@ bool app_entry(int argc, char** argv) {
         }
 
         if (!handled && argv[i][0] != '-') {
-            const char *suggested = shark_suggest_command_ti(argv[i], supported_commands, num_supported, &ti_reason);
+            const char *suggested = fossil_it_magic_suggest_command(argv[i], supported_commands, num_supported, &ti_reason);
             if (suggested) {
                 fossil_io_printf(
                     "{yellow}Did you mean: {cyan}%s{yellow}?{reset}\n"
@@ -564,6 +231,46 @@ bool app_entry(int argc, char** argv) {
                 );
             }
             return false;
+        }
+
+        // Path suggestion for file/directory arguments
+        // Only apply to commands that take a path argument
+        if (
+            fossil_io_cstring_compare(argv[i], "show") == 0 ||
+            fossil_io_cstring_compare(argv[i], "move") == 0 ||
+            fossil_io_cstring_compare(argv[i], "copy") == 0 ||
+            fossil_io_cstring_compare(argv[i], "remove") == 0 ||
+            fossil_io_cstring_compare(argv[i], "delete") == 0 ||
+            fossil_io_cstring_compare(argv[i], "rename") == 0 ||
+            fossil_io_cstring_compare(argv[i], "create") == 0 ||
+            fossil_io_cstring_compare(argv[i], "search") == 0 ||
+            fossil_io_cstring_compare(argv[i], "archive") == 0 ||
+            fossil_io_cstring_compare(argv[i], "view") == 0 ||
+            fossil_io_cstring_compare(argv[i], "compare") == 0 ||
+            fossil_io_cstring_compare(argv[i], "sync") == 0 ||
+            fossil_io_cstring_compare(argv[i], "watch") == 0 ||
+            fossil_io_cstring_compare(argv[i], "rewrite") == 0 ||
+            fossil_io_cstring_compare(argv[i], "introspect") == 0 ||
+            fossil_io_cstring_compare(argv[i], "grammar") == 0
+        ) {
+            // Look ahead for path-like arguments and suggest corrections
+            for (int j = i + 1; j < argc; ++j) {
+                if (argv[j] && argv[j][0] != '-') {
+                    fossil_ti_path_suggestion_set_t path_suggestions = {0};
+                    fossil_it_magic_path_suggest(argv[j], ".", &path_suggestions);
+                    if (path_suggestions.count > 0 && path_suggestions.list[0].similarity_score > 0.7f && !path_suggestions.list[0].exists) {
+                        fossil_io_printf(
+                            "{yellow}Path suggestion for '{red}%s{yellow}':{reset}\n"
+                            "  {cyan}%s{reset} (score: %.2f)\n",
+                            argv[j],
+                            path_suggestions.list[0].candidate_path,
+                            path_suggestions.list[0].similarity_score
+                        );
+                    }
+                }
+                // Only check first non-flag argument after command
+                break;
+            }
         }
 
         if (fossil_io_cstring_compare(argv[i], "--help") == 0) {
@@ -600,24 +307,24 @@ bool app_entry(int argc, char** argv) {
             
             // Parse flags
             for (int j = i + 1; j < argc && argv[j][0] == '-'; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-a") == 0 || fossil_io_cstring_compare(argv[j], "--all") == 0) {
-                show_all = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-l") == 0 || fossil_io_cstring_compare(argv[j], "--long") == 0) {
-                long_format = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-h") == 0 || fossil_io_cstring_compare(argv[j], "--human") == 0) {
-                human_readable = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
-                recursive = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
-                show_time = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--as") == 0 && j + 1 < argc) {
-                format = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "-d") == 0 || fossil_io_cstring_compare(argv[j], "--depth") == 0) {
-                if (j + 1 < argc) depth = atoi(argv[++j]);
-            } else {
-                path = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-a") == 0 || fossil_io_cstring_compare(argv[j], "--all") == 0) {
+                    show_all = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-l") == 0 || fossil_io_cstring_compare(argv[j], "--long") == 0) {
+                    long_format = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-h") == 0 || fossil_io_cstring_compare(argv[j], "--human") == 0) {
+                    human_readable = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
+                    recursive = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
+                    show_time = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--as") == 0 && j + 1 < argc) {
+                    format = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "-d") == 0 || fossil_io_cstring_compare(argv[j], "--depth") == 0) {
+                    if (j + 1 < argc) depth = atoi(argv[++j]);
+                } else {
+                    path = argv[j];
+                }
+                i = j;
             }
             if (i + 1 < argc && argv[i + 1][0] != '-') path = argv[++i];
             fossil_shark_show(path, show_all, long_format, human_readable, recursive, format, show_time, depth);
@@ -628,18 +335,18 @@ bool app_entry(int argc, char** argv) {
             bool force = false, interactive = false, backup = false;
             
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0) {
-                force = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-i") == 0 || fossil_io_cstring_compare(argv[j], "--interactive") == 0) {
-                interactive = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-b") == 0 || fossil_io_cstring_compare(argv[j], "--backup") == 0) {
-                backup = true;
-            } else if (!src) {
-                src = argv[j];
-            } else if (!dest) {
-                dest = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0) {
+                    force = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-i") == 0 || fossil_io_cstring_compare(argv[j], "--interactive") == 0) {
+                    interactive = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-b") == 0 || fossil_io_cstring_compare(argv[j], "--backup") == 0) {
+                    backup = true;
+                } else if (!src) {
+                    src = argv[j];
+                } else if (!dest) {
+                    dest = argv[j];
+                }
+                i = j;
             }
             if (src && dest) fossil_shark_move(src, dest, force, interactive, backup);
             
@@ -649,18 +356,18 @@ bool app_entry(int argc, char** argv) {
             bool recursive = false, update = false, preserve = false;
             
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
-                recursive = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-u") == 0 || fossil_io_cstring_compare(argv[j], "--update") == 0) {
-                update = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--preserve") == 0) {
-                preserve = true;
-            } else if (!src) {
-                src = argv[j];
-            } else if (!dest) {
-                dest = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
+                    recursive = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-u") == 0 || fossil_io_cstring_compare(argv[j], "--update") == 0) {
+                    update = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--preserve") == 0) {
+                    preserve = true;
+                } else if (!src) {
+                    src = argv[j];
+                } else if (!dest) {
+                    dest = argv[j];
+                }
+                i = j;
             }
             if (src && dest) fossil_shark_copy(src, dest, recursive, update, preserve);
             
@@ -671,18 +378,18 @@ bool app_entry(int argc, char** argv) {
             bool recursive = false, force = false, interactive = false, use_trash = false;
             
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
-                recursive = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0) {
-                force = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-i") == 0 || fossil_io_cstring_compare(argv[j], "--interactive") == 0) {
-                interactive = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--trash") == 0) {
-                use_trash = true;
-            } else if (!path) {
-                path = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
+                    recursive = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0) {
+                    force = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-i") == 0 || fossil_io_cstring_compare(argv[j], "--interactive") == 0) {
+                    interactive = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--trash") == 0) {
+                    use_trash = true;
+                } else if (!path) {
+                    path = argv[j];
+                }
+                i = j;
             }
             if (path) fossil_shark_remove(path, recursive, force, interactive, use_trash);
             
@@ -692,16 +399,16 @@ bool app_entry(int argc, char** argv) {
             bool force = false, interactive = false;
             
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0) {
-                force = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-i") == 0 || fossil_io_cstring_compare(argv[j], "--interactive") == 0) {
-                interactive = true;
-            } else if (!old_name) {
-                old_name = argv[j];
-            } else if (!new_name) {
-                new_name = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0) {
+                    force = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-i") == 0 || fossil_io_cstring_compare(argv[j], "--interactive") == 0) {
+                    interactive = true;
+                } else if (!old_name) {
+                    old_name = argv[j];
+                } else if (!new_name) {
+                    new_name = argv[j];
+                }
+                i = j;
             }
             if (old_name && new_name) fossil_shark_rename(old_name, new_name, force, interactive);
             
@@ -711,14 +418,14 @@ bool app_entry(int argc, char** argv) {
             bool create_parents = false;
             
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--parents") == 0) {
-                create_parents = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--type") == 0) {
-                if (j + 1 < argc) type = argv[++j];
-            } else if (!path) {
-                path = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--parents") == 0) {
+                    create_parents = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--type") == 0) {
+                    if (j + 1 < argc) type = argv[++j];
+                } else if (!path) {
+                    path = argv[j];
+                }
+                i = j;
             }
             if (path) fossil_shark_create(path, create_parents, type);
             
@@ -728,18 +435,18 @@ bool app_entry(int argc, char** argv) {
             bool recursive = false, ignore_case = false;
             
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
-                recursive = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-i") == 0 || fossil_io_cstring_compare(argv[j], "--ignore-case") == 0) {
-                ignore_case = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-n") == 0 || fossil_io_cstring_compare(argv[j], "--name") == 0) {
-                if (j + 1 < argc) name_pattern = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--content") == 0) {
-                if (j + 1 < argc) content_pattern = argv[++j];
-            } else if (argv[j][0] != '-') {
-                path = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
+                    recursive = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-i") == 0 || fossil_io_cstring_compare(argv[j], "--ignore-case") == 0) {
+                    ignore_case = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-n") == 0 || fossil_io_cstring_compare(argv[j], "--name") == 0) {
+                    if (j + 1 < argc) name_pattern = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--content") == 0) {
+                    if (j + 1 < argc) content_pattern = argv[++j];
+                } else if (argv[j][0] != '-') {
+                    path = argv[j];
+                }
+                i = j;
             }
             fossil_shark_search(path, recursive, name_pattern, content_pattern, ignore_case);
             
@@ -749,20 +456,20 @@ bool app_entry(int argc, char** argv) {
             bool create = false, extract = false, list = false;
             
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--create") == 0) {
-                create = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-x") == 0 || fossil_io_cstring_compare(argv[j], "--extract") == 0) {
-                extract = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-l") == 0 || fossil_io_cstring_compare(argv[j], "--list") == 0) {
-                list = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 && j + 1 < argc) {
-                format = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--password") == 0) {
-                if (j + 1 < argc) password = argv[++j];
-            } else if (!path) {
-                path = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--create") == 0) {
+                    create = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-x") == 0 || fossil_io_cstring_compare(argv[j], "--extract") == 0) {
+                    extract = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-l") == 0 || fossil_io_cstring_compare(argv[j], "--list") == 0) {
+                    list = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 && j + 1 < argc) {
+                    format = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--password") == 0) {
+                    if (j + 1 < argc) password = argv[++j];
+                } else if (!path) {
+                    path = argv[j];
+                }
+                i = j;
             }
             if (path) fossil_shark_archive(path, create, extract, list, format, password);
             
@@ -773,22 +480,22 @@ bool app_entry(int argc, char** argv) {
             int head_lines = 0, tail_lines = 0;
             
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-n") == 0 || fossil_io_cstring_compare(argv[j], "--number") == 0) {
-                number_lines = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-b") == 0 || fossil_io_cstring_compare(argv[j], "--non-blank") == 0) {
-                number_non_blank = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--squeeze") == 0) {
-                squeeze_blank = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
-                show_time = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-h") == 0 || fossil_io_cstring_compare(argv[j], "--head") == 0) {
-                if (j + 1 < argc) head_lines = atoi(argv[++j]);
-            } else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--tail") == 0) {
-                if (j + 1 < argc) tail_lines = atoi(argv[++j]);
-            } else if (!path) {
-                path = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-n") == 0 || fossil_io_cstring_compare(argv[j], "--number") == 0) {
+                    number_lines = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-b") == 0 || fossil_io_cstring_compare(argv[j], "--non-blank") == 0) {
+                    number_non_blank = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--squeeze") == 0) {
+                    squeeze_blank = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
+                    show_time = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-h") == 0 || fossil_io_cstring_compare(argv[j], "--head") == 0) {
+                    if (j + 1 < argc) head_lines = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--tail") == 0) {
+                    if (j + 1 < argc) tail_lines = atoi(argv[++j]);
+                } else if (!path) {
+                    path = argv[j];
+                }
+                i = j;
             }
             if (path) fossil_shark_view(path, number_lines, number_non_blank, squeeze_blank, head_lines, tail_lines, show_time);
             
@@ -799,20 +506,20 @@ bool app_entry(int argc, char** argv) {
             int context_lines = 3;
             
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--text") == 0) {
-                text_diff = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-b") == 0 || fossil_io_cstring_compare(argv[j], "--binary") == 0) {
-                binary_diff = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--ignore-case") == 0) {
-                ignore_case = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--context") == 0 && j + 1 < argc) {
-                context_lines = atoi(argv[++j]);
-            } else if (!path1) {
-                path1 = argv[j];
-            } else if (!path2) {
-                path2 = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--text") == 0) {
+                    text_diff = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-b") == 0 || fossil_io_cstring_compare(argv[j], "--binary") == 0) {
+                    binary_diff = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--ignore-case") == 0) {
+                    ignore_case = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--context") == 0 && j + 1 < argc) {
+                    context_lines = atoi(argv[++j]);
+                } else if (!path1) {
+                    path1 = argv[j];
+                } else if (!path2) {
+                    path2 = argv[j];
+                }
+                i = j;
             }
             if (path1 && path2) fossil_shark_compare(path1, path2, text_diff, binary_diff, context_lines, ignore_case);
             
@@ -822,14 +529,14 @@ bool app_entry(int argc, char** argv) {
             bool show_examples = false, full_manual = false;
             
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "--examples") == 0) {
-                show_examples = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--man") == 0) {
-                full_manual = true;
-            } else if (!command && argv[j][0] != '-') {
-                command = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "--examples") == 0) {
+                    show_examples = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--man") == 0) {
+                    full_manual = true;
+                } else if (!command && argv[j][0] != '-') {
+                    command = argv[j];
+                }
+                i = j;
             }
             fossil_shark_help(command, show_examples, full_manual);
         }
@@ -839,14 +546,14 @@ bool app_entry(int argc, char** argv) {
             const char *model_id = NULL, *file_path = NULL;
             bool explain = false;
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
-                if (j + 1 < argc) model_id = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
-                if (j + 1 < argc) file_path = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "--explain") == 0) {
-                explain = true;
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
+                    if (j + 1 < argc) model_id = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
+                    if (j + 1 < argc) file_path = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--explain") == 0) {
+                    explain = true;
+                }
+                i = j;
             }
             fossil_shark_ask(model_id, file_path, explain);
 
@@ -855,14 +562,14 @@ bool app_entry(int argc, char** argv) {
             const char *model_id = NULL, *save_file = NULL;
             bool keep_context = false;
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
-                if (j + 1 < argc) model_id = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "--context") == 0) {
-                keep_context = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--save") == 0 && j + 1 < argc) {
-                save_file = argv[++j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
+                    if (j + 1 < argc) model_id = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--context") == 0) {
+                    keep_context = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--save") == 0 && j + 1 < argc) {
+                    save_file = argv[++j];
+                }
+                i = j;
             }
             fossil_shark_chat(model_id, keep_context, save_file);
 
@@ -872,14 +579,14 @@ bool app_entry(int argc, char** argv) {
             int depth = 0;
             bool show_time = false;
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
-                if (j + 1 < argc) file_path = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "--depth") == 0 && j + 1 < argc) {
-                depth = atoi(argv[++j]);
-            } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
-                show_time = true;
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
+                    if (j + 1 < argc) file_path = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--depth") == 0 && j + 1 < argc) {
+                    depth = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
+                    show_time = true;
+                }
+                i = j;
             }
             fossil_shark_summary(file_path, depth, show_time);
             
@@ -888,18 +595,18 @@ bool app_entry(int argc, char** argv) {
             const char *src = NULL, *dest = NULL;
             bool recursive = false, update = false, delete_flag = false;
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
-                recursive = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-u") == 0 || fossil_io_cstring_compare(argv[j], "--update") == 0) {
-                update = true;
-            } else if (fossil_io_cstring_compare(argv[j], "--delete") == 0) {
-                delete_flag = true;
-            } else if (!src) {
-                src = argv[j];
-            } else if (!dest) {
-                dest = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
+                    recursive = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-u") == 0 || fossil_io_cstring_compare(argv[j], "--update") == 0) {
+                    update = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--delete") == 0) {
+                    delete_flag = true;
+                } else if (!src) {
+                    src = argv[j];
+                } else if (!dest) {
+                    dest = argv[j];
+                }
+                i = j;
             }
             if (src && dest) fossil_shark_sync(src, dest, recursive, update, delete_flag);
 
@@ -909,16 +616,16 @@ bool app_entry(int argc, char** argv) {
             bool recursive = false;
             int interval = 1;
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
-                recursive = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-e") == 0 || fossil_io_cstring_compare(argv[j], "--events") == 0) {
-                if (j + 1 < argc) events = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--interval") == 0) {
-                if (j + 1 < argc) interval = atoi(argv[++j]);
-            } else if (!path) {
-                path = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
+                    recursive = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-e") == 0 || fossil_io_cstring_compare(argv[j], "--events") == 0) {
+                    if (j + 1 < argc) events = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--interval") == 0) {
+                    if (j + 1 < argc) interval = atoi(argv[++j]);
+                } else if (!path) {
+                    path = argv[j];
+                }
+                i = j;
             }
             if (path) fossil_shark_watch(path, recursive, events, interval);
 
