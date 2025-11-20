@@ -3,6 +3,7 @@ dir = include_directories('.')
 app_lib = static_library('app-code',
     files(
         'app.c',
+        'magic.c',
         'show.c',
         'move.c',
         'copy.c',
