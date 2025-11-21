@@ -179,7 +179,11 @@ static long fossil_it_magic_directory_size(ccstring path) {
         if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
             continue;
 
-        snprintf(full, sizeof(full), "%s/%s", path, ent->d_name);
+        int needed = snprintf(full, sizeof(full), "%s/%s", path, ent->d_name);
+        if (needed < 0 || needed >= (int)sizeof(full)) {
+            // Truncated, skip this entry
+            continue;
+        }
         if (stat(full, &st) == 0) {
             if (S_ISDIR(st.st_mode)) {
                 total += fossil_it_magic_directory_size(full);
@@ -417,7 +421,11 @@ void fossil_it_magic_path_suggest(
 
         if (score < 0.18f) continue;
 
-        snprintf(candidates[idx].name, sizeof(candidates[idx].name), "%s/%s", base_dir, ent->d_name);
+        int needed = snprintf(candidates[idx].name, sizeof(candidates[idx].name), "%s/%s", base_dir, ent->d_name);
+        if (needed < 0 || needed >= (int)sizeof(candidates[idx].name)) {
+            // Truncated, skip this candidate
+            continue;
+        }
         struct stat st;
         candidates[idx].exists = (stat(candidates[idx].name, &st) == 0);
         candidates[idx].score = score;
