@@ -25,7 +25,7 @@
 #ifndef FOSSIL_APP_MAGIC_H
 #define FOSSIL_APP_MAGIC_H
 
-#include "commands.h"
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C" {
