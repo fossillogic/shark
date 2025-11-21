@@ -29,180 +29,164 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <limits.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <stdint.h>
+#include <math.h>
+
+
+/* Remove enum redefining PATH_MAX, rely on limits.h definition */
+
+#define DP(i, j) dp[(i) * (len2 + 1) + (j)]
 
 /* ==========================================================================
  * Static Helpers (internal)
  * ========================================================================== */
 
-static int fossil_it_magic_is_code_file(const char *path) {
-    const char *ext = strrchr(path, '.');
-    if (!ext) return 0;
+static int fossil_it_magic_is_code_file(ccstring path) {
+    ccstring ext = strrchr(path, '.');
+    if (!cnotnull(ext)) return 0;
 
-    const char *code_exts[] = {
-        // C/C++
+    static ccstring code_exts[] = {
         ".c", ".h", ".cpp", ".hpp", ".cc", ".cxx", ".hxx", ".hh",
-        // Python
         ".py", ".pyw", ".ipynb", ".pyc", ".pyo", ".pyd",
-        // Java
         ".java", ".class", ".jar", ".jad", ".jmod",
-        // C#
         ".cs", ".vb", ".fs",
-        // Go
         ".go", ".mod", ".sum",
-        // Rust
         ".rs", ".rlib", ".toml",
-        // JavaScript/TypeScript
         ".js", ".jsx", ".mjs", ".cjs",
         ".ts", ".tsx",
-        // PHP
         ".php", ".phtml", ".php3", ".php4", ".php5", ".phps",
-        // Ruby
         ".rb", ".erb", ".rake", ".gemspec",
-        // Perl
         ".pl", ".pm", ".pod", ".t",
-        // Swift
         ".swift",
-        // Kotlin
         ".kt", ".kts",
-        // Scala
         ".scala", ".sc",
-        // Shell
         ".sh", ".bash", ".zsh", ".csh", ".tcsh", ".ksh",
-        // Batch/PowerShell
         ".bat", ".cmd", ".ps1", ".psm1",
-        // Lua
         ".lua",
-        // SQL
         ".sql", ".sqlite", ".db",
-        // Web
         ".html", ".htm", ".xhtml",
         ".css", ".scss", ".less",
         ".xml", ".xsd", ".xslt",
         ".json", ".yaml", ".yml",
-        // Dart
         ".dart",
-        // Groovy
         ".groovy", ".gradle",
-        // R
         ".r", ".R", ".Rmd",
-        // Objective-C
         ".m", ".mm",
-        // Assembly
         ".asm", ".s", ".S",
-        // Verilog/VHDL
         ".v", ".vh", ".sv", ".vhd", ".vhdl",
-        // CoffeeScript
         ".coffee",
-        // Clojure/EDN
         ".clj", ".cljs", ".cljc", ".edn",
-        // Haskell
         ".hs", ".lhs", ".ghc",
-        // OCaml
         ".ml", ".mli", ".ocaml",
-        // Ada
         ".ada", ".adb", ".ads",
-        // Fortran
         ".for", ".f90", ".f95", ".f03", ".f08", ".f", ".f77",
-        // Prolog/Tcl
         ".pro", ".pl", ".tcl",
-        // TeX
         ".tex", ".sty", ".cls",
-        // Nim
         ".nim",
-        // Crystal
         ".cr",
-        // Elixir
         ".ex", ".exs",
-        // Elm
         ".elm",
-        // Erlang
         ".erl", ".hrl",
-        // Lisp/Scheme
         ".lisp", ".el", ".scm", ".cl", ".lsp",
-        // Pascal
         ".pas", ".pp", ".p",
-        // D
         ".d",
-        // Vala
         ".vala",
-        // VBScript
         ".vbs",
-        // AWK
         ".awk",
-        // PostScript
         ".ps",
-        // Raku/Perl 6
         ".raku", ".pl6", ".pm6",
-        // Solidity
         ".sol",
-        // CMake
         ".cmake",
-        // Meson build files
         ".build", ".options",
-        // Dockerfile
         ".dockerfile",
-        // Config/INI
         ".ini", ".conf", ".cfg",
-        // TOML
         ".toml",
-        // TypeScript JSX (duplicate, but kept for completeness)
         ".tsx",
-        // Visual Studio
         ".sln", ".vcxproj", ".csproj",
-        // Xcode
         ".xcodeproj", ".xcworkspace",
-        // Bazel
         ".bazel", ".bzl", "BUILD", "WORKSPACE",
-        // Ninja
         ".ninja",
-        // Others
         ".gitignore", ".gitattributes", ".editorconfig", ".env"
     };
+    static const int code_exts_count = sizeof(code_exts) / sizeof(code_exts[0]);
 
-    for (int i = 0; i < 11; i++)
-        if (strcmp(ext, code_exts[i]) == 0)
+    for (int i = 0; i < code_exts_count; i++) {
+        if (fossil_io_cstring_case_compare(ext, code_exts[i]) == 0)
             return 1;
-    return 0;
-}
+    }
 
-static int fossil_it_magic_contains_git(const char *path) {
-    char buf[600];
-    snprintf(buf, sizeof(buf), "%s/.git", path);
-    struct stat st;
-    return (stat(buf, &st) == 0);
-}
-
-static int fossil_it_magic_contains_secret(const char *path) {
-    char buf[600];
-    const char *secret_files[] = {
-        ".env", "secret.key", "id_rsa", "private.pem"
+    static ccstring special_names[] = {
+        "Makefile", "CMakeLists.txt", "Dockerfile", "BUILD", "WORKSPACE", "SConstruct", "Rakefile", "Gemfile"
     };
-
-    for (int i = 0; i < 4; i++) {
-        snprintf(buf, sizeof(buf), "%s/%s", path, secret_files[i]);
-        struct stat st;
-        if (stat(buf, &st) == 0)
+    ccstring base = strrchr(path, '/');
+    base = cnotnull(base) ? base + 1 : path;
+    for (int i = 0; i < (int)(sizeof(special_names)/sizeof(special_names[0])); i++) {
+        if (fossil_io_cstring_compare(base, special_names[i]) == 0)
             return 1;
     }
     return 0;
 }
 
-static long fossil_it_magic_directory_size(const char *path) {
+static int fossil_it_magic_contains_git(ccstring path) {
+    char buf[PATH_MAX];
+    snprintf(buf, sizeof(buf), "%s/.git", path);
+    struct stat st;
+    if (stat(buf, &st) == 0 && S_ISDIR(st.st_mode))
+        return 1;
+    snprintf(buf, sizeof(buf), "%s/.gitignore", path);
+    if (stat(buf, &st) == 0)
+        return 1;
+    return 0;
+}
+
+static int fossil_it_magic_contains_secret(ccstring path) {
+    char buf[PATH_MAX];
+    static ccstring secret_files[] = {
+        ".env", "secret.key", "id_rsa", "private.pem", "credentials.json", "config.yml", "secrets.yml"
+    };
+    static const int secret_count = sizeof(secret_files) / sizeof(secret_files[0]);
+    for (int i = 0; i < secret_count; i++) {
+        snprintf(buf, sizeof(buf), "%s/%s", path, secret_files[i]);
+        struct stat st;
+        if (stat(buf, &st) == 0)
+            return 1;
+    }
+    DIR *d = opendir(path);
+    if (!cnotnull(d)) return 0;
+    struct dirent *ent;
+    while ((ent = readdir(d)) != cnull) {
+        if (fossil_io_cstring_icontains(ent->d_name, "password") || fossil_io_cstring_icontains(ent->d_name, "secret")) {
+            closedir(d);
+            return 1;
+        }
+    }
+    closedir(d);
+    return 0;
+}
+
+static long fossil_it_magic_directory_size(ccstring path) {
     long total = 0;
     DIR *d = opendir(path);
-    if (!d) return 0;
+    if (!cnotnull(d)) return 0;
 
     struct dirent *ent;
     struct stat st;
-    char full[600];
+    char full[PATH_MAX];
 
-    while ((ent = readdir(d)) != NULL) {
+    while ((ent = readdir(d)) != cnull) {
         if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
             continue;
 
         snprintf(full, sizeof(full), "%s/%s", path, ent->d_name);
-        if (stat(full, &st) == 0)
-            total += st.st_size;
+        if (stat(full, &st) == 0) {
+            if (S_ISDIR(st.st_mode)) {
+                total += fossil_it_magic_directory_size(full);
+            } else {
+                total += st.st_size;
+            }
+        }
     }
     closedir(d);
     return total;
@@ -212,46 +196,77 @@ static long fossil_it_magic_directory_size(const char *path) {
  * Similarity Utilities
  * ========================================================================== */
 
-int fossil_it_magic_jaccard_index(const char *s1, const char *s2) {
-    if (!s1 || !s2) return 0;
+// Advanced Jaccard index: token-based, case-insensitive, ignores punctuation
+int fossil_it_magic_jaccard_index(ccstring s1, ccstring s2) {
+    if (!cnotnull(s1) || !cnotnull(s2)) return 0;
 
-    int match = 0, total = 0;
-    int used[256] = {0};
-    size_t len1 = strlen(s1), len2 = strlen(s2);
+    char tokens1[32][32], tokens2[32][32];
+    int count1 = 0, count2 = 0;
 
-    for (size_t i = 0; i < len1; ++i)
-        used[(unsigned char)s1[i]] = 1;
-    for (size_t i = 0; i < len2; ++i) {
-        if (used[(unsigned char)s2[i]]) match++;
-        used[(unsigned char)s2[i]] = 2;
+    ccstring p = s1;
+    while (*p && count1 < 32) {
+        while (*p && !isalnum((unsigned char)*p)) p++;
+        int i = 0;
+        while (*p && isalnum((unsigned char)*p) && i < 31)
+            tokens1[count1][i++] = tolower((unsigned char)*p++);
+        if (i) {
+            tokens1[count1][i] = 0;
+            count1++;
+        }
+    }
+    p = s2;
+    while (*p && count2 < 32) {
+        while (*p && !isalnum((unsigned char)*p)) p++;
+        int i = 0;
+        while (*p && isalnum((unsigned char)*p) && i < 31)
+            tokens2[count2][i++] = tolower((unsigned char)*p++);
+        if (i) {
+            tokens2[count2][i] = 0;
+            count2++;
+        }
     }
 
-    for (int i = 0; i < 256; ++i)
-        if (used[i]) total++;
-
+    int match = 0;
+    int used[32] = {0};
+    for (int i = 0; i < count1; i++) {
+        for (int j = 0; j < count2; j++) {
+            if (!used[j] && fossil_io_cstring_compare(tokens1[i], tokens2[j]) == 0) {
+                match++;
+                used[j] = 1;
+                break;
+            }
+        }
+    }
+    int total = count1 + count2 - match;
     return total ? (100 * match / total) : 0;
 }
 
-int fossil_it_magic_levenshtein_distance(const char *s1, const char *s2) {
-    if (!s1 || !s2) return INT_MAX;
+// Advanced Levenshtein: case-insensitive, transpositions (Damerau-Levenshtein)
+int fossil_it_magic_levenshtein_distance(ccstring s1, ccstring s2) {
+    if (!cnotnull(s1) || !cnotnull(s2)) return INT_MAX;
     int len1 = (int)strlen(s1), len2 = (int)strlen(s2);
 
-    int *dp = (int *)calloc((size_t)(len1 + 1) * (size_t)(len2 + 1), sizeof(int));
-    if (!dp) return INT_MAX;
+    int *dp = (int *)calloc((size_t)(len1 + 2) * (size_t)(len2 + 2), sizeof(int));
+    if (!cnotnull(dp)) return INT_MAX;
 
-    #define DP(i,j) dp[(i)*(len2+1)+(j)]
-
-    for (int i = 0; i <= len1; i++) DP(i, 0) = i;
-    for (int j = 0; j <= len2; j++) DP(0, j) = j;
+    /* Use only one DP macro, do not redefine */
+    for (int j = 0; j <= len2; j++) dp[(0)*(len2+2)+(j)] = j;
 
     for (int i = 1; i <= len1; i++) {
         for (int j = 1; j <= len2; j++) {
-            int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
+            int cost = (tolower((unsigned char)s1[i - 1]) == tolower((unsigned char)s2[j - 1])) ? 0 : 1;
             int del = DP(i - 1, j) + 1;
             int ins = DP(i, j - 1) + 1;
             int sub = DP(i - 1, j - 1) + cost;
             int min = del < ins ? del : ins;
-            DP(i, j) = (min < sub) ? min : sub;
+            min = (min < sub) ? min : sub;
+            DP(i, j) = min;
+
+            if (i > 1 && j > 1 &&
+                tolower((unsigned char)s1[i - 1]) == tolower((unsigned char)s2[j - 2]) &&
+                tolower((unsigned char)s1[i - 2]) == tolower((unsigned char)s2[j - 1])) {
+                DP(i, j) = DP(i, j) < (DP(i - 2, j - 2) + cost) ? DP(i, j) : (DP(i - 2, j - 2) + cost);
+            }
         }
     }
 
@@ -261,84 +276,108 @@ int fossil_it_magic_levenshtein_distance(const char *s1, const char *s2) {
     return result;
 }
 
-float fossil_it_magic_similarity(const char *a, const char *b) {
-    if (!a || !b) return 0.0f;
+float fossil_it_magic_similarity(ccstring a, ccstring b) {
+    if (!cnotnull(a) || !cnotnull(b)) return 0.0f;
     int len_a = (int)strlen(a), len_b = (int)strlen(b);
     if (len_a == 0 && len_b == 0) return 1.0f;
 
     int dist = fossil_it_magic_levenshtein_distance(a, b);
     int max_len = len_a > len_b ? len_a : len_b;
-    return 1.0f - ((float)dist / (float)max_len);
+    float sim = 1.0f - ((float)dist / (float)max_len);
+
+    int jaccard = fossil_it_magic_jaccard_index(a, b);
+    sim += jaccard / 200.0f;
+
+    if (fossil_io_cstring_case_starts_with(a, b))
+        sim += 0.10f;
+    if (len_a <= len_b &&
+        fossil_io_cstring_case_ends_with(b, a))
+        sim += 0.07f;
+
+    if (sim > 1.0f) sim = 1.0f;
+    if (sim < 0.0f) sim = 0.0f;
+    return sim;
 }
 
 /* ==========================================================================
  * Command Suggestion
  * ========================================================================== */
 
-const char *fossil_it_magic_suggest_command(
-    const char *input,
-    const char **commands,
+ccstring fossil_it_magic_suggest_command(
+    ccstring input,
+    ccstring *commands,
     int num_commands,
     fossil_ti_reason_t *out_reason
 ) {
-    if (!input || !commands || num_commands <= 0) return NULL;
+    if (!cnotnull(input) || !cnotnull(commands) || num_commands <= 0) return cnull;
 
-    const char *best_match = NULL;
-    int min_distance = INT_MAX;
-    int best_length = 1;
+    ccstring best_match = cnull;
+    float best_score = 0.0f;
+    int best_distance = INT_MAX;
     int best_jaccard = 0;
     int best_prefix = 0;
     int best_suffix = 0;
     int best_case_insensitive = 0;
+    // Removed unused variable: int best_length = 1;
 
-    for (int i = 0; i < num_commands; ++i) {
-        if (!commands[i]) continue;
+    for (int i = 0; i < num_commands; i++) {
+        if (!cnotnull(commands[i])) continue;
 
         int distance = fossil_it_magic_levenshtein_distance(input, commands[i]);
         int jaccard = fossil_it_magic_jaccard_index(input, commands[i]);
-        int prefix = (strncmp(input, commands[i], strlen(input)) == 0) ? 1 : 0;
+        int prefix = fossil_io_cstring_starts_with(input, commands[i]);
         int suffix = (strlen(input) <= strlen(commands[i]) &&
-                     strcmp(input, commands[i] + strlen(commands[i]) - strlen(input)) == 0) ? 1 : 0;
+                     fossil_io_cstring_case_ends_with(commands[i], input)) ? 1 : 0;
         int case_insensitive = fossil_io_cstring_iequals(input, commands[i]);
+        int exact = fossil_io_cstring_equals(input, commands[i]);
 
-        if (prefix || (distance < min_distance) || (distance == min_distance && jaccard > best_jaccard)) {
+        // int len = (int)strlen(commands[i]); // Removed unused variable
+        float sim = fossil_it_magic_similarity(input, commands[i]);
+        float score = sim;
+
+        if (prefix) score += 0.15f;
+        if (suffix) score += 0.10f;
+        if (case_insensitive) score += 0.05f;
+        if (exact) score += 0.20f;
+        score += jaccard / 200.0f;
+        if (score > 1.0f) score = 1.0f;
+        if (score < 0.0f) score = 0.0f;
+
+        if (exact ||
+            score > best_score ||
+            (score == best_score && distance < best_distance) ||
+            (score == best_score && distance == best_distance && prefix > best_prefix)) {
             best_match = commands[i];
-            min_distance = distance;
-            best_length = (int)strlen(commands[i]);
+            best_score = score;
+            best_distance = distance;
             best_jaccard = jaccard;
             best_prefix = prefix;
             best_suffix = suffix;
             best_case_insensitive = case_insensitive;
+            // Removed assignment to best_length
         }
     }
 
-    if (!best_match) return NULL;
+    if (!cnotnull(best_match)) return cnull;
 
-    float confidence = 1.0f - ((float)min_distance / best_length);
-    confidence += best_jaccard / 200.0f;
-    if (best_prefix) confidence += 0.15f;
-    if (best_suffix) confidence += 0.10f;
-    if (best_case_insensitive) confidence += 0.05f;
-    if (confidence > 1.0f) confidence = 1.0f;
-    if (confidence < 0.0f) confidence = 0.0f;
-
-    if (out_reason) {
+    if (cnotnull(out_reason)) {
         out_reason->input = input;
         out_reason->suggested = best_match;
-        out_reason->edit_distance = min_distance;
-        out_reason->confidence_score = confidence;
+        out_reason->edit_distance = best_distance;
+        out_reason->confidence_score = best_score;
         out_reason->jaccard_index = best_jaccard;
         out_reason->prefix_match = best_prefix;
         out_reason->suffix_match = best_suffix;
         out_reason->case_insensitive = best_case_insensitive;
-        out_reason->reason = (confidence >= 0.85f) ? "Strong semantic and token match" :
-                             (confidence >= 0.7f) ? "Close semantic match" :
+        out_reason->reason = (best_score >= 0.95f) ? "Exact or strong semantic match" :
+                             (best_score >= 0.85f) ? "Strong semantic and token match" :
+                             (best_score >= 0.7f) ? "Close semantic match" :
                              best_prefix ? "Prefix match" :
                              best_case_insensitive ? "Case-insensitive match" :
                              "Low confidence match";
     }
 
-    return (confidence >= 0.7f) ? best_match : NULL;
+    return (best_score >= 0.7f) ? best_match : cnull;
 }
 
 /* ==========================================================================
@@ -346,59 +385,132 @@ const char *fossil_it_magic_suggest_command(
  * ========================================================================== */
 
 void fossil_it_magic_path_suggest(
-    const char *bad_path,
-    const char *base_dir,
+    ccstring bad_path,
+    ccstring base_dir,
     fossil_ti_path_suggestion_set_t *out
 ) {
     out->count = 0;
     DIR *d = opendir(base_dir);
-    if (!d) return;
+    if (!cnotnull(d)) return;
 
     struct dirent *ent;
-    while ((ent = readdir(d)) && out->count < 16) {
-        float score = fossil_it_magic_similarity(bad_path, ent->d_name);
-        if (score < 0.25f) continue;
+    struct {
+        char name[PATH_MAX];
+        float score;
+        int exists;
+    } candidates[32];
 
-        snprintf(out->list[out->count].candidate_path,
-                 sizeof(out->list[out->count].candidate_path),
-                 "%s/%s", base_dir, ent->d_name);
-        out->list[out->count].similarity_score = score;
+    float best_score = 0.0f;
+    // Removed unused variable: int best_idx = -1;
+    int idx = 0;
+
+    while ((ent = readdir(d)) && idx < 32) {
+        if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
+            continue;
+        float score = fossil_it_magic_similarity(bad_path, ent->d_name);
+
+        if (fossil_io_cstring_case_starts_with(bad_path, ent->d_name))
+            score += 0.10f;
+        if (strlen(bad_path) <= strlen(ent->d_name) &&
+            fossil_io_cstring_case_ends_with(ent->d_name, bad_path))
+            score += 0.07f;
+
+        if (score < 0.18f) continue;
+
+        snprintf(candidates[idx].name, sizeof(candidates[idx].name), "%s/%s", base_dir, ent->d_name);
         struct stat st;
-        out->list[out->count].exists = (stat(out->list[out->count].candidate_path, &st) == 0);
-        out->count++;
+        candidates[idx].exists = (stat(candidates[idx].name, &st) == 0);
+        candidates[idx].score = score;
+        if (score > best_score) {
+            best_score = score;
+            // Removed assignment to best_idx
+        }
+        idx++;
     }
     closedir(d);
+
+    for (int i = 0; i < idx - 1; i++) {
+        for (int j = i + 1; j < idx; j++) {
+            if (candidates[j].score > candidates[i].score) {
+                /* Portable swap instead of typeof */
+                struct { char name[PATH_MAX]; float score; int exists; } tmp;
+                memcpy(&tmp, &candidates[i], sizeof(tmp));
+                memcpy(&candidates[i], &candidates[j], sizeof(tmp));
+                memcpy(&candidates[j], &tmp, sizeof(tmp));
+            }
+        }
+    }
+    for (int i = 0; i < idx; i++) {
+        strncpy(out->list[out->count].candidate_path, candidates[i].name, sizeof(out->list[out->count].candidate_path)-1);
+        out->list[out->count].candidate_path[sizeof(out->list[out->count].candidate_path)-1] = cterm;
+        out->list[out->count].similarity_score = candidates[i].score;
+        out->list[out->count].exists = candidates[i].exists;
+        out->count++;
+    }
 }
 
 void fossil_it_magic_autorecovery_token(
-    const char *token,
-    const char *candidates[],
+    ccstring token,
+    ccstring candidates[],
     int candidate_count,
     fossil_ti_autorecovery_t *out
 ) {
     float best_score = 0.0f;
-    const char *best = NULL;
+    int best_idx = -1;
+    float second_best_score = 0.0f;
+    int second_best_idx = -1;
 
     for (int i = 0; i < candidate_count; i++) {
         float score = fossil_it_magic_similarity(token, candidates[i]);
+        if (fossil_io_cstring_case_starts_with(token, candidates[i]))
+            score += 0.10f;
+        if (strlen(token) <= strlen(candidates[i]) &&
+            fossil_io_cstring_case_ends_with(candidates[i], token))
+            score += 0.07f;
+
         if (score > best_score) {
+            second_best_score = best_score;
+            second_best_idx = best_idx;
             best_score = score;
-            best = candidates[i];
+            best_idx = i;
+        } else if (score > second_best_score) {
+            second_best_score = score;
+            second_best_idx = i;
         }
     }
 
     strncpy(out->original_token, token, sizeof(out->original_token)-1);
-    out->original_token[sizeof(out->original_token)-1] = 0;
+    out->original_token[sizeof(out->original_token)-1] = cterm;
 
-    if (best) {
-        strncpy(out->recovered_token, best, sizeof(out->recovered_token)-1);
-        out->recovered_token[sizeof(out->recovered_token)-1] = 0;
+    // Fill first_best_token and first_best_confidence
+    if (best_idx >= 0) {
+        strncpy(out->first_best_token, candidates[best_idx], sizeof(out->first_best_token)-1);
+        out->first_best_token[sizeof(out->first_best_token)-1] = cterm;
+        out->first_best_confidence = best_score;
+
+        // Fill recovered_token and confidence for compatibility
+        strncpy(out->recovered_token, candidates[best_idx], sizeof(out->recovered_token)-1);
+        out->recovered_token[sizeof(out->recovered_token)-1] = cterm;
         out->confidence = best_score;
-        out->applied = (best_score > 0.83f);
+        out->applied = (best_score > 0.80f);
+
+        // Fill second_best_token and second_best_confidence
+        if (second_best_idx >= 0) {
+            strncpy(out->second_best_token, candidates[second_best_idx], sizeof(out->second_best_token)-1);
+            out->second_best_token[sizeof(out->second_best_token)-1] = cterm;
+            out->second_best_confidence = second_best_score;
+        } else {
+            out->second_best_token[0] = cterm;
+            out->second_best_confidence = 0.0f;
+        }
     } else {
-        out->recovered_token[0] = 0;
+        out->first_best_token[0] = cterm;
+        out->first_best_confidence = 0.0f;
+        out->recovered_token[0] = cterm;
         out->confidence = 0.0f;
         out->applied = 0;
+        out->second_best_token[0] = cterm;
+        out->second_best_confidence = 0.0f;
     }
 }
 
@@ -407,7 +519,7 @@ void fossil_it_magic_autorecovery_token(
  * ========================================================================== */
 
 void fossil_it_magic_danger_analyze(
-    const char *path,
+    ccstring path,
     fossil_ti_danger_item_t *out
 ) {
     struct stat st;
@@ -427,28 +539,100 @@ void fossil_it_magic_danger_analyze(
     long sz = out->is_directory ? fossil_it_magic_directory_size(path) : st.st_size;
     out->large_size = (sz > 10 * 1024 * 1024);
 
-    out->level = FOSSIL_TI_DANGER_NONE;
-    if (out->contains_code) out->level = FOSSIL_TI_DANGER_HIGH;
-    if (out->contains_secrets) out->level = FOSSIL_TI_DANGER_CRITICAL;
-    if (out->large_size && out->level < FOSSIL_TI_DANGER_MEDIUM) out->level = FOSSIL_TI_DANGER_MEDIUM;
+    out->world_writable = (st.st_mode & S_IWOTH) != 0;
+    out->is_symlink = S_ISLNK(st.st_mode);
+
+    static ccstring danger_exts[] = { ".exe", ".dll", ".bin", ".sh", ".bat", ".cmd", ".scr", ".pif", ".com", ".js", ".vbs" };
+    out->suspicious_extension = 0;
+    if (!out->is_directory) {
+        ccstring ext = strrchr(path, '.');
+        if (cnotnull(ext)) {
+            for (int i = 0; i < (int)(sizeof(danger_exts)/sizeof(danger_exts[0])); i++) {
+                if (fossil_io_cstring_case_compare(ext, danger_exts[i]) == 0) {
+                    out->suspicious_extension = 1;
+                    break;
+                }
+            }
+        }
+    }
+
+    out->recently_modified = 0;
+    time_t now = time(cnull);
+    if (now != (time_t)-1 && (now - st.st_mtime) < 24 * 3600)
+        out->recently_modified = 1;
+
+    out->contains_suspicious_files = 0;
+    if (out->is_directory) {
+        DIR *d = opendir(path);
+        if (cnotnull(d)) {
+            struct dirent *ent;
+            while ((ent = readdir(d)) != cnull) {
+                if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
+                    continue;
+                ccstring ext = strrchr(ent->d_name, '.');
+                if (cnotnull(ext)) {
+                    for (int i = 0; i < (int)(sizeof(danger_exts)/sizeof(danger_exts[0])); i++) {
+                        if (fossil_io_cstring_case_compare(ext, danger_exts[i]) == 0) {
+                            out->contains_suspicious_files = 1;
+                            break;
+                        }
+                    }
+                }
+                if (out->contains_suspicious_files)
+                    break;
+            }
+            closedir(d);
+        }
+    }
+
+    int score = 0;
+    if (out->contains_code) score += 3;
+    if (out->contains_secrets) score += 5;
+    if (out->large_size) score += 2;
+    if (out->world_writable) score += 2;
+    if (out->is_symlink) score += 1;
+    if (out->suspicious_extension) score += 2;
+    if (out->recently_modified) score += 1;
+    if (out->contains_suspicious_files) score += 2;
+
+    if (score >= 8)
+        out->level = FOSSIL_TI_DANGER_CRITICAL;
+    else if (score >= 5)
+        out->level = FOSSIL_TI_DANGER_HIGH;
+    else if (score >= 3)
+        out->level = FOSSIL_TI_DANGER_MEDIUM;
+    else if (score >= 1)
+        out->level = FOSSIL_TI_DANGER_LOW;
+    else
+        out->level = FOSSIL_TI_DANGER_NONE;
 }
 
 void fossil_it_magic_danger_report(
-    const char *paths[],
+    ccstring paths[],
     int path_count,
     fossil_ti_danger_report_t *report
 ) {
     memset(report, 0, sizeof(*report));
     fossil_ti_danger_level_t maxLevel = FOSSIL_TI_DANGER_NONE;
+    int total_score = 0;
 
     for (int i = 0; i < path_count && i < 8; i++) {
         fossil_it_magic_danger_analyze(paths[i], &report->items[i]);
         report->item_count++;
         if (report->items[i].level > maxLevel)
             maxLevel = report->items[i].level;
+        switch (report->items[i].level) {
+            case FOSSIL_TI_DANGER_CRITICAL: total_score += 8; break;
+            case FOSSIL_TI_DANGER_HIGH: total_score += 5; break;
+            case FOSSIL_TI_DANGER_MEDIUM: total_score += 3; break;
+            case FOSSIL_TI_DANGER_LOW: total_score += 1; break;
+            default: break;
+        }
     }
 
     report->overall_level = maxLevel;
-    report->warning_required = (maxLevel >= FOSSIL_TI_DANGER_MEDIUM);
-    report->block_recommended = (maxLevel >= FOSSIL_TI_DANGER_CRITICAL);
+    report->warning_required = (maxLevel >= FOSSIL_TI_DANGER_MEDIUM || total_score >= 10);
+    report->block_recommended = (maxLevel >= FOSSIL_TI_DANGER_CRITICAL || total_score >= 16);
+
+    // If you want to provide a summary, add a summary_reason field to the struct.
 }
