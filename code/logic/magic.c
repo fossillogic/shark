@@ -532,15 +532,33 @@ void fossil_it_magic_danger_analyze(
     }
 
     out->is_directory = S_ISDIR(st.st_mode);
-    out->writable = (st.st_mode & S_IWUSR) != 0;
+    out->writable =
+    #ifdef _WIN32
+        (_access(path, 2) == 0);
+    #else
+        (st.st_mode & S_IWUSR) != 0;
+    #endif
+
     out->contains_code = out->is_directory ? fossil_it_magic_contains_git(path) : fossil_it_magic_is_code_file(path);
     out->contains_secrets = out->is_directory ? fossil_it_magic_contains_secret(path) : 0;
 
-    long sz = out->is_directory ? fossil_it_magic_directory_size(path) : st.st_size;
+    long sz = out->is_directory ? fossil_it_magic_directory_size(path) : (long)st.st_size;
     out->large_size = (sz > 10 * 1024 * 1024);
 
-    out->world_writable = (st.st_mode & S_IWOTH) != 0;
-    out->is_symlink = S_ISLNK(st.st_mode);
+    out->world_writable =
+    #ifdef _WIN32
+        0; // Windows does not have S_IWOTH
+    #else
+        (st.st_mode & S_IWOTH) != 0;
+    #endif
+
+    #if defined(S_ISLNK)
+        out->is_symlink = S_ISLNK(st.st_mode);
+    #elif defined(_WIN32)
+        out->is_symlink = 0; // Symlink detection not portable on Windows
+    #else
+        out->is_symlink = 0;
+    #endif
 
     static ccstring danger_exts[] = { ".exe", ".dll", ".bin", ".sh", ".bat", ".cmd", ".scr", ".pif", ".com", ".js", ".vbs" };
     out->suspicious_extension = 0;
@@ -557,9 +575,13 @@ void fossil_it_magic_danger_analyze(
     }
 
     out->recently_modified = 0;
-    time_t now = time(cnull);
-    if (now != (time_t)-1 && (now - st.st_mtime) < 24 * 3600)
-        out->recently_modified = 1;
+    #ifdef _WIN32
+        out->recently_modified = 0; // st_mtime may not be reliable on Windows
+    #else
+        time_t now = time(cnull);
+        if (now != (time_t)-1 && (now - st.st_mtime) < 24 * 3600)
+            out->recently_modified = 1;
+    #endif
 
     out->contains_suspicious_files = 0;
     if (out->is_directory) {
