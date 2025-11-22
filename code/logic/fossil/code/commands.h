@@ -25,17 +25,7 @@
 #ifndef FOSSIL_APP_COMMANDS_H
 #define FOSSIL_APP_COMMANDS_H
 
-#include <fossil/sys/framework.h>
-#include <fossil/ai/framework.h>
-#include <fossil/io/framework.h>
-
-#ifdef _WIN32
-#include <direct.h>
-#include <io.h>
-#else
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C" {

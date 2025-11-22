@@ -22,34 +22,22 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#ifndef FOSSIL_APP_CODE_H
-#define FOSSIL_APP_CODE_H
+#ifndef FOSSIL_APP_COMMON_H
+#define FOSSIL_APP_COMMON_H
 
-#include "common.h"
-#include "commands.h"
-#include "magic.h"
+#include <fossil/sys/framework.h>
+#include <fossil/ai/framework.h>
+#include <fossil/io/framework.h>
 
-#define FOSSIL_APP_NAME "Shark Tool"
-#define FOSSIL_APP_VERSION "0.1.1"
-
-#ifdef __cplusplus
-extern "C" {
+#ifdef _WIN32
+#include <direct.h>
+#include <io.h>
+#else
+#include <sys/stat.h>
+#include <unistd.h>
 #endif
 
-extern int FOSSIL_IO_VERBOSE; // Verbose output flag
-
-/**
- * @brief Custom application entry point.
- * This function is the main entry point for the custom application.
- * 
- * @param argc The number of command-line arguments.
- * @param argv The array of command-line arguments.
- * @return 0 if the application runs successfully, non-zero otherwise.
- */
-bool app_entry(int argc, char** argv);
-
-#ifdef __cplusplus
-}
-#endif
+#include <errno.h>
+#include <utime.h>
 
 #endif /* FOSSIL_APP_CODE_H */
