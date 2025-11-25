@@ -46,7 +46,7 @@ int fossil_shark_chat(const char *model_id, bool keep_context, const char *save_
     fossil_io_file_t transcript_stream;
     fossil_io_file_t *transcript = NULL;
     if (save_file) {
-        if (fossil_fstream_open(&transcript_stream, save_file, "a") == 0) {
+        if (fossil_io_file_open(&transcript_stream, save_file, "a") == 0) {
             transcript = &transcript_stream;
         } else {
             fossil_io_printf("{red}Failed to open transcript file: %s{normal}\n", save_file);
@@ -81,20 +81,20 @@ int fossil_shark_chat(const char *model_id, bool keep_context, const char *save_
             fossil_ai_jellyfish_learn(&chain, input_buf, output_buf);
         }
 
-        // Optionally save transcript using fossil_fstream_write
-        if (transcript && fossil_fstream_is_open(transcript)) {
+        // Optionally save transcript using fossil_io_file_write
+        if (transcript && fossil_io_file_is_open(transcript)) {
             char transcript_line[1024];
             snprintf(transcript_line, sizeof(transcript_line), "You: %s\nAI: %s\n", input_buf, output_buf);
-            fossil_fstream_write(transcript, transcript_line, 1, strlen(transcript_line));
-            fossil_fstream_flush(transcript);
+            fossil_io_file_write(transcript, transcript_line, 1, strlen(transcript_line));
+            fossil_io_file_flush(transcript);
         }
     }
 
     // Optionally persist chain state
     if (save_file) {
         fossil_ai_jellyfish_save(&chain, save_file);
-        if (transcript && fossil_fstream_is_open(transcript)) {
-            fossil_fstream_close(transcript);
+        if (transcript && fossil_io_file_is_open(transcript)) {
+            fossil_io_file_close(transcript);
         }
     }
 

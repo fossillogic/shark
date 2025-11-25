@@ -83,10 +83,10 @@ FOSSIL_TEST_CASE(c_test_move_simple_file) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify source no longer exists
-    ASSUME_ITS_FALSE(fossil_fstream_file_exists("move_source.txt"));
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("move_source.txt"));
     
     // Verify destination exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("move_dest.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("move_dest.txt"));
     
     // Clean up
     remove("move_dest.txt");
@@ -136,7 +136,7 @@ FOSSIL_TEST_CASE(c_test_move_overwrite_with_force) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify source no longer exists
-    ASSUME_ITS_FALSE(fossil_fstream_file_exists("force_src.txt"));
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("force_src.txt"));
     
     // Clean up
     remove("force_dest.txt");
@@ -159,7 +159,7 @@ FOSSIL_TEST_CASE(c_test_move_with_backup) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify backup exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("backup_dest.txt.bak"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("backup_dest.txt.bak"));
     
     // Clean up
     remove("backup_dest.txt");
@@ -178,10 +178,10 @@ FOSSIL_TEST_CASE(c_test_move_rename_same_directory) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify original name no longer exists
-    ASSUME_ITS_FALSE(fossil_fstream_file_exists("rename_original.txt"));
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("rename_original.txt"));
     
     // Verify new name exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("rename_new.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("rename_new.txt"));
     
     // Clean up
     remove("rename_new.txt");
@@ -198,8 +198,8 @@ FOSSIL_TEST_CASE(c_test_move_empty_file) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify move completed
-    ASSUME_ITS_FALSE(fossil_fstream_file_exists("empty_src.txt"));
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("empty_dest.txt"));
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("empty_src.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("empty_dest.txt"));
     
     // Clean up
     remove("empty_dest.txt");
@@ -219,8 +219,8 @@ FOSSIL_TEST_CASE(c_test_move_large_file) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify move completed
-    ASSUME_ITS_FALSE(fossil_fstream_file_exists("large_src.txt"));
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("large_dest.txt"));
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("large_src.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("large_dest.txt"));
     
     // Clean up
     remove("large_dest.txt");
@@ -238,8 +238,8 @@ FOSSIL_TEST_CASE(c_test_move_special_characters) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify move completed
-    ASSUME_ITS_FALSE(fossil_fstream_file_exists("special_chars_src.txt"));
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("special_chars_dest.txt"));
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("special_chars_src.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("special_chars_dest.txt"));
     
     // Clean up
     remove("special_chars_dest.txt");
@@ -274,7 +274,7 @@ FOSSIL_TEST_CASE(c_test_move_same_source_and_dest) {
     (void)result; // Suppress unused variable warning
     
     // File should still exist
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("same_path.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("same_path.txt"));
     
     // Clean up
     remove("same_path.txt");

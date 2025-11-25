@@ -86,18 +86,18 @@ int fossil_shark_create(ccstring path, bool create_parents,
         if (cunlikely(create_parent_dirs(path) != 0)) return 1;
     }
 
-    if (fossil_fstream_file_exists(path)) {
+    if (fossil_io_file_file_exists(path)) {
         fossil_io_printf("{red}Error: '%s' already exists.{normal}\n", path);
         return 1;
     }
 
     if (fossil_io_cstring_equals(type, "file")) {
         fossil_io_file_t stream;
-        if (cunlikely(fossil_fstream_open(&stream, path, "w") != 0)) {
+        if (cunlikely(fossil_io_file_open(&stream, path, "w") != 0)) {
             fossil_io_printf("{red}Error creating file '%s': %s{normal}\n", path, strerror(errno));
             return errno;
         }
-        fossil_fstream_close(&stream);
+        fossil_io_file_close(&stream);
         fossil_io_printf("{cyan}File '%s' created successfully.{normal}\n", path);
     } else if (fossil_io_cstring_equals(type, "dir")) {
 #ifdef _WIN32

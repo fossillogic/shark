@@ -64,7 +64,7 @@ int fossil_shark_rename(ccstring old_name, ccstring new_name,
         return 1;
     }
 
-    bool dest_exists = fossil_fstream_file_exists(safe_new);
+    bool dest_exists = fossil_io_file_file_exists(safe_new);
 
     if (clikely(dest_exists)) {
         if (interactive && !force) {
@@ -81,7 +81,7 @@ int fossil_shark_rename(ccstring old_name, ccstring new_name,
 
         // Remove destination before renaming if force is specified
         if (force) {
-            if (cunlikely(fossil_fstream_delete(safe_new) != 0)) {
+            if (cunlikely(fossil_io_file_delete(safe_new) != 0)) {
                 fossil_io_printf("{red}Error: Failed to remove existing file/directory{normal}\n");
                 return 1;
             }
@@ -89,7 +89,7 @@ int fossil_shark_rename(ccstring old_name, ccstring new_name,
     }
 
     // Cross-platform rename operation
-    if (cunlikely(fossil_fstream_rename(safe_old, safe_new) != 0)) {
+    if (cunlikely(fossil_io_file_rename(safe_old, safe_new) != 0)) {
         fossil_io_printf("{red}Error: Rename failed - %s{normal}\n", strerror(errno));
         return 1;
     }

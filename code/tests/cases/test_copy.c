@@ -83,10 +83,10 @@ FOSSIL_TEST_CASE(c_test_copy_simple_file) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify source still exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("copy_source.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("copy_source.txt"));
     
     // Verify destination exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("copy_dest.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("copy_dest.txt"));
     
     // Clean up
     remove("copy_source.txt");
@@ -111,8 +111,8 @@ FOSSIL_TEST_CASE(c_test_copy_file_with_preserve) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify both files exist
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("preserve_src.txt"));
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("preserve_dest.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("preserve_src.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("preserve_dest.txt"));
     
     // Clean up
     remove("preserve_src.txt");
@@ -229,8 +229,8 @@ FOSSIL_TEST_CASE(c_test_copy_directory_recursive) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify destination structure
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("copy_recursive_dest/file1.txt"));
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("copy_recursive_dest/subdir/file2.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("copy_recursive_dest/file1.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("copy_recursive_dest/subdir/file2.txt"));
     
     // Clean up
     remove("copy_recursive_src/file1.txt");
@@ -261,8 +261,8 @@ FOSSIL_TEST_CASE(c_test_copy_empty_file) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify both files exist
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("empty_copy_src.txt"));
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("empty_copy_dest.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("empty_copy_src.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("empty_copy_dest.txt"));
     
     // Clean up
     remove("empty_copy_src.txt");
@@ -283,8 +283,8 @@ FOSSIL_TEST_CASE(c_test_copy_large_file) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify both files exist
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("large_copy_src.txt"));
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("large_copy_dest.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("large_copy_src.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("large_copy_dest.txt"));
     
     // Clean up
     remove("large_copy_src.txt");
@@ -332,7 +332,7 @@ FOSSIL_TEST_CASE(c_test_copy_all_flags) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify destination exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("all_flags_dest/test_file.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("all_flags_dest/test_file.txt"));
     
     // Clean up
     remove("all_flags_src/test_file.txt");

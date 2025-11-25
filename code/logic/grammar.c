@@ -26,30 +26,30 @@
 
 static char *read_file(const char *path) {
     fossil_io_file_t stream;
-    if (fossil_fstream_open(&stream, path, "rb") != 0)
+    if (fossil_io_file_open(&stream, path, "rb") != 0)
         return cnull;
 
-    if (fossil_fstream_seek(&stream, 0, SEEK_END) != 0) {
-        fossil_fstream_close(&stream);
+    if (fossil_io_file_seek(&stream, 0, SEEK_END) != 0) {
+        fossil_io_file_close(&stream);
         return cnull;
     }
     int32_t size = fossil_io_file_tell(&stream);
-    fossil_fstream_rewind(&stream);
+    fossil_io_file_rewind(&stream);
 
     char *buf = malloc(size + 1);
     if (!buf) {
-        fossil_fstream_close(&stream);
+        fossil_io_file_close(&stream);
         return cnull;
     }
 
-    size_t read = fossil_fstream_read(&stream, buf, 1, size);
+    size_t read = fossil_io_file_read(&stream, buf, 1, size);
     if (read != (size_t)size) {
         free(buf);
-        fossil_fstream_close(&stream);
+        fossil_io_file_close(&stream);
         return cnull;
     }
     buf[size] = cterm;
-    fossil_fstream_close(&stream);
+    fossil_io_file_close(&stream);
     return buf;
 }
 

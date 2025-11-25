@@ -58,14 +58,14 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
 
     fossil_io_file_t src_stream, dest_stream;
     
-    if (fossil_fstream_open(&src_stream, src, "rb") != 0) {
+    if (fossil_io_file_open(&src_stream, src, "rb") != 0) {
         fossil_io_printf("{red}Error: Cannot open source file '%s': %s{normal}\n", src, strerror(errno));
         return errno;
     }
 
-    if (fossil_fstream_open(&dest_stream, dest, "wb") != 0) {
+    if (fossil_io_file_open(&dest_stream, dest, "wb") != 0) {
         fossil_io_printf("{red}Error: Cannot create destination file '%s': %s{normal}\n", dest, strerror(errno));
-        fossil_fstream_close(&src_stream);
+        fossil_io_file_close(&src_stream);
         return errno;
     }
 
@@ -73,17 +73,17 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
 
     char buffer[8192];
     size_t n;
-    while ((n = fossil_fstream_read(&src_stream, buffer, 1, sizeof(buffer))) > 0) {
-        if (cunlikely(fossil_fstream_write(&dest_stream, buffer, 1, n) != n)) {
+    while ((n = fossil_io_file_read(&src_stream, buffer, 1, sizeof(buffer))) > 0) {
+        if (cunlikely(fossil_io_file_write(&dest_stream, buffer, 1, n) != n)) {
             fossil_io_printf("{red}Error: Write failed for '%s': %s{normal}\n", dest, strerror(errno));
-            fossil_fstream_close(&src_stream);
-            fossil_fstream_close(&dest_stream);
+            fossil_io_file_close(&src_stream);
+            fossil_io_file_close(&dest_stream);
             return errno;
         }
     }
 
-    fossil_fstream_close(&src_stream);
-    fossil_fstream_close(&dest_stream);
+    fossil_io_file_close(&src_stream);
+    fossil_io_file_close(&dest_stream);
 
     // Preserve permissions and timestamps
     if (preserve) {

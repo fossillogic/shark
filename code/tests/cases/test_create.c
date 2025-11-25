@@ -77,7 +77,7 @@ FOSSIL_TEST_CASE(c_test_create_simple_file) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify file exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("create_test_file.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("create_test_file.txt"));
     
     // Clean up
     remove("create_test_file.txt");
@@ -89,7 +89,7 @@ FOSSIL_TEST_CASE(c_test_create_simple_directory) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify directory exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("create_test_dir"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("create_test_dir"));
     
     // Clean up
     rmdir("create_test_dir");
@@ -140,7 +140,7 @@ FOSSIL_TEST_CASE(c_test_create_with_parent_dirs) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify file and parent directories exist
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("parent1/parent2/test_file.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("parent1/parent2/test_file.txt"));
     
     // Clean up
     remove("parent1/parent2/test_file.txt");
@@ -160,7 +160,7 @@ FOSSIL_TEST_CASE(c_test_create_nested_directory) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify directory structure exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("nested1/nested2/nested3"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("nested1/nested2/nested3"));
     
     // Clean up
     rmdir("nested1/nested2/nested3");
@@ -174,7 +174,7 @@ FOSSIL_TEST_CASE(c_test_create_file_with_special_characters) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify file exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("special_chars_123.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("special_chars_123.txt"));
     
     // Clean up
     remove("special_chars_123.txt");
@@ -186,7 +186,7 @@ FOSSIL_TEST_CASE(c_test_create_directory_with_special_characters) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify directory exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("special_dir_123"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("special_dir_123"));
     
     // Clean up
     rmdir("special_dir_123");
@@ -198,7 +198,7 @@ FOSSIL_TEST_CASE(c_test_create_deep_nested_structure) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify file exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("deep/very/deeply/nested/file/structure/test.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("deep/very/deeply/nested/file/structure/test.txt"));
     
     // Clean up
     remove("deep/very/deeply/nested/file/structure/test.txt");
@@ -222,7 +222,7 @@ FOSSIL_TEST_CASE(c_test_create_file_in_current_dir) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify file exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("current_dir_test.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("current_dir_test.txt"));
     
     // Clean up
     remove("current_dir_test.txt");
@@ -234,7 +234,7 @@ FOSSIL_TEST_CASE(c_test_create_file_case_sensitivity) {
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify file exists
-    ASSUME_ITS_TRUE(fossil_fstream_file_exists("MixedCaseFile.TXT"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("MixedCaseFile.TXT"));
     
     // Clean up
     remove("MixedCaseFile.TXT");

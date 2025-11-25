@@ -69,7 +69,7 @@ static int move_to_trash(ccstring path) {
     snprintf(trash_path, 4096, "%s/.local/share/Trash/files/%s", home, filename);
 #endif
 
-    if (fossil_fstream_rename(path, trash_path) != 0) {
+    if (fossil_io_file_rename(path, trash_path) != 0) {
         fossil_io_printf("{red}Failed to move to trash: %s{normal}\n", strerror(errno));
         fossil_sys_memory_free(trash_path);
         cnullify(trash_path);
@@ -180,7 +180,7 @@ static int remove_recursive(ccstring path, bool recursive, bool force,
                         continue;
                     }
                 } else {
-                    if (fossil_fstream_delete(child_path) != 0 && !force) {
+                    if (fossil_io_file_delete(child_path) != 0 && !force) {
                         fossil_io_printf("{red}Failed to remove '%s': %s{normal}\n", child_path, strerror(errno));
                     } else if (!force) {
                         fossil_io_printf("{blue}Removed file: %s{normal}\n", child_path);
@@ -217,7 +217,7 @@ static int remove_recursive(ccstring path, bool recursive, bool force,
             if (!confirm_removal(path)) return 0;
         }
         if (use_trash) return move_to_trash(path);
-        if (fossil_fstream_delete(path) != 0 && !force) {
+        if (fossil_io_file_delete(path) != 0 && !force) {
             fossil_io_printf("{red}Failed to remove '%s': %s{normal}\n", path, strerror(errno));
             return errno;
         } else if (!force) {

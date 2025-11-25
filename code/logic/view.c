@@ -32,12 +32,12 @@
     ----------------------------------------------------------------------- */
 static bool is_binary_file(const char *path) {
      fossil_io_file_t stream;
-     if (fossil_fstream_open(&stream, path, "rb") != 0)
+     if (fossil_io_file_open(&stream, path, "rb") != 0)
           return false;
 
      unsigned char buf[256];
-     size_t n = fossil_fstream_read(&stream, buf, 1, sizeof(buf));
-     fossil_fstream_close(&stream);
+     size_t n = fossil_io_file_read(&stream, buf, 1, sizeof(buf));
+     fossil_io_file_close(&stream);
 
      for (size_t i = 0; i < n; i++) {
           if (buf[i] == 0) return true;
@@ -922,7 +922,7 @@ int fossil_shark_view(const char *path, bool number_lines,
      bool binary = is_binary_file(path);
 
      fossil_io_file_t stream;
-     if (fossil_fstream_open(&stream, path, binary ? "rb" : "r") != 0) {
+     if (fossil_io_file_open(&stream, path, binary ? "rb" : "r") != 0) {
           perror(path);
           return 1;
      }
@@ -941,7 +941,7 @@ int fossil_shark_view(const char *path, bool number_lines,
              if (lines == NULL) {
                  lines = (cstring *)fossil_sys_memory_alloc(new_capacity * sizeof(cstring));
                  if (!lines) {
-                     fossil_fstream_close(&stream);
+                     fossil_io_file_close(&stream);
                      fprintf(stderr, "Memory allocation failed\n");
                      return 1;
                  }
@@ -951,7 +951,7 @@ int fossil_shark_view(const char *path, bool number_lines,
                      for (size_t j = 0; j < count; j++)
                          fossil_io_cstring_free(lines[j]);
                      fossil_sys_memory_free(lines);
-                     fossil_fstream_close(&stream);
+                     fossil_io_file_close(&stream);
                      fprintf(stderr, "Memory allocation failed\n");
                      return 1;
                  }
@@ -964,13 +964,13 @@ int fossil_shark_view(const char *path, bool number_lines,
              for (size_t j = 0; j < count; j++)
                  fossil_io_cstring_free(lines[j]);
              fossil_sys_memory_free(lines);
-             fossil_fstream_close(&stream);
+             fossil_io_file_close(&stream);
              fprintf(stderr, "Memory allocation failed\n");
              return 1;
          }
          count++;
      }
-     fossil_fstream_close(&stream);
+     fossil_io_file_close(&stream);
 
      int start = 0, end = (int)count;
 

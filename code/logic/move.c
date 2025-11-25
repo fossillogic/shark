@@ -26,7 +26,7 @@
 #include <errno.h>
 
 // Normalize file paths for cross-platform compatibility
-cstring fossil_fstream_path_normalize(ccstring path) {
+cstring fossil_io_file_path_normalize(ccstring path) {
     if (!cnotnull(path)) return cnull;
 
     cstring norm_path = (cstring)fossil_sys_memory_alloc(strlen(path) + 1);
@@ -53,7 +53,7 @@ static int create_backup(ccstring dest) {
         return -1;
     }
     
-    if (fossil_fstream_backup(dest, ".bak") != 0) {
+    if (fossil_io_file_backup(dest, ".bak") != 0) {
         fossil_io_printf("{red}Failed to create backup: %s{normal}\n", strerror(errno));
         fossil_io_cstring_free(backup_path);
         return errno;
@@ -95,8 +95,8 @@ int fossil_shark_move(ccstring src, ccstring dest,
     }
 
     // Normalize paths for cross-platform compatibility
-    cstring norm_src = fossil_fstream_path_normalize(src);
-    cstring norm_dest = fossil_fstream_path_normalize(dest);
+    cstring norm_src = fossil_io_file_path_normalize(src);
+    cstring norm_dest = fossil_io_file_path_normalize(dest);
     
     if (!cnotnull(norm_src) || !cnotnull(norm_dest)) {
         fossil_io_printf("{red}Error: Failed to normalize paths.{normal}\n");
@@ -105,7 +105,7 @@ int fossil_shark_move(ccstring src, ccstring dest,
         return 1;
     }
 
-    bool dest_exists = fossil_fstream_file_exists(norm_dest);
+    bool dest_exists = fossil_io_file_file_exists(norm_dest);
 
     if (clikely(dest_exists)) {
         if (backup) {
@@ -133,7 +133,7 @@ int fossil_shark_move(ccstring src, ccstring dest,
         }
     }
 
-    if (fossil_fstream_rename(norm_src, norm_dest) != 0) {
+    if (fossil_io_file_rename(norm_src, norm_dest) != 0) {
         fossil_io_printf("{red}Failed to move/rename: %s{normal}\n", strerror(errno));
         fossil_io_cstring_free(norm_src);
         fossil_io_cstring_free(norm_dest);

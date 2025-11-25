@@ -51,41 +51,41 @@ int fossil_shark_rewrite(const char *path, bool in_place, bool append,
     // Use a temporary file if not modifying in place
     if (!in_place && cnotnull(new_content)) {
         snprintf((char *)tmp_path, FILENAME_MAX, "%s.tmp", path);
-        if (fossil_fstream_open(&tmp_stream, (char *)tmp_path, "wb") != 0) {
+        if (fossil_io_file_open(&tmp_stream, (char *)tmp_path, "wb") != 0) {
             fossil_sys_memory_free(tmp_path);
             return errno;
         }
         size_t content_len = fossil_io_cstring_length(new_content);
-        if (fossil_fstream_write(&tmp_stream, new_content, 1, content_len) != content_len) {
-            fossil_fstream_close(&tmp_stream);
+        if (fossil_io_file_write(&tmp_stream, new_content, 1, content_len) != content_len) {
+            fossil_io_file_close(&tmp_stream);
             fossil_sys_memory_free(tmp_path);
             return errno;
         }
-        fossil_fstream_close(&tmp_stream);
+        fossil_io_file_close(&tmp_stream);
 
 #if defined(_WIN32) || defined(_WIN64)
-        if (fossil_fstream_rename((char *)tmp_path, path) != 0) {
+        if (fossil_io_file_rename((char *)tmp_path, path) != 0) {
             fossil_sys_memory_free(tmp_path);
             return errno;
         }
 #else
-        if (fossil_fstream_rename((char *)tmp_path, path) != 0) {
+        if (fossil_io_file_rename((char *)tmp_path, path) != 0) {
             fossil_sys_memory_free(tmp_path);
             return errno;
         }
 #endif
     } else if (cnotnull(new_content)) {
-        if (fossil_fstream_open(&stream, path, append ? "ab" : "wb") != 0) {
+        if (fossil_io_file_open(&stream, path, append ? "ab" : "wb") != 0) {
             fossil_sys_memory_free(tmp_path);
             return errno;
         }
         size_t content_len = fossil_io_cstring_length(new_content);
-        if (fossil_fstream_write(&stream, new_content, 1, content_len) != content_len) {
-            fossil_fstream_close(&stream);
+        if (fossil_io_file_write(&stream, new_content, 1, content_len) != content_len) {
+            fossil_io_file_close(&stream);
             fossil_sys_memory_free(tmp_path);
             return errno;
         }
-        fossil_fstream_close(&stream);
+        fossil_io_file_close(&stream);
     }
 
     fossil_sys_memory_free(tmp_path);
