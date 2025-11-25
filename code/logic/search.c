@@ -52,7 +52,7 @@ static bool str_match(ccstring str, ccstring pattern, bool ignore_case) {
 static bool content_match(ccstring file_path, ccstring pattern, bool ignore_case) {
     if (!pattern) return true; // No pattern means match all
 
-    fossil_fstream_t stream;
+    fossil_io_file_t stream;
     if (fossil_fstream_open(&stream, file_path, "r") != 0) {
         return false;
     }

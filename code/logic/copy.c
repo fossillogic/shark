@@ -56,7 +56,7 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
         }
     }
 
-    fossil_fstream_t src_stream, dest_stream;
+    fossil_io_file_t src_stream, dest_stream;
     
     if (fossil_fstream_open(&src_stream, src, "rb") != 0) {
         fossil_io_printf("{red}Error: Cannot open source file '%s': %s{normal}\n", src, strerror(errno));

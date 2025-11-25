@@ -63,7 +63,7 @@ int fossil_shark_introspect(ccstring path, int show_head_lines,
     struct stat st;
     if (stat(path, &st) != 0) return errno;
 
-    fossil_fstream_t file_stream;
+    fossil_io_file_t file_stream;
     if (fossil_fstream_open(&file_stream, path, "r") != 0 &&
         (show_head_lines > 0 || show_tail_lines > 0 || count_lines_words_bytes)) {
         return errno;

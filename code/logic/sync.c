@@ -37,7 +37,7 @@
 
 #define PATH_MAX_LEN 1024
 
-// Helper: Copy file content using fossil_fstream_t
+// Helper: Copy file content using fossil_io_file_t
 static int copy_file(ccstring src_path, ccstring dest_path) {
     int32_t rc = fossil_fstream_copy(src_path, dest_path);
     if (rc != 0) {

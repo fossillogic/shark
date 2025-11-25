@@ -206,7 +206,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     fossil_sys_memory_zero(log_filename, 1024);
     fossil_fpath_create_path_safe(log_filename, 1024, sanitized_path, ".archive.log");
     
-    fossil_fstream_t log_stream;
+    fossil_io_file_t log_stream;
     COption log_option = cnone();
     if (fossil_fstream_open(&log_stream, log_filename, "w") == 0) {
         log_option = csome(&log_stream);
@@ -246,7 +246,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             fossil_sys_memory_free(sanitized_format);
             fossil_sys_memory_free(sanitized_password);
             if (log_option.is_some) {
-                fossil_fstream_close((fossil_fstream_t*)log_option.value);
+                fossil_fstream_close((fossil_io_file_t*)log_option.value);
             }
             return 1;
         }
@@ -262,7 +262,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
                 fossil_sys_memory_free(sanitized_format);
                 fossil_sys_memory_free(sanitized_password);
                 if (log_option.is_some) {
-                    fossil_fstream_close((fossil_fstream_t*)log_option.value);
+                    fossil_fstream_close((fossil_io_file_t*)log_option.value);
                 }
                 return 0;
             }
@@ -357,10 +357,10 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             }
             result_msg[written] = '\n';
             result_msg[written + 1] = '\0';
-            fossil_fstream_write((fossil_fstream_t*)log_option.value, result_msg, fossil_io_cstring_length(result_msg), 1);
+            fossil_fstream_write((fossil_io_file_t*)log_option.value, result_msg, fossil_io_cstring_length(result_msg), 1);
             fossil_sys_memory_free(result_msg);
         }
-        fossil_fstream_close((fossil_fstream_t*)log_option.value);
+        fossil_fstream_close((fossil_io_file_t*)log_option.value);
     }
 
     // Clean up allocated memory

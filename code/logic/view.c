@@ -31,7 +31,7 @@
     Utility: detect if file is binary
     ----------------------------------------------------------------------- */
 static bool is_binary_file(const char *path) {
-     fossil_fstream_t stream;
+     fossil_io_file_t stream;
      if (fossil_fstream_open(&stream, path, "rb") != 0)
           return false;
 
@@ -921,7 +921,7 @@ int fossil_shark_view(const char *path, bool number_lines,
 
      bool binary = is_binary_file(path);
 
-     fossil_fstream_t stream;
+     fossil_io_file_t stream;
      if (fossil_fstream_open(&stream, path, binary ? "rb" : "r") != 0) {
           perror(path);
           return 1;

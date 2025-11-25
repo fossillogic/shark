@@ -30,7 +30,7 @@
 #endif
 
 // Helper: read line from file, return dynamically allocated string
-static cstring read_line(fossil_fstream_t *stream) {
+static cstring read_line(fossil_io_file_t *stream) {
     size_t size = 128;
     size_t len = 0;
     cstring line = (cstring)fossil_sys_memory_alloc(size);
@@ -104,7 +104,7 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
     }
 
     if (binary_diff) {
-        fossil_fstream_t f1, f2;
+        fossil_io_file_t f1, f2;
         if (cunlikely(fossil_fstream_open(&f1, path1, "rb") != 0 || 
                       fossil_fstream_open(&f2, path2, "rb") != 0)) { 
             fossil_io_printf("{red}Error: Failed to open files for binary comparison.{normal}\n");
@@ -129,7 +129,7 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
     }
 
     if (text_diff) {
-        fossil_fstream_t f1, f2;
+        fossil_io_file_t f1, f2;
         if (cunlikely(fossil_fstream_open(&f1, path1, "r") != 0 || 
                       fossil_fstream_open(&f2, path2, "r") != 0)) { 
             fossil_io_printf("{red}Error: Failed to open files for text comparison.{normal}\n");

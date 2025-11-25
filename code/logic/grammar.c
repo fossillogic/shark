@@ -25,7 +25,7 @@
 #include "fossil/code/commands.h"
 
 static char *read_file(const char *path) {
-    fossil_fstream_t stream;
+    fossil_io_file_t stream;
     if (fossil_fstream_open(&stream, path, "rb") != 0)
         return cnull;
 
@@ -33,7 +33,7 @@ static char *read_file(const char *path) {
         fossil_fstream_close(&stream);
         return cnull;
     }
-    int32_t size = fossil_fstream_tell(&stream);
+    int32_t size = fossil_io_file_tell(&stream);
     fossil_fstream_rewind(&stream);
 
     char *buf = malloc(size + 1);

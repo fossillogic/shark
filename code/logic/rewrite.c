@@ -44,8 +44,8 @@ int fossil_shark_rewrite(const char *path, bool in_place, bool append,
 {
     if (!cnotnull(path)) return -1;
 
-    fossil_fstream_t stream;
-    fossil_fstream_t tmp_stream;
+    fossil_io_file_t stream;
+    fossil_io_file_t tmp_stream;
     fossil_sys_memory_t tmp_path = fossil_sys_memory_calloc(1, FILENAME_MAX);
 
     // Use a temporary file if not modifying in place

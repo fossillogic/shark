@@ -41,10 +41,10 @@ int fossil_shark_chat(const char *model_id, bool keep_context, const char *save_
     char output_buf[FOSSIL_JELLYFISH_OUTPUT_SIZE];
     int running = 1;
 
-    fossil_fstream_t *input_stream = FOSSIL_STDIN;
+    fossil_io_file_t *input_stream = FOSSIL_STDIN;
 
-    fossil_fstream_t transcript_stream;
-    fossil_fstream_t *transcript = NULL;
+    fossil_io_file_t transcript_stream;
+    fossil_io_file_t *transcript = NULL;
     if (save_file) {
         if (fossil_fstream_open(&transcript_stream, save_file, "a") == 0) {
             transcript = &transcript_stream;

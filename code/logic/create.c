@@ -92,7 +92,7 @@ int fossil_shark_create(ccstring path, bool create_parents,
     }
 
     if (fossil_io_cstring_equals(type, "file")) {
-        fossil_fstream_t stream;
+        fossil_io_file_t stream;
         if (cunlikely(fossil_fstream_open(&stream, path, "w") != 0)) {
             fossil_io_printf("{red}Error creating file '%s': %s{normal}\n", path, strerror(errno));
             return errno;
