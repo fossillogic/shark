@@ -63,14 +63,73 @@ static double summary_calc_entropy(const unsigned char *buf, size_t len) {
 // ------------------------------------------------------------
 static ccstring summary_detect_type(ccstring path) {
     size_t len = strlen(path);
-    if (len >= 4) {
-        if (strcmp(path + len - 4, ".log") == 0) return "log";
-        if (strcmp(path + len - 4, ".txt") == 0) return "text";
-        if (strcmp(path + len - 3, ".md") == 0) return "markdown";
-        if (strcmp(path + len - 2, ".c") == 0) return "c-code";
-        if (strcmp(path + len - 2, ".h") == 0) return "c-header";
-    }
-    return "text";
+    if (len < 2) return "unknown";
+
+    // Helper macro to simplify comparison
+    #define EXT_EQ(ext_len, ext_str) (len >= ext_len && strcmp(path + len - ext_len, ext_str) == 0)
+
+    // Logs & Text
+    if (EXT_EQ(4, ".log")) return "log";
+    if (EXT_EQ(4, ".txt")) return "text";
+    if (EXT_EQ(3, ".md"))  return "markdown";
+    if (EXT_EQ(4, ".csv")) return "csv";
+    if (EXT_EQ(5, ".json")) return "json";
+    if (EXT_EQ(4, ".xml")) return "xml";
+    if (EXT_EQ(4, ".yml") || EXT_EQ(5, ".yaml")) return "yaml";
+
+    // Code & Headers
+    if (EXT_EQ(2, ".c")) return "c-code";
+    if (EXT_EQ(2, ".h")) return "c-header";
+    if (EXT_EQ(3, ".py")) return "python";
+    if (EXT_EQ(3, ".js")) return "javascript";
+    if (EXT_EQ(3, ".ts")) return "typescript";
+    if (EXT_EQ(3, ".rb")) return "ruby";
+    if (EXT_EQ(4, ".cpp")) return "cpp";
+    if (EXT_EQ(4, ".hpp")) return "cpp-header";
+    if (EXT_EQ(4, ".java")) return "java";
+    if (EXT_EQ(4, ".cs")) return "csharp";
+
+    // Configuration & Scripts
+    if (EXT_EQ(3, ".sh")) return "shell-script";
+    if (EXT_EQ(4, ".bat")) return "batch-script";
+    if (EXT_EQ(3, ".ps"))  return "powershell-script";
+    if (EXT_EQ(4, ".ini")) return "ini";
+    if (EXT_EQ(4, ".cfg")) return "config";
+    if (EXT_EQ(4, ".toml")) return "toml";
+
+    // Documents
+    if (EXT_EQ(4, ".pdf")) return "pdf";
+    if (EXT_EQ(5, ".docx")) return "word";
+    if (EXT_EQ(5, ".xlsx")) return "excel";
+    if (EXT_EQ(5, ".pptx")) return "powerpoint";
+
+    // Images
+    if (EXT_EQ(4, ".png")) return "image";
+    if (EXT_EQ(4, ".jpg") || EXT_EQ(5, ".jpeg")) return "image";
+    if (EXT_EQ(4, ".gif")) return "image";
+    if (EXT_EQ(4, ".bmp")) return "image";
+    if (EXT_EQ(4, ".svg")) return "vector-image";
+
+    // Audio / Video
+    if (EXT_EQ(4, ".mp3")) return "audio";
+    if (EXT_EQ(4, ".wav")) return "audio";
+    if (EXT_EQ(4, ".ogg")) return "audio";
+    if (EXT_EQ(4, ".mp4")) return "video";
+    if (EXT_EQ(4, ".mkv")) return "video";
+    if (EXT_EQ(4, ".avi")) return "video";
+
+    // Compressed / Archives
+    if (EXT_EQ(4, ".zip")) return "archive";
+    if (EXT_EQ(4, ".tar")) return "archive";
+    if (EXT_EQ(7, ".tar.gz")) return "archive";
+    if (EXT_EQ(8, ".tar.bz2")) return "archive";
+    if (EXT_EQ(4, ".rar")) return "archive";
+    if (EXT_EQ(4, ".7z")) return "archive";
+
+    // Default fallback
+    return "unknown";
+
+    #undef EXT_EQ
 }
 
 // ------------------------------------------------------------
