@@ -22,7 +22,7 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 ### 🗂 Core File Operations
 | **Command** | **Description** | **Common Flags** |
 |-------------|-----------------|-----------------|
-| `show` | Display files and directories. | `-a, --all` Show hidden files<br>`-l, --long` Detailed info<br>`-h, --human` Human-readable sizes<br>`-r, --recursive` Include subdirs<br>`-d, --depth <n>` Limit recursion depth<br>`--as` Format options "list", tree, graph<br>`--time` Show timestamps |
+| `show` | Display files and directories. | `-a, --all` Show hidden files<br>`-l, --long` Detailed info<br>`-h, --human` Human-readable sizes<br>`-r, --recursive` Include subdirs<br>`-d, --depth <n>` Limit recursion depth<br>`--as` Format options "list", tree, graph, grid, table, tiles.<br>`--time` Show timestamps |
 | `move` | Move or rename files/directories. | `-f, --force` Overwrite without prompt<br>`-i, --interactive` Ask before overwrite<br>`-b, --backup` Backup before move |
 | `copy` | Copy files or directories. | `-r, --recursive` Copy subdirectories<br>`-u, --update` Only copy newer<br>`-p, --preserve` Keep permissions/timestamps |
 | `remove` / `delete` | Delete files or directories. | `-r, --recursive` Delete contents<br>`-f, --force` No confirmation<br>`-i, --interactive` Confirm per file<br>`--trash` Move to system trash |
@@ -38,16 +38,7 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `rewrite` | Modify or update file contents, timestamps, or size. | `-i` In-place edit<br>`--append` Append instead of overwrite<br>`-n` No newline<br>`--size <n>` Set exact file size |
 | `introspect` | Examine file contents, type, or metadata. | `-n <lines>` Number of lines<br>`-c` Count lines, words, bytes<br>`--fson` FSON output<br>`--mime` Show MIME type |
 | `grammar` | Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning through the SOAP API. | `--check` Run grammar check<br>`--fix` Auto-correct grammar<br>`--sanitize` Remove rot-brain/meme language<br>`--suggest` Suggest alternatives<br>`--tone` Detect tone<br>`--detect <type>` Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble |
-
----
-
-### 🤖 AI Commands (Jellyfish Integration)
-
-| **Command** | **Description** | **Common Flags** |
-|--------------|-----------------|------------------|
-| `ask` | Run a one-shot prompt against a module or chain. | `-m, --model <id>` Model to use<br>`-f, --file <path>` Provide file context<br>`--explain` Request explanation |
-| `chat` | Interactive conversation session with a local module. | `--context` Keep conversation history<br>`--save <file>` Save chat transcript<br>`-m, --model <id>` Model to use |
-| `summary` | Summarize datasets, chains, logs, or model states. | `-f, --file <path>` File to summarize<br>`--depth <n>` Summary depth<br>`--time` Show timestamps |
+| `summary` | Generate a structured summary of one or more files (text, logs, code, docs). | `-l, --lines <n>` Limit lines analyzed<br>`--auto` Auto-detect file type<br>`--keywords` Extract keywords<br>`--topics` Topic clustering<br>`--stats` File statistics (chars/lines/entropy)<br>`--fson` Output structured FSON summary |
 
 ---
 
@@ -81,9 +72,7 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `shark rewrite -i --append log.txt "New entry"` | Append a new entry to a log file in-place. |
 | `shark introspect --mime report.pdf` | Show the MIME type of a file. |
 | `shark grammar --check --tone notes.txt` | Run a grammar check and detect tone in a text file. |
-| `shark chat -f error.log "Explain this error" --save chat.txt` | Start an interactive AI chat session using the contents of `error.log` as context and save the transcript to `chat.txt`. |
-| `shark ask -f script.sh --explain "Is this script safe?"` | Run a one-shot prompt asking Jellyfish AI to analyze the safety of `script.sh` and provide an explanation. |
-| `shark summary -f report.txt --depth 2 --color --time` | Summarize `report.txt` with AI, showing key points, colored output, and timestamps at depth 2. |
+| `shark summary --auto --keywords --stats article.md` | Generate an automatic structured summary with keywords and statistics for a document. |
 
 ## **Prerequisites**
 
