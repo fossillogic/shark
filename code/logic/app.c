@@ -537,54 +537,48 @@ bool app_entry(int argc, char** argv) {
                 i = j;
             }
             fossil_shark_help(command, show_examples, full_manual);
-        }
-        // AI Commands
-        else if (fossil_io_cstring_compare(argv[i], "ask") == 0) {
-            ccstring model_id = cnull, file_path = cnull;
-            bool explain = false;
-            for (int j = i + 1; j < argc; j++) {
-                if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
-                    if (j + 1 < argc) model_id = argv[++j];
-                } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
-                    if (j + 1 < argc) file_path = argv[++j];
-                } else if (fossil_io_cstring_compare(argv[j], "--explain") == 0) {
-                    explain = true;
-                }
-                i = j;
-            }
-            fossil_shark_ask(model_id, file_path, explain);
-
-        } else if (fossil_io_cstring_compare(argv[i], "chat") == 0) {
-            ccstring model_id = cnull, save_file = cnull;
-            bool keep_context = false;
-            for (int j = i + 1; j < argc; j++) {
-                if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
-                    if (j + 1 < argc) model_id = argv[++j];
-                } else if (fossil_io_cstring_compare(argv[j], "--context") == 0) {
-                    keep_context = true;
-                } else if (fossil_io_cstring_compare(argv[j], "--save") == 0 && j + 1 < argc) {
-                    save_file = argv[++j];
-                }
-                i = j;
-            }
-            fossil_shark_chat(model_id, keep_context, save_file);
-
         } else if (fossil_io_cstring_compare(argv[i], "summary") == 0) {
+            // Default values
             ccstring file_path = cnull;
-            int depth = 0;
-            bool show_time = false;
+            int max_lines = 0;
+            bool auto_detect = false;
+            bool do_keywords = false;
+            bool do_topics = false;
+            bool do_stats = false;
+            bool fson = false;
+        
+            // Parse flags
             for (int j = i + 1; j < argc; j++) {
-                if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
+                if (fossil_io_cstring_compare(argv[j], "-f") == 0 ||
+                    fossil_io_cstring_compare(argv[j], "--file") == 0) {
                     if (j + 1 < argc) file_path = argv[++j];
-                } else if (fossil_io_cstring_compare(argv[j], "--depth") == 0 && j + 1 < argc) {
-                    depth = atoi(argv[++j]);
-                } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
-                    show_time = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-l") == 0 ||
+                           fossil_io_cstring_compare(argv[j], "--lines") == 0) {
+                    if (j + 1 < argc) max_lines = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--auto") == 0) {
+                    auto_detect = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--keywords") == 0) {
+                    do_keywords = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--topics") == 0) {
+                    do_topics = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--stats") == 0) {
+                    do_stats = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--fson") == 0) {
+                    fson = true;
+                } else {
+                    break; // Stop parsing flags if unknown argument
                 }
-                i = j;
+                i = j; // advance outer loop
             }
-            fossil_shark_summary(file_path, depth, show_time);
-            
+        
+            if (!file_path) {
+                fossil_io_fprintf(FOSSIL_STDERR, "No file specified for summary.\n");
+                return 1;
+            }
+        
+            // Call summary command with a single file path
+            const char *paths[1] = { file_path };
+            fossil_shark_summary(paths, 1, max_lines, auto_detect, do_keywords, do_topics, do_stats, fson);
         } else if (fossil_io_cstring_compare(argv[i], "sync") == 0) {
             ccstring src = cnull, dest = cnull;
             bool recursive = false, update = false, delete_flag = false;
