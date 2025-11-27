@@ -244,18 +244,21 @@ int fossil_shark_grammar(const char *file_path, bool check, bool fix,
  *
  * @param paths Array of file paths.
  * @param count Number of paths.
- * @param max_lines Limit number of lines to analyze (0 = no limit).
+ * @param limit_lines Limit number of lines to analyze (0 = no limit).
  * @param auto_detect Enable automatic file-type inference.
- * @param keywords Extract keyword list.
- * @param topics Perform simple topic clustering.
+ * @param extract_keywords Extract keyword list.
+ * @param extract_topics Perform simple topic clustering.
  * @param stats Include file statistics.
- * @param fson Output structured FSON format.
+ * @param output_fson Output structured FSON format.
  * @return int Status code.
  */
-int fossil_shark_summary(const char **paths, int count,
-                         int max_lines, bool auto_detect,
-                         bool keywords, bool topics,
-                         bool stats, bool fson);
+int fossil_shark_summary(ccstring *paths, int count,
+                         int limit_lines,
+                         bool auto_detect,
+                         bool extract_keywords,
+                         bool extract_topics,
+                         bool stats,
+                         bool output_fson);
 
 #ifdef __cplusplus
 }
