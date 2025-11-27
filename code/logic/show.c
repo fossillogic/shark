@@ -702,8 +702,10 @@ static int show_tiles(ccstring path, bool show_all, bool long_format,
     struct dirent *entry;
 
     while ((entry = readdir(dir)) != cnull) {
+        // Skip hidden files if show_all is false
         if (!show_all && entry->d_name[0] == '.') continue;
 
+        // Build full path
         cstring full = fossil_io_cstring_format("%s/%s", path, entry->d_name);
         if (!full) continue;
 
@@ -713,19 +715,27 @@ static int show_tiles(ccstring path, bool show_all, bool long_format,
             continue;
         }
 
+        // Print file info
         fossil_io_printf("\n{blue}------------------------------{normal}\n");
         fossil_io_printf("{blue}Name:{normal} %s\n", entry->d_name);
         fossil_io_printf("{blue}Type:{normal} %s\n", S_ISDIR(st.st_mode) ? "Directory" : "File");
 
-        fossil_io_printf("{blue}Size:{normal} ");
-        print_size(st.st_size, human_readable);
-        fossil_io_printf("\n");
+        if (long_format) {
+            fossil_io_printf("{blue}Size:{normal} ");
+            print_size(st.st_size, human_readable);
+            fossil_io_printf("\n");
 
-        if (show_time) {
-            char tbuf[64];
-            struct tm *tmn = localtime(&st.st_mtime);
-            strftime(tbuf, 64, "%Y-%m-%d %H:%M:%S", tmn);
-            fossil_io_printf("{blue}Modified:{normal} %s\n", tbuf);
+            if (show_time) {
+                char tbuf[64];
+                struct tm *tmn = localtime(&st.st_mtime);
+                strftime(tbuf, sizeof(tbuf), "%Y-%m-%d %H:%M:%S", tmn);
+                fossil_io_printf("{blue}Modified:{normal} %s\n", tbuf);
+            }
+        }
+
+        // Recurse into subdirectories if depth > 1
+        if (S_ISDIR(st.st_mode) && depth > 1) {
+            show_tiles(full, show_all, long_format, human_readable, show_time, depth - 1);
         }
 
         fossil_io_cstring_free(full);
