@@ -637,61 +637,6 @@ static int show_graph(ccstring path, bool show_all, bool long_format,
 #endif
 }
 
-static int show_grid(ccstring path, bool show_all, bool long_format,
-                     bool human_readable, bool show_time,
-                     int depth) {
-
-    DIR *dir = opendir(path);
-    if (cunlikely(!dir)) return errno;
-
-    // Collect file names first
-    char **entries = fossil_sys_memory_alloc(sizeof(char*) * 512);
-    if (!entries) { closedir(dir); return ENOMEM; }
-
-    int count = 0;
-    struct dirent *entry;
-
-    while ((entry = readdir(dir)) != cnull && count < 511) {
-        if (!show_all && entry->d_name[0] == '.') continue;
-
-        entries[count] = fossil_sys_memory_strdup(entry->d_name);
-        if (!entries[count]) {
-            for (int i = 0; i < count; i++) fossil_sys_memory_free(entries[i]);
-            fossil_sys_memory_free(entries);
-            closedir(dir);
-            return ENOMEM;
-        }
-        count++;
-    }
-    closedir(dir);
-
-    if (count == 0) {
-        fossil_io_printf("(empty)\n");
-        fossil_sys_memory_free(entries);
-        return 0;
-    }
-
-    // Compute column width
-    int max_len = 0;
-    for (int i = 0; i < count; i++) {
-        int len = (int)strlen(entries[i]);
-        if (len > max_len) max_len = len;
-    }
-    int col_width = max_len + 4;
-
-    // Print grid (4 columns)
-    for (int i = 0; i < count; i++) {
-        fossil_io_printf("%-*s", col_width, entries[i]);
-        if ((i + 1) % 4 == 0) fossil_io_printf("\n");
-    }
-    if (count % 4 != 0) fossil_io_printf("\n");
-
-    for (int i = 0; i < count; i++) fossil_sys_memory_free(entries[i]);
-    fossil_sys_memory_free(entries);
-
-    return 0;
-}
-
 static int show_tiles(ccstring path, bool show_all, bool long_format,
                       bool human_readable, bool show_time,
                       int depth) {
@@ -746,66 +691,6 @@ static int show_tiles(ccstring path, bool show_all, bool long_format,
     return 0;
 }
 
-static int show_table(ccstring path, bool show_all, bool long_format,
-                      bool human_readable, bool show_time,
-                      int depth) {
-
-    DIR *dir = opendir(path);
-    if (!dir) return errno;
-
-    fossil_io_printf("{blue}%-30s %-10s %-8s %-20s{normal}\n", 
-        "NAME", "SIZE", "TYPE", "MODIFIED");
-    fossil_io_printf("--------------------------------------------------------------------------\n");
-
-    struct dirent *entry;
-    char timebuf[64];
-
-    while ((entry = readdir(dir)) != cnull) {
-        if (!show_all && entry->d_name[0] == '.') continue;
-
-        cstring full = fossil_io_cstring_format("%s/%s", path, entry->d_name);
-        if (!full) continue;
-
-        struct stat st;
-        if (stat(full, &st) != 0) {
-            fossil_io_cstring_free(full);
-            continue;
-        }
-
-        // Format size into small buffer
-        char sizebuf[32];
-        if (human_readable) {
-            double sz = st.st_size;
-            char *units[] = {"B","KB","MB","GB","TB"};
-            int idx = 0;
-            while (sz >= 1024 && idx < 4) { sz /= 1024; idx++; }
-            snprintf(sizebuf, 32, "%.1f%s", sz, units[idx]);
-        } else {
-            snprintf(sizebuf, 32, "%lld", (long long)st.st_size);
-        }
-
-        // Modified date
-        if (show_time) {
-            struct tm *tmn = localtime(&st.st_mtime);
-            strftime(timebuf, 64, "%Y-%m-%d %H:%M:%S", tmn);
-        } else {
-            strcpy(timebuf, "-");
-        }
-
-        fossil_io_printf("%-30s %-10s %-8s %-20s\n",
-            entry->d_name,
-            sizebuf,
-            S_ISDIR(st.st_mode) ? "DIR" : "FILE",
-            timebuf
-        );
-
-        fossil_io_cstring_free(full);
-    }
-
-    closedir(dir);
-    return 0;
-}
-
 int fossil_shark_show(ccstring path, bool show_all, bool long_format,
                       bool human_readable, bool recursive,
                       ccstring format, bool show_time, int depth) {
@@ -837,12 +722,8 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
         result = browse_directory_interactive(path);
     } else if (fossil_io_cstring_equals(format, "progress")) {
         result = show_tree_with_progress(path, show_all, long_format, human_readable, show_time, effective_depth, 0, cempty);
-    } else if (fossil_io_cstring_equals(format, "grid")) {
-        result = show_grid(path, show_all, long_format, human_readable, show_time, effective_depth);
     } else if (fossil_io_cstring_equals(format, "tiles")) {
         result = show_tiles(path, show_all, long_format, human_readable, show_time, effective_depth);
-    } else if (fossil_io_cstring_equals(format, "table")) {
-        result = show_table(path, show_all, long_format, human_readable, show_time, effective_depth);
     } else {
         fossil_io_fprintf(FOSSIL_STDERR, "{blue}Unknown format: %s{normal}\n", format);
         result = 1;
