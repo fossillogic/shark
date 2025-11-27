@@ -164,7 +164,7 @@ static int summarize_file(ccstring path,
                           bool output_fson)
 {
     fossil_io_file_t fp;
-    fossil_io_file_open(fp, path, "rb");
+    fossil_io_file_open(&fp, path, "rb");
     if (!fp) {
         fossil_io_fprintf(FOSSIL_STDERR, "Could not open file: %s\n", path);
         return errno;
@@ -189,7 +189,7 @@ static int summarize_file(ccstring path,
     // ------------------------------
     // Read file
     // ------------------------------
-    while (fossil_io_gets_from_stream(linebuf, 8192, fp)) {
+    while (fossil_io_gets_from_stream(linebuf, 8192, &fp)) {
         line_count++;
         int len = (int)strlen(linebuf);
         char_count += len;
