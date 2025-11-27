@@ -164,8 +164,7 @@ static int summarize_file(ccstring path,
                           bool output_fson)
 {
     fossil_io_file_t fp;
-    fossil_io_file_open(&fp, path, "rb");
-    if (!fp) {
+    if (fossil_io_file_open(&fp, path, "readb")) {
         fossil_io_fprintf(FOSSIL_STDERR, "Could not open file: %s\n", path);
         return errno;
     }
