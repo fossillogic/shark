@@ -163,7 +163,8 @@ static int summarize_file(ccstring path,
                           bool do_stats,
                           bool output_fson)
 {
-    FILE *fp = fopen(path, "rb");
+    fossil_io_file_t *fp;
+    fossil_io_file_open(fp, path, "rb");
     if (!fp) {
         fossil_io_fprintf(FOSSIL_STDERR, "Could not open file: %s\n", path);
         return errno;
@@ -171,7 +172,7 @@ static int summarize_file(ccstring path,
 
     // buffers & counters
     char *linebuf = fossil_sys_memory_alloc(8192);
-    if (!linebuf) { fclose(fp); return ENOMEM; }
+    if (!linebuf) { fossil_io_file_close(fp); return ENOMEM; }
 
     long line_count = 0;
     long char_count = 0;
@@ -188,7 +189,7 @@ static int summarize_file(ccstring path,
     // ------------------------------
     // Read file
     // ------------------------------
-    while (fossil_io_fgets(linebuf, 8192, fp)) {
+    while (fossil_io_gets_from_stream(linebuf, 8192, fp)) {
         line_count++;
         int len = (int)strlen(linebuf);
         char_count += len;
@@ -223,7 +224,7 @@ static int summarize_file(ccstring path,
             break;
     }
 
-    fclose(fp);
+    fossil_io_file_close(fp);
 
 
     // ------------------------------------------------------------
