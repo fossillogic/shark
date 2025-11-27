@@ -8,7 +8,6 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 ## 🚀 Features
 
 - 🧰 Common file and directory operations (`show`, `copy`, `move`, `delete`, `etc`.)
-- 🧠 Integrated **Jellyfish AI** commands (`chat`, `ask`, `summary`)
 - 🗂 Archive creation and extraction
 - 🔍 Recursive search and content filtering
 - 🕒 Smart file timestamp management
