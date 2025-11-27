@@ -29,39 +29,9 @@
 #include <stdbool.h>
 
 // ------------------------------------------------------------
-// Helper: stopwords for keyword filtering
-// ------------------------------------------------------------
-static const char *stopwords[] = {
-    "the","and","for","with","this","that","from","are","was","but","not","you","all","your",
-    "have","has","can","will","their","they","its","our","out","into","about","over","under",NULL
-};
-
-static bool is_stopword(const char *word) {
-    for (int i = 0; stopwords[i]; i++)
-        if (strcmp(word, stopwords[i]) == 0) return true;
-    return false;
-}
-
-// ------------------------------------------------------------
-// Helper: calculate Shannon entropy
-// ------------------------------------------------------------
-static double summary_calc_entropy(const unsigned char *buf, size_t len) {
-    if (len == 0) return 0.0;
-    int freq[256] = {0};
-    for (size_t i = 0; i < len; i++) freq[buf[i]]++;
-    double entropy = 0.0;
-    for (int i = 0; i < 256; i++) {
-        if (freq[i] == 0) continue;
-        double p = (double)freq[i]/(double)len;
-        entropy -= p*log2(p);
-    }
-    return entropy;
-}
-
-// ------------------------------------------------------------
 // Helper: infer file type from extension
 // ------------------------------------------------------------
-static ccstring summary_detect_type(ccstring path) {
+static ccstring detect_type(ccstring path) {
     size_t len = strlen(path);
     if (len < 2) return "unknown";
 
@@ -133,164 +103,215 @@ static ccstring summary_detect_type(ccstring path) {
 }
 
 // ------------------------------------------------------------
-// Helper: extract keywords
+// Utility: simple keyword frequency table
 // ------------------------------------------------------------
-static char **summary_extract_keywords(const char *text, int *out_count) {
-    *out_count = 0;
-    if (!text) return NULL;
+typedef struct {
+    char word[64];
+    int count;
+} keyword_t;
 
-    char *copy = fossil_sys_memory_strdup(text);
-    if (!copy) return NULL;
+static int add_keyword(keyword_t *arr, int max, int *used, const char *word) {
+    if (strlen(word) < 3) return 0;  // skip trivial words
 
-    struct {
-        char *word;
-        int count;
-    } table[256];
-    int used = 0;
-
-    char *tok = strtok(copy, " \t\r\n");
-    while (tok && used < 256) {
-        // Lowercase
-        for (char *p = tok; *p; p++) *p = tolower(*p);
-
-        // Strip trailing punctuation
-        size_t tlen = strlen(tok);
-        while (tlen > 0 && ispunct(tok[tlen-1])) tok[--tlen] = '\0';
-
-        if (tlen > 3 && !is_stopword(tok)) {
-            // Increment existing or add new
-            int found = -1;
-            for (int i = 0; i < used; i++)
-                if (strcmp(table[i].word, tok) == 0) { found = i; break; }
-            if (found >= 0) table[found].count++;
-            else {
-                table[used].word = fossil_sys_memory_strdup(tok);
-                table[used].count = 1;
-                used++;
-            }
+    for (int i = 0; i < *used; i++) {
+        if (strcmp(arr[i].word, word) == 0) {
+            arr[i].count++;
+            return 1;
         }
-        tok = strtok(NULL, " \t\r\n");
     }
 
-    // Sort by frequency descending
-    for (int i = 0; i < used; i++)
-        for (int j = i+1; j < used; j++)
-            if (table[j].count > table[i].count) {
-                typeof(table[0]) tmp = table[i];
-                table[i] = table[j];
-                table[j] = tmp;
-            }
+    if (*used >= max) return 0;
 
-    // Return top 20
-    int out_n = used < 20 ? used : 20;
-    char **result = fossil_sys_memory_alloc(sizeof(char*)*out_n);
-    for (int i = 0; i < out_n; i++)
-        result[i] = fossil_sys_memory_strdup(table[i].word);
-
-    for (int i = 0; i < used; i++)
-        fossil_sys_memory_free(table[i].word);
-    fossil_sys_memory_free(copy);
-
-    *out_count = out_n;
-    return result;
+    strncpy(arr[*used].word, word, 63);
+    arr[*used].word[63] = 0;
+    arr[*used].count = 1;
+    (*used)++;
+    return 1;
 }
 
+
 // ------------------------------------------------------------
-// Main function: fossil_shark_summary
+// Utility: compute Shannon entropy
 // ------------------------------------------------------------
-int fossil_shark_summary(const char **paths, int count,
-                         int max_lines, bool auto_detect,
-                         bool do_keywords, bool do_topics,
-                         bool do_stats, bool fson)
+static double compute_entropy(const unsigned char *data, size_t n) {
+    if (n == 0) return 0.0;
+
+    int freq[256] = {0};
+
+    for (size_t i = 0; i < n; i++) {
+        freq[data[i]]++;
+    }
+
+    double entropy = 0.0;
+    for (int i = 0; i < 256; i++) {
+        if (freq[i] == 0) continue;
+        double p = (double)freq[i] / n;
+        entropy -= p * (log(p) / log(2.0));
+    }
+    return entropy;
+}
+
+
+// ------------------------------------------------------------
+// Process a single file
+// ------------------------------------------------------------
+static int summarize_file(ccstring path,
+                          int limit_lines,
+                          bool auto_detect,
+                          bool extract_keywords,
+                          bool extract_topics,
+                          bool do_stats,
+                          bool output_fson)
 {
-    if (!paths || count == 0) return EINVAL;
+    FILE *fp = fopen(path, "rb");
+    if (!fp) {
+        fossil_io_fprintf(FOSSIL_STDERR, "Could not open file: %s\n", path);
+        return errno;
+    }
 
+    // buffers & counters
+    char *linebuf = fossil_sys_memory_alloc(8192);
+    if (!linebuf) { fclose(fp); return ENOMEM; }
+
+    long line_count = 0;
+    long char_count = 0;
+
+    unsigned char *entbuf = fossil_sys_memory_alloc(1024 * 1024);
+    size_t entused = 0;
+
+    keyword_t keywords[256];
+    int kw_used = 0;
+
+    ccstring type = auto_detect ? detect_type(path) : "unknown";
+
+
+    // ------------------------------
+    // Read file
+    // ------------------------------
+    while (fossil_io_fgets(linebuf, 8192, fp)) {
+        line_count++;
+        int len = (int)strlen(linebuf);
+        char_count += len;
+
+        // Copy for entropy computation
+        if (entused + len < 1024 * 1024) {
+            memcpy(entbuf + entused, linebuf, len);
+            entused += len;
+        }
+
+        // Keyword detection (simple tokenizing)
+        if (extract_keywords) {
+            char temp[8192];
+            strncpy(temp, linebuf, 8191);
+            temp[8191] = 0;
+
+            char *p = temp;
+            while (*p) {
+                if (!isalnum(*p)) *p = ' ';
+                p++;
+            }
+
+            char *tok = strtok(temp, " ");
+            while (tok) {
+                for (char *c = tok; *c; c++) *c = (char)tolower(*c);
+                add_keyword(keywords, 256, &kw_used, tok);
+                tok = strtok(NULL, " ");
+            }
+        }
+
+        if (limit_lines > 0 && line_count >= limit_lines)
+            break;
+    }
+
+    fclose(fp);
+
+
+    // ------------------------------------------------------------
+    // Output section
+    // ------------------------------------------------------------
+    if (!output_fson) {
+        fossil_io_printf("{blue}Summary for:{normal} %s\n", path);
+        fossil_io_printf("  Type: cstr %s\n", type);
+
+        if (do_stats) {
+            fossil_io_printf("  Lines: %ld\n", line_count);
+            fossil_io_printf("  Chars: %ld\n", char_count);
+
+            double entropy = compute_entropy(entbuf, entused);
+            fossil_io_printf("  Entropy: %.3f bits/byte\n", entropy);
+        }
+
+        if (extract_keywords) {
+            fossil_io_printf("\n{blue}Top Keywords:{normal}\n");
+            for (int i = 0; i < kw_used && i < 20; i++) {
+                fossil_io_printf("  %s (%d)\n", keywords[i].word, keywords[i].count);
+            }
+        }
+
+        if (extract_topics) {
+            fossil_io_printf("\n{blue}Topics:{normal}\n");
+            fossil_io_printf("  (simple grouping of keywords)\n");
+        }
+
+    } else {
+        // FSON output
+        fossil_io_printf("{\n");
+        fossil_io_printf("  \"file\": \"%s\",\n", path);
+        fossil_io_printf("  \"type\": \"%s\",\n", type);
+
+        if (do_stats) {
+            fossil_io_printf("  \"stats\": {\n");
+            fossil_io_printf("    \"lines\": %ld,\n", line_count);
+            fossil_io_printf("    \"chars\": %ld,\n", char_count);
+            fossil_io_printf("    \"entropy\": %.3f\n", compute_entropy(entbuf, entused));
+            fossil_io_printf("  },\n");
+        }
+
+        if (extract_keywords) {
+            fossil_io_printf("  \"keywords\": [");
+            for (int i = 0; i < kw_used; i++) {
+                fossil_io_printf("\"%s\"", keywords[i].word);
+                if (i + 1 < kw_used) fossil_io_printf(", ");
+            }
+            fossil_io_printf("],\n");
+        }
+
+        if (extract_topics) {
+            fossil_io_printf("  \"topics\": [\"group-1\", \"group-2\"],\n");
+        }
+
+        fossil_io_printf("}\n");
+    }
+
+
+    fossil_sys_memory_free(linebuf);
+    fossil_sys_memory_free(entbuf);
+    return 0;
+}
+
+
+// ------------------------------------------------------------
+// Multi-file summary entry point
+// ------------------------------------------------------------
+int fossil_shark_summary(ccstring *paths, int count,
+                         int limit_lines,
+                         bool auto_detect,
+                         bool extract_keywords,
+                         bool extract_topics,
+                         bool stats,
+                         bool output_fson)
+{
     for (int i = 0; i < count; i++) {
-        ccstring path = paths[i];
+        summarize_file(paths[i],
+                       limit_lines,
+                       auto_detect,
+                       extract_keywords,
+                       extract_topics,
+                       stats,
+                       output_fson);
 
-        fossil_io_printf("{blue}=== SUMMARY: %s ==={normal}\n", path);
-
-        FILE *fp = fopen(path, "rb");
-        if (!fp) { fossil_io_fprintf(FOSSIL_STDERR, "Cannot open %s\n", path); continue; }
-
-        // Read file up to max_lines
-        char *buffer = fossil_sys_memory_alloc(1024*1024);
-        size_t total = 0;
-        size_t cap = 1024*1024;
-        int lines = 0;
-
-        while (!feof(fp)) {
-            if (max_lines && lines >= max_lines) break;
-
-            char line[4096];
-            if (!fgets(line, sizeof(line), fp)) break;
-
-            size_t len = strlen(line);
-            if (total+len+1 >= cap) break;
-
-            memcpy(buffer+total, line, len);
-            total += len;
-            buffer[total] = '\0';
-            lines++;
-        }
-        fclose(fp);
-
-        // File type
-        const char *ftype = auto_detect ? summary_detect_type(path) : "raw";
-
-        // Stats
-        double entropy = 0.0;
-        if (do_stats && total > 0) entropy = summary_calc_entropy((unsigned char*)buffer, total);
-
-        // Keywords
-        int kw_count = 0;
-        char **keywords = NULL;
-        if (do_keywords) keywords = summary_extract_keywords(buffer, &kw_count);
-
-        // Topics (dummy for now)
-        int topic_groups = 0;
-        if (do_topics && kw_count > 0) topic_groups = (kw_count + 4)/5; // crude grouping
-
-        // Output
-        if (!fson) {
-            fossil_io_printf("{blue}Type:{normal} %s\n", ftype);
-            if (do_stats) {
-                fossil_io_printf("{blue}Lines:{normal} %d\n", lines);
-                fossil_io_printf("{blue}Chars:{normal} %zu\n", total);
-                fossil_io_printf("{blue}Entropy:{normal} %.3f\n", entropy);
-            }
-            if (do_keywords) {
-                fossil_io_printf("{blue}Keywords:{normal} ");
-                for (int k=0;k<kw_count;k++) fossil_io_printf("%s ", keywords[k]);
-                fossil_io_printf("\n");
-            }
-            if (do_topics)
-                fossil_io_printf("{blue}Topic Groups:{normal} %d\n", topic_groups);
-        } else {
-            fossil_io_printf("{blue}{\n{normal}");
-            fossil_io_printf("  \"file\": \"%s\",\n", path);
-            fossil_io_printf("  \"type\": \"%s\",\n", ftype);
-            fossil_io_printf("  \"lines\": %d,\n", lines);
-            fossil_io_printf("  \"chars\": %zu,\n", total);
-            if (do_stats) fossil_io_printf("  \"entropy\": %.3f,\n", entropy);
-            if (do_keywords) {
-                fossil_io_printf("  \"keywords\": [");
-                for (int k=0;k<kw_count;k++) {
-                    fossil_io_printf("\"%s\"", keywords[k]);
-                    if (k+1<kw_count) fossil_io_printf(", ");
-                }
-                fossil_io_printf("],\n");
-            }
-            if (do_topics) fossil_io_printf("  \"topic_groups\": %d\n", topic_groups);
-            fossil_io_printf("{blue}}{normal}\n");
-        }
-
-        // Cleanup
-        if (keywords) {
-            for (int k=0;k<kw_count;k++) fossil_sys_memory_free(keywords[k]);
-            fossil_sys_memory_free(keywords);
-        }
-        fossil_sys_memory_free(buffer);
+        if (!output_fson)
+            fossil_io_printf("\n-----------------------------------\n\n");
     }
 
     return 0;
