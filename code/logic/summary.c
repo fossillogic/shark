@@ -23,36 +23,215 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <sys/stat.h>
-#include <time.h>
 
-int fossil_shark_summary(const char *file_path, int depth, bool show_time) {
-    fossil_ai_jellyfish_chain_t chain;
-    int rc = fossil_ai_jellyfish_load(&chain, file_path);
-    if (rc != 0) {
-        fossil_io_printf("{red}Failed to load chain from file: {cyan}%s{reset}\n", file_path);
-        return rc;
+
+static double summary_calc_entropy(const unsigned char *buf, size_t len) {
+    if (len == 0) return 0.0;
+
+    int freq[256] = {0};
+    for (size_t i = 0; i < len; i++) freq[buf[i]]++;
+
+    double entropy = 0.0;
+    for (int i = 0; i < 256; i++) {
+        if (freq[i] == 0) continue;
+        double p = (double)freq[i] / (double)len;
+        entropy -= p * log2(p);
     }
+    return entropy;
+}
 
-    fossil_io_printf("{blue}Jellyfish Chain Summary for: {cyan}%s{reset}\n", file_path);
-    fossil_io_printf("{blue}Commits: {cyan}%zu{reset}\n", chain.count);
-    fossil_io_printf("{blue}Branches: {cyan}%zu{reset}\n", chain.branch_count);
-    fossil_io_printf("{blue}Summary depth: {cyan}%d{reset}\n", depth);
-    fossil_io_printf("{blue}Show timestamps: {cyan}%s{reset}\n", show_time ? "Yes" : "No");
+static ccstring summary_detect_type(ccstring path) {
+    size_t len = strlen(path);
+    if (len >= 5 && strcmp(path + len - 4, ".log") == 0) return "log";
+    if (len >= 4 && strcmp(path + len - 3, ".md") == 0) return "markdown";
+    if (len >= 5 && strcmp(path + len - 4, ".txt") == 0) return "text";
+    if (len >= 4 && strcmp(path + len - 3, ".c") == 0) return "c-code";
+    if (len >= 3 && strcmp(path + len - 2, ".h") == 0) return "c-header";
+    return "text"; // safe fallback
+}
 
-    size_t shown = 0;
-    for (size_t i = 0; i < chain.count && shown < (size_t)depth; ++i) {
-        const fossil_ai_jellyfish_block_t *block = &chain.commits[i];
-        char type_str[32];
-        snprintf(type_str, sizeof(type_str), "%s", fossil_ai_jellyfish_commit_type_name(block->block_type));
-        fossil_io_printf("  {yellow}[%zu]{reset} {green}%s{reset}: {white}%s{reset}\n",
-            i, type_str, block->identity.commit_message);
+static char **summary_extract_keywords(const char *text, int *out_count) {
+    *out_count = 0;
+    if (!text) return NULL;
 
-        if (show_time) {
-            fossil_io_printf("    {magenta}Timestamp:{reset} %llu\n", (unsigned long long)block->time.timestamp);
+    // Very naive: split by whitespace, frequency count
+    char *copy = fossil_sys_memory_strdup(text);
+    if (!copy) return NULL;
+
+    // Temporary map
+    struct {
+        char *word;
+        int count;
+    } table[256];
+
+    int used = 0;
+    char *tok = strtok(copy, " \t\r\n.,:;(){}[]<>!?\"'");
+    while (tok && used < 256) {
+        // ignore tiny words
+        if (strlen(tok) > 3) {
+            // find existing
+            int found = -1;
+            for (int i = 0; i < used; i++) {
+                if (strcmp(table[i].word, tok) == 0) {
+                    found = i;
+                    break;
+                }
+            }
+            if (found >= 0) table[found].count++;
+            else {
+                table[used].word = fossil_sys_memory_strdup(tok);
+                table[used].count = 1;
+                used++;
+            }
         }
-        shown++;
+        tok = strtok(NULL, " \t\r\n.,:;(){}[]<>!?\"'");
     }
 
-    return FOSSIL_IO_SUCCESS;
+    // Sort by frequency descending
+    for (int i = 0; i < used; i++)
+        for (int j = i + 1; j < used; j++)
+            if (table[j].count > table[i].count) {
+                typeof(table[0]) tmp = table[i];
+                table[i] = table[j];
+                table[j] = tmp;
+            }
+
+    // return top 20
+    int out_n = used < 20 ? used : 20;
+    char **result = fossil_sys_memory_alloc(sizeof(char*) * out_n);
+    for (int i = 0; i < out_n; i++)
+        result[i] = fossil_sys_memory_strdup(table[i].word);
+
+    for (int i = 0; i < used; i++)
+        fossil_sys_memory_free(table[i].word);
+    fossil_sys_memory_free(copy);
+
+    *out_count = out_n;
+    return result;
+}
+
+int fossil_shark_summary(const char **paths, int count,
+                         int max_lines, bool auto_detect,
+                         bool do_keywords, bool do_topics,
+                         bool do_stats, bool fson)
+{
+    if (!paths || count == 0)
+        return EINVAL;
+
+    for (int i = 0; i < count; i++) {
+        ccstring path = paths[i];
+
+        fossil_io_printf("{blue}=== SUMMARY: %s ==={normal}\n", path);
+
+        FILE *fp = fopen(path, "rb");
+        if (!fp) {
+            fossil_io_fprintf(FOSSIL_STDERR, "Cannot open %s\n", path);
+            continue;
+        }
+
+        // Read file with line limit
+        char *buffer = fossil_sys_memory_alloc(1024 * 1024);
+        size_t total = 0;
+        size_t cap = 1024 * 1024;
+        int lines = 0;
+
+        while (!feof(fp)) {
+            if (max_lines && lines >= max_lines) break;
+
+            char line[4096];
+            if (!fgets(line, sizeof(line), fp)) break;
+
+            size_t len = strlen(line);
+            if (total + len + 1 >= cap) break;
+
+            memcpy(buffer + total, line, len);
+            total += len;
+            buffer[total] = '\0';
+
+            lines++;
+        }
+
+        fclose(fp);
+
+        // Auto detect type
+        const char *ftype = auto_detect ? summary_detect_type(path)
+                                        : "raw";
+
+        // Stats block
+        size_t char_count = total;
+        double entropy = 0.0;
+        if (do_stats && total > 0)
+            entropy = summary_calc_entropy((unsigned char*)buffer, total);
+
+        // Keywords
+        int kw_count = 0;
+        char **keywords = NULL;
+        if (do_keywords) {
+            keywords = summary_extract_keywords(buffer, &kw_count);
+        }
+
+        // Topics
+        int topic_groups = 0;
+        if (do_topics && kw_count > 0) {
+            summary_topic_cluster(keywords, kw_count, &topic_groups);
+        }
+
+        // Output
+        if (!fson) {
+            // Regular human readable
+            fossil_io_printf("{blue}Type:{normal} %s\n", ftype);
+
+            if (do_stats) {
+                fossil_io_printf("{blue}Lines:{normal} %d\n", lines);
+                fossil_io_printf("{blue}Chars:{normal} %zu\n", char_count);
+                fossil_io_printf("{blue}Entropy:{normal} %.3f\n", entropy);
+            }
+
+            if (do_keywords) {
+                fossil_io_printf("{blue}Keywords:{normal} ");
+                for (int k = 0; k < kw_count; k++)
+                    fossil_io_printf("%s ", keywords[k]);
+                fossil_io_printf("\n");
+            }
+
+            if (do_topics) {
+                fossil_io_printf("{blue}Topic Groups:{normal} %d\n",
+                                 topic_groups);
+            }
+        } else {
+            // FSON Output
+            fossil_io_printf("{blue}{\n{normal}");
+            fossil_io_printf("  \"file\": \"%s\",\n", path);
+            fossil_io_printf("  \"type\": \"%s\",\n", ftype);
+            fossil_io_printf("  \"lines\": %d,\n", lines);
+            fossil_io_printf("  \"chars\": %zu,\n", char_count);
+            if (do_stats)
+                fossil_io_printf("  \"entropy\": %.3f,\n", entropy);
+
+            if (do_keywords) {
+                fossil_io_printf("  \"keywords\": [");
+                for (int k = 0; k < kw_count; k++) {
+                    fossil_io_printf("\"%s\"", keywords[k]);
+                    if (k + 1 < kw_count) fossil_io_printf(", ");
+                }
+                fossil_io_printf("],\n");
+            }
+
+            if (do_topics)
+                fossil_io_printf("  \"topic_groups\": %d\n", topic_groups);
+
+            fossil_io_printf("{blue}}{normal}\n");
+        }
+
+        // Cleanup
+        if (keywords) {
+            for (int k = 0; k < kw_count; k++)
+                fossil_sys_memory_free(keywords[k]);
+            fossil_sys_memory_free(keywords);
+        }
+
+        fossil_sys_memory_free(buffer);
+    }
+
+    return 0;
 }
