@@ -163,7 +163,7 @@ static int summarize_file(ccstring path,
                           bool do_stats,
                           bool output_fson)
 {
-    fossil_io_file_t *fp;
+    fossil_io_file_t fp;
     fossil_io_file_open(fp, path, "rb");
     if (!fp) {
         fossil_io_fprintf(FOSSIL_STDERR, "Could not open file: %s\n", path);
