@@ -12,7 +12,6 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 - 🔍 Recursive search and content filtering
 - 🕒 Smart file timestamp management
 - 🧩 Cross-platform design (Linux, macOS, Windows)
-- 💬 AI-augmented explanations, analysis, and contextual assistance
 
 ## 🧭 Command Palette
 
