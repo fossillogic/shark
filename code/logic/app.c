@@ -131,22 +131,15 @@ void show_commands(char* app_name) {
     fossil_io_printf("{yellow}                   --tone            {reset}{bright_black}Detect tone{reset}\n");
     fossil_io_printf("{yellow}                   --detect <type>   {reset}{bright_black}Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble{reset}\n");
 
-    fossil_io_printf("{blue}🤖 AI Commands (Jellyfish Integration):{reset}\n");
-    fossil_io_printf("{cyan}  ask              {reset}Run a one-shot prompt against a module or chain\n");
-    fossil_io_printf("{yellow}                   -m, --model <id>   {reset}{bright_black}Model to use{reset}\n");
-    fossil_io_printf("{yellow}                   -f, --file <path>  {reset}{bright_black}Provide file context{reset}\n");
-    fossil_io_printf("{yellow}                   --explain          {reset}{bright_black}Request explanation{reset}\n");
-
-    fossil_io_printf("{cyan}  chat             {reset}Interactive conversation session with a local module\n");
-    fossil_io_printf("{yellow}                   --context          {reset}{bright_black}Keep conversation history{reset}\n");
-    fossil_io_printf("{yellow}                   --save <file>      {reset}{bright_black}Save chat transcript{reset}\n");
-    fossil_io_printf("{yellow}                   -m, --model <id>   {reset}{bright_black}Model to use{reset}\n");
-
-    fossil_io_printf("{cyan}  summary          {reset}Summarize datasets, chains, logs, or model states\n");
+    fossil_io_printf("{cyan}  summary          {reset}Summarize files, logs, code, or documents\n");
     fossil_io_printf("{yellow}                   -f, --file <path>  {reset}{bright_black}File to summarize{reset}\n");
-    fossil_io_printf("{yellow}                   --depth <n>        {reset}{bright_black}Summary depth{reset}\n");
-    fossil_io_printf("{yellow}                   --time             {reset}{bright_black}Show timestamps{reset}\n\n");
-
+    fossil_io_printf("{yellow}                   -l, --lines <n>    {reset}{bright_black}Limit number of lines analyzed{reset}\n");
+    fossil_io_printf("{yellow}                   --auto             {reset}{bright_black}Auto-detect file type{reset}\n");
+    fossil_io_printf("{yellow}                   --keywords         {reset}{bright_black}Extract keywords from file{reset}\n");
+    fossil_io_printf("{yellow}                   --topics           {reset}{bright_black}Perform simple topic clustering{reset}\n");
+    fossil_io_printf("{yellow}                   --stats            {reset}{bright_black}Show file statistics (lines, chars, entropy){reset}\n");
+    fossil_io_printf("{yellow}                   --fson             {reset}{bright_black}Output structured FSON summary{reset}\n\n");
+    
     fossil_io_printf("{cyan}  sync             {reset}Synchronize files/directories\n");
     fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
     fossil_io_printf("{yellow}                   -u, --update      {reset}{bright_black}Copy only newer{reset}\n");
@@ -183,7 +176,7 @@ bool app_entry(int argc, char** argv) {
     // List of supported commands for suggestion
     static ccstring supported_commands[] = {
         "show", "move", "copy", "remove", "delete", "rename", "create", "search",
-        "archive", "view", "compare", "help", "ask", "chat", "summary", "sync",
+        "archive", "view", "compare", "help", "summary", "sync",
         "watch", "rewrite", "introspect", "grammar",
         "--help", "--version", "--name", "--verbose", "--color", "--clear"
     };
