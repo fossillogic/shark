@@ -172,7 +172,7 @@ static int summarize_file(ccstring path,
 
     // buffers & counters
     char *linebuf = fossil_sys_memory_alloc(8192);
-    if (!linebuf) { fossil_io_file_close(fp); return ENOMEM; }
+    if (!linebuf) { fossil_io_file_close(&fp); return ENOMEM; }
 
     long line_count = 0;
     long char_count = 0;
@@ -224,7 +224,7 @@ static int summarize_file(ccstring path,
             break;
     }
 
-    fossil_io_file_close(fp);
+    fossil_io_file_close(&fp);
 
 
     // ------------------------------------------------------------
