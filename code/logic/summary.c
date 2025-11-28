@@ -249,6 +249,42 @@ static double compute_entropy(const unsigned char *data, size_t n) {
 }
 
 // ------------------------------------------------------------
+// Utility: extract topics from text (simple frequency-based clustering)
+// ------------------------------------------------------------
+static ccstring *_extract_topics(const char *text, int *topic_count) {
+    // Simple implementation: find most frequent keywords as "topics"
+    keyword_t keywords[128];
+    int kw_used = 0;
+
+    char temp[8192];
+    strncpy(temp, text, 8191);
+    temp[8191] = 0;
+
+    char *p = temp;
+    while (*p) {
+        if (!isalnum(*p)) *p = ' ';
+        p++;
+    }
+
+    char *saveptr = NULL;
+    char *tok = fossil_io_cstring_token(temp, " ", &saveptr);
+    while (tok) {
+        cstring lower_tok = fossil_io_cstring_to_lower(tok);
+        add_keyword(keywords, 128, &kw_used, lower_tok);
+        fossil_io_cstring_free(lower_tok);
+        tok = fossil_io_cstring_token(NULL, " ", &saveptr);
+    }
+
+    int limit = kw_used < 5 ? kw_used : 5;
+    ccstring *topics = fossil_sys_memory_alloc(sizeof(ccstring) * limit);
+    for (int i = 0; i < limit; i++) {
+        topics[i] = fossil_io_cstring_create(keywords[i].word);
+    }
+    *topic_count = limit;
+    return topics;
+}
+
+// ------------------------------------------------------------
 // Process a single file
 // ------------------------------------------------------------
 static int summarize_file(ccstring path,
@@ -289,6 +325,10 @@ static int summarize_file(ccstring path,
     char *summary = NULL, *key_sentence = NULL;
     const char *style = NULL, *tone = NULL, *readability_label = NULL;
 
+    // Stats
+    long word_count = 0;
+    long max_line_length = 0;
+
     // ------------------------------
     // Read file (but do not output contents)
     // ------------------------------
@@ -296,6 +336,7 @@ static int summarize_file(ccstring path,
         line_count++;
         int len = (int)fossil_io_cstring_length(linebuf);
         char_count += len;
+        if (do_stats && len > max_line_length) max_line_length = len;
 
         // Copy for entropy computation
         if (entused + len < 1024 * 1024) {
@@ -304,7 +345,7 @@ static int summarize_file(ccstring path,
         }
 
         // Keyword detection (simple tokenizing)
-        if (extract_keywords) {
+        if (extract_keywords || do_stats) {
             char temp[8192];
             strncpy(temp, linebuf, 8191);
             temp[8191] = 0;
@@ -318,9 +359,12 @@ static int summarize_file(ccstring path,
             char *saveptr = NULL;
             char *tok = fossil_io_cstring_token(temp, " ", &saveptr);
             while (tok) {
-                cstring lower_tok = fossil_io_cstring_to_lower(tok);
-                add_keyword(keywords, 256, &kw_used, lower_tok);
-                fossil_io_cstring_free(lower_tok);
+                if (extract_keywords) {
+                    cstring lower_tok = fossil_io_cstring_to_lower(tok);
+                    add_keyword(keywords, 256, &kw_used, lower_tok);
+                    fossil_io_cstring_free(lower_tok);
+                }
+                if (do_stats) word_count++;
                 tok = fossil_io_cstring_token(NULL, " ", &saveptr);
             }
         }
@@ -360,7 +404,12 @@ static int summarize_file(ccstring path,
     summary          = fossil_io_soap_summarize((const char *)entbuf);
     key_sentence     = fossil_io_soap_extract_key_sentence((const char *)entbuf);
 
-    //
+    // Topic extraction using extract_topics utility
+    ccstring *topics = NULL;
+    int topic_count = 0;
+    if (extract_topics) {
+        topics = _extract_topics((const char *)entbuf, &topic_count);
+    }
 
     // ------------------------------------------------------------
     // Output section (do not output file contents)
@@ -372,9 +421,7 @@ static int summarize_file(ccstring path,
         "The content has a readability score of %d (%s), clarity %d, and quality %d. "
         "Entropy is %.3f bits/byte, indicating %s randomness. "
         "The style is \"%s\" and the tone is \"%s\". "
-        "Passive voice usage is %d%%. "
-        "Flags detected: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s. "
-        "Top keywords: ",
+        "Passive voice usage is %d%%. ",
         path, type, line_count, char_count,
         readability, readability_label ? readability_label : "unknown",
         clarity, quality_score,
@@ -382,7 +429,20 @@ static int summarize_file(ccstring path,
         compute_entropy(entbuf, entused) > 4.0 ? "high" : "low",
         style ? style : "unknown",
         tone ? tone : "unknown",
-        passive_ratio,
+        passive_ratio
+    );
+
+    // Output stats if requested
+    if (do_stats) {
+        fossil_io_cstring_stream_write_format(ai_stream,
+            "Word count: %ld. Max line length: %ld. ",
+            word_count, max_line_length
+        );
+    }
+
+    fossil_io_cstring_stream_write_format(ai_stream,
+        "Flags detected: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s. "
+        "Top keywords: ",
         ragebait     ? "ragebait, "     : "",
         clickbait    ? "clickbait, "    : "",
         spam         ? "spam, "         : "",
@@ -410,6 +470,17 @@ static int summarize_file(ccstring path,
     }
     fossil_io_cstring_stream_write(ai_stream, ".");
 
+    // Output topics if requested
+    if (extract_topics && topics && topic_count > 0) {
+        fossil_io_cstring_stream_write(ai_stream, " Topics: ");
+        for (int i = 0; i < topic_count; i++) {
+            fossil_io_cstring_stream_write(ai_stream, topics[i]);
+            if (i + 1 < topic_count)
+                fossil_io_cstring_stream_write(ai_stream, ", ");
+        }
+        fossil_io_cstring_stream_write(ai_stream, ".");
+    }
+
     ccstring ai_response = fossil_io_cstring_stream_read(ai_stream);
 
     if (!output_fson) {
@@ -420,6 +491,21 @@ static int summarize_file(ccstring path,
     } else {
         fossil_io_printf("{yellow,bold}object:{normal} {\n");
         fossil_io_printf("  {cyan}ai_summary:{normal} cstr: \"{green}%s{normal}\"\n", ai_response);
+        if (do_stats) {
+            fossil_io_printf("  {cyan}stats:{normal} object: {\n");
+            fossil_io_printf("    {magenta}lines:{normal} int: %ld\n", line_count);
+            fossil_io_printf("    {magenta}chars:{normal} int: %ld\n", char_count);
+            fossil_io_printf("    {magenta}words:{normal} int: %ld\n", word_count);
+            fossil_io_printf("    {magenta}max_line_length:{normal} int: %ld\n", max_line_length);
+            fossil_io_printf("  }\n");
+        }
+        if (extract_topics && topics && topic_count > 0) {
+            fossil_io_printf("  {cyan}topics:{normal} array: [");
+            for (int i = 0; i < topic_count; i++) {
+                fossil_io_printf(" \"%s\"%s", topics[i], (i + 1 < topic_count) ? "," : "");
+            }
+            fossil_io_printf(" ]\n");
+        }
         fossil_io_printf("{yellow,bold}}{normal}\n");
     }
 
@@ -428,6 +514,7 @@ static int summarize_file(ccstring path,
     fossil_sys_memory_free(entbuf);
     if (summary) fossil_sys_memory_free(summary);
     if (key_sentence) fossil_sys_memory_free(key_sentence);
+    if (topics) fossil_io_soap_free_topics(topics, topic_count);
     return 0;
 }
 
