@@ -131,22 +131,15 @@ void show_commands(char* app_name) {
     fossil_io_printf("{yellow}                   --tone            {reset}{bright_black}Detect tone{reset}\n");
     fossil_io_printf("{yellow}                   --detect <type>   {reset}{bright_black}Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble{reset}\n");
 
-    fossil_io_printf("{blue}🤖 AI Commands (Jellyfish Integration):{reset}\n");
-    fossil_io_printf("{cyan}  ask              {reset}Run a one-shot prompt against a module or chain\n");
-    fossil_io_printf("{yellow}                   -m, --model <id>   {reset}{bright_black}Model to use{reset}\n");
-    fossil_io_printf("{yellow}                   -f, --file <path>  {reset}{bright_black}Provide file context{reset}\n");
-    fossil_io_printf("{yellow}                   --explain          {reset}{bright_black}Request explanation{reset}\n");
-
-    fossil_io_printf("{cyan}  chat             {reset}Interactive conversation session with a local module\n");
-    fossil_io_printf("{yellow}                   --context          {reset}{bright_black}Keep conversation history{reset}\n");
-    fossil_io_printf("{yellow}                   --save <file>      {reset}{bright_black}Save chat transcript{reset}\n");
-    fossil_io_printf("{yellow}                   -m, --model <id>   {reset}{bright_black}Model to use{reset}\n");
-
-    fossil_io_printf("{cyan}  summary          {reset}Summarize datasets, chains, logs, or model states\n");
+    fossil_io_printf("{cyan}  summary          {reset}Summarize files, logs, code, or documents\n");
     fossil_io_printf("{yellow}                   -f, --file <path>  {reset}{bright_black}File to summarize{reset}\n");
-    fossil_io_printf("{yellow}                   --depth <n>        {reset}{bright_black}Summary depth{reset}\n");
-    fossil_io_printf("{yellow}                   --time             {reset}{bright_black}Show timestamps{reset}\n\n");
-
+    fossil_io_printf("{yellow}                   -l, --lines <n>    {reset}{bright_black}Limit number of lines analyzed{reset}\n");
+    fossil_io_printf("{yellow}                   --auto             {reset}{bright_black}Auto-detect file type{reset}\n");
+    fossil_io_printf("{yellow}                   --keywords         {reset}{bright_black}Extract keywords from file{reset}\n");
+    fossil_io_printf("{yellow}                   --topics           {reset}{bright_black}Perform simple topic clustering{reset}\n");
+    fossil_io_printf("{yellow}                   --stats            {reset}{bright_black}Show file statistics (lines, chars, entropy){reset}\n");
+    fossil_io_printf("{yellow}                   --fson             {reset}{bright_black}Output structured FSON summary{reset}\n\n");
+    
     fossil_io_printf("{cyan}  sync             {reset}Synchronize files/directories\n");
     fossil_io_printf("{yellow}                   -r, --recursive   {reset}{bright_black}Include subdirs{reset}\n");
     fossil_io_printf("{yellow}                   -u, --update      {reset}{bright_black}Copy only newer{reset}\n");
@@ -183,7 +176,7 @@ bool app_entry(int argc, char** argv) {
     // List of supported commands for suggestion
     static ccstring supported_commands[] = {
         "show", "move", "copy", "remove", "delete", "rename", "create", "search",
-        "archive", "view", "compare", "help", "ask", "chat", "summary", "sync",
+        "archive", "view", "compare", "help", "summary", "sync",
         "watch", "rewrite", "introspect", "grammar",
         "--help", "--version", "--name", "--verbose", "--color", "--clear"
     };
@@ -537,54 +530,48 @@ bool app_entry(int argc, char** argv) {
                 i = j;
             }
             fossil_shark_help(command, show_examples, full_manual);
-        }
-        // AI Commands
-        else if (fossil_io_cstring_compare(argv[i], "ask") == 0) {
-            ccstring model_id = cnull, file_path = cnull;
-            bool explain = false;
-            for (int j = i + 1; j < argc; j++) {
-                if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
-                    if (j + 1 < argc) model_id = argv[++j];
-                } else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
-                    if (j + 1 < argc) file_path = argv[++j];
-                } else if (fossil_io_cstring_compare(argv[j], "--explain") == 0) {
-                    explain = true;
-                }
-                i = j;
-            }
-            fossil_shark_ask(model_id, file_path, explain);
-
-        } else if (fossil_io_cstring_compare(argv[i], "chat") == 0) {
-            ccstring model_id = cnull, save_file = cnull;
-            bool keep_context = false;
-            for (int j = i + 1; j < argc; j++) {
-                if (fossil_io_cstring_compare(argv[j], "-m") == 0 || fossil_io_cstring_compare(argv[j], "--model") == 0) {
-                    if (j + 1 < argc) model_id = argv[++j];
-                } else if (fossil_io_cstring_compare(argv[j], "--context") == 0) {
-                    keep_context = true;
-                } else if (fossil_io_cstring_compare(argv[j], "--save") == 0 && j + 1 < argc) {
-                    save_file = argv[++j];
-                }
-                i = j;
-            }
-            fossil_shark_chat(model_id, keep_context, save_file);
-
         } else if (fossil_io_cstring_compare(argv[i], "summary") == 0) {
+            // Default values
             ccstring file_path = cnull;
-            int depth = 0;
-            bool show_time = false;
+            int max_lines = 0;
+            bool auto_detect = false;
+            bool do_keywords = false;
+            bool do_topics = false;
+            bool do_stats = false;
+            bool fson = false;
+        
+            // Parse flags
             for (int j = i + 1; j < argc; j++) {
-                if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--file") == 0) {
+                if (fossil_io_cstring_compare(argv[j], "-f") == 0 ||
+                    fossil_io_cstring_compare(argv[j], "--file") == 0) {
                     if (j + 1 < argc) file_path = argv[++j];
-                } else if (fossil_io_cstring_compare(argv[j], "--depth") == 0 && j + 1 < argc) {
-                    depth = atoi(argv[++j]);
-                } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
-                    show_time = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-l") == 0 ||
+                           fossil_io_cstring_compare(argv[j], "--lines") == 0) {
+                    if (j + 1 < argc) max_lines = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--auto") == 0) {
+                    auto_detect = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--keywords") == 0) {
+                    do_keywords = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--topics") == 0) {
+                    do_topics = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--stats") == 0) {
+                    do_stats = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--fson") == 0) {
+                    fson = true;
+                } else {
+                    break; // Stop parsing flags if unknown argument
                 }
-                i = j;
+                i = j; // advance outer loop
             }
-            fossil_shark_summary(file_path, depth, show_time);
-            
+        
+            if (!file_path) {
+                fossil_io_fprintf(FOSSIL_STDERR, "No file specified for summary.\n");
+                return 1;
+            }
+        
+            // Call summary command with a single file path
+            const char *paths[1] = { file_path };
+            fossil_shark_summary(paths, 1, max_lines, auto_detect, do_keywords, do_topics, do_stats, fson);
         } else if (fossil_io_cstring_compare(argv[i], "sync") == 0) {
             ccstring src = cnull, dest = cnull;
             bool recursive = false, update = false, delete_flag = false;

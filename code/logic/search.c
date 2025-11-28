@@ -52,14 +52,14 @@ static bool str_match(ccstring str, ccstring pattern, bool ignore_case) {
 static bool content_match(ccstring file_path, ccstring pattern, bool ignore_case) {
     if (!pattern) return true; // No pattern means match all
 
-    fossil_fstream_t stream;
-    if (fossil_fstream_open(&stream, file_path, "r") != 0) {
+    fossil_io_file_t stream;
+    if (fossil_io_file_open(&stream, file_path, "r") != 0) {
         return false;
     }
 
     char *line = (char*)fossil_sys_memory_alloc(4096);
     if (cunlikely(!line)) {
-        fossil_fstream_close(&stream);
+        fossil_io_file_close(&stream);
         return false;
     }
     
@@ -73,7 +73,7 @@ static bool content_match(ccstring file_path, ccstring pattern, bool ignore_case
     }
 
     fossil_sys_memory_free(line);
-    fossil_fstream_close(&stream);
+    fossil_io_file_close(&stream);
     return found;
 }
 

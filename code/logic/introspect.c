@@ -63,8 +63,8 @@ int fossil_shark_introspect(ccstring path, int show_head_lines,
     struct stat st;
     if (stat(path, &st) != 0) return errno;
 
-    fossil_fstream_t file_stream;
-    if (fossil_fstream_open(&file_stream, path, "r") != 0 &&
+    fossil_io_file_t file_stream;
+    if (fossil_io_file_open(&file_stream, path, "r") != 0 &&
         (show_head_lines > 0 || show_tail_lines > 0 || count_lines_words_bytes)) {
         return errno;
     }
@@ -77,7 +77,7 @@ int fossil_shark_introspect(ccstring path, int show_head_lines,
     if (show_tail_lines > 0) {
         tail_buffer = (cstring *)fossil_sys_memory_alloc(sizeof(cstring) * show_tail_lines);
         if (!cnotnull(tail_buffer)) {
-            if (fossil_fstream_is_open(&file_stream)) fossil_fstream_close(&file_stream);
+            if (fossil_io_file_is_open(&file_stream)) fossil_io_file_close(&file_stream);
             return -1;
         }
         for (int i = 0; i < show_tail_lines; i++)
@@ -85,7 +85,7 @@ int fossil_shark_introspect(ccstring path, int show_head_lines,
     }
 
     int head_count = 0;
-    while (fossil_fstream_is_open(&file_stream) &&
+    while (fossil_io_file_is_open(&file_stream) &&
            fgets(buffer, sizeof(buffer), file_stream.file)) {
         size_t len = strlen(buffer);
         bytes += len;
@@ -130,18 +130,18 @@ int fossil_shark_introspect(ccstring path, int show_head_lines,
         }
     }
 
-    if (fossil_fstream_is_open(&file_stream)) fossil_fstream_close(&file_stream);
+    if (fossil_io_file_is_open(&file_stream)) fossil_io_file_close(&file_stream);
 
     // Output metadata
     if (output_fson) {
         fossil_io_printf("{cyan,bold}{\n");
-        fossil_io_printf("  \"path\": \"%s\",\n", path);
-        fossil_io_printf("  \"size\": %lld,\n", (long long)st.st_size);
-        fossil_io_printf("  \"lines\": %lu,\n", lines);
-        fossil_io_printf("  \"words\": %lu,\n", words);
-        fossil_io_printf("  \"bytes\": %lu", bytes);
+        fossil_io_printf("  path: cstr: \"%s\",\n", path);
+        fossil_io_printf("  size: i64: %lld,\n", (long long)st.st_size);
+        fossil_io_printf("  lines: u64: %lu,\n", lines);
+        fossil_io_printf("  words: u64: %lu,\n", words);
+        fossil_io_printf("  bytes: u64: %lu", bytes);
         if (show_file_type) {
-            fossil_io_printf(",\n  \"type\": \"%s\"", get_mime_type(path));
+            fossil_io_printf(",\n  type: cstr: \"%s\"", get_mime_type(path));
         }
         fossil_io_printf("\n}{normal}\n");
     } else {

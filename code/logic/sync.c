@@ -37,9 +37,9 @@
 
 #define PATH_MAX_LEN 1024
 
-// Helper: Copy file content using fossil_fstream_t
+// Helper: Copy file content using fossil_io_file_t
 static int copy_file(ccstring src_path, ccstring dest_path) {
-    int32_t rc = fossil_fstream_copy(src_path, dest_path);
+    int32_t rc = fossil_io_file_copy(src_path, dest_path);
     if (rc != 0) {
         perror("Failed to copy file");
         return rc;
@@ -187,7 +187,7 @@ int fossil_shark_sync(ccstring src, ccstring dest,
                     // Remove directory
                     _rmdir(dest_path);
                 } else {
-                    if (fossil_fstream_delete(dest_path) != 0) perror("Failed to delete extraneous file");
+                    if (fossil_io_file_delete(dest_path) != 0) perror("Failed to delete extraneous file");
                 }
             }
         } while (FindNextFileA(hFind, &find_data));
@@ -209,7 +209,7 @@ int fossil_shark_sync(ccstring src, ccstring dest,
                 if (stat(dest_path, &st_entry) == 0 && S_ISDIR(st_entry.st_mode)) {
                     rmdir(dest_path);
                 } else {
-                    if (fossil_fstream_delete(dest_path) != 0) perror("Failed to delete extraneous file");
+                    if (fossil_io_file_delete(dest_path) != 0) perror("Failed to delete extraneous file");
                 }
             }
         }

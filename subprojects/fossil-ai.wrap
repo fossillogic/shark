@@ -1,7 +1,0 @@
-[wrap-git]
-url = https://github.com/fossillogic/fossil-ai.git
-revision = v0.1.4
-
-[provide]
-dependency_names = fossil-ai
-

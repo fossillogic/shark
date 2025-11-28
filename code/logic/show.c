@@ -637,6 +637,60 @@ static int show_graph(ccstring path, bool show_all, bool long_format,
 #endif
 }
 
+static int show_tiles(ccstring path, bool show_all, bool long_format,
+                      bool human_readable, bool show_time,
+                      int depth) {
+
+    DIR *dir = opendir(path);
+    if (!dir) return errno;
+
+    struct dirent *entry;
+
+    while ((entry = readdir(dir)) != cnull) {
+        // Skip hidden files if show_all is false
+        if (!show_all && entry->d_name[0] == '.') continue;
+
+        // Build full path
+        cstring full = fossil_io_cstring_format("%s/%s", path, entry->d_name);
+        if (!full) continue;
+
+        struct stat st;
+        if (stat(full, &st) != 0) {
+            fossil_io_cstring_free(full);
+            continue;
+        }
+
+        // Print file info
+        fossil_io_printf("\n{blue}------------------------------{normal}\n");
+        fossil_io_printf("{blue}Name:{normal} %s\n", entry->d_name);
+        fossil_io_printf("{blue}Type:{normal} %s\n", S_ISDIR(st.st_mode) ? "Directory" : "File");
+
+        if (long_format) {
+            fossil_io_printf("{blue}Size:{normal} ");
+            print_size(st.st_size, human_readable);
+            fossil_io_printf("\n");
+
+            if (show_time) {
+                char tbuf[64];
+                struct tm *tmn = localtime(&st.st_mtime);
+                strftime(tbuf, sizeof(tbuf), "%Y-%m-%d %H:%M:%S", tmn);
+                fossil_io_printf("{blue}Modified:{normal} %s\n", tbuf);
+            }
+        }
+
+        // Recurse into subdirectories if depth > 1
+        if (S_ISDIR(st.st_mode) && depth > 1) {
+            show_tiles(full, show_all, long_format, human_readable, show_time, depth - 1);
+        }
+
+        fossil_io_cstring_free(full);
+    }
+
+    fossil_io_printf("{blue}------------------------------{normal}\n\n");
+    closedir(dir);
+    return 0;
+}
+
 int fossil_shark_show(ccstring path, bool show_all, bool long_format,
                       bool human_readable, bool recursive,
                       ccstring format, bool show_time, int depth) {
@@ -668,6 +722,8 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
         result = browse_directory_interactive(path);
     } else if (fossil_io_cstring_equals(format, "progress")) {
         result = show_tree_with_progress(path, show_all, long_format, human_readable, show_time, effective_depth, 0, cempty);
+    } else if (fossil_io_cstring_equals(format, "tiles")) {
+        result = show_tiles(path, show_all, long_format, human_readable, show_time, effective_depth);
     } else {
         fossil_io_fprintf(FOSSIL_STDERR, "{blue}Unknown format: %s{normal}\n", format);
         result = 1;

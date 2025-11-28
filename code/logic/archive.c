@@ -107,14 +107,14 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     }
 
     // Check if file exists for extract and list operations
-    if ((extract || list) && !fossil_fstream_file_exists(path)) {
+    if ((extract || list) && !fossil_io_file_file_exists(path)) {
         fossil_io_printf("{red}Error: Archive file '%s' does not exist.{normal}\n", path);
         return 1;
     }
 
     // Check permissions
     if (extract || list) {
-        if (!fossil_fstream_is_readable(path)) {
+        if (!fossil_io_file_is_readable(path)) {
             fossil_io_printf("{red}Error: Archive file '%s' is not readable.{normal}\n", path);
             return 1;
         }
@@ -206,9 +206,9 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     fossil_sys_memory_zero(log_filename, 1024);
     fossil_fpath_create_path_safe(log_filename, 1024, sanitized_path, ".archive.log");
     
-    fossil_fstream_t log_stream;
+    fossil_io_file_t log_stream;
     COption log_option = cnone();
-    if (fossil_fstream_open(&log_stream, log_filename, "w") == 0) {
+    if (fossil_io_file_open(&log_stream, log_filename, "w") == 0) {
         log_option = csome(&log_stream);
         char *log_msg = (char*)fossil_sys_memory_alloc(1000);
         if (cnotnull(log_msg)) {
@@ -224,7 +224,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             size_t len = fossil_io_cstring_length(log_msg);
             log_msg[len] = '\n';
             log_msg[len + 1] = '\0';
-            fossil_fstream_write(&log_stream, log_msg, fossil_io_cstring_length(log_msg), 1);
+            fossil_io_file_write(&log_stream, log_msg, fossil_io_cstring_length(log_msg), 1);
             fossil_sys_memory_free(log_msg);
         }
     }
@@ -246,7 +246,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             fossil_sys_memory_free(sanitized_format);
             fossil_sys_memory_free(sanitized_password);
             if (log_option.is_some) {
-                fossil_fstream_close((fossil_fstream_t*)log_option.value);
+                fossil_io_file_close((fossil_io_file_t*)log_option.value);
             }
             return 1;
         }
@@ -262,7 +262,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
                 fossil_sys_memory_free(sanitized_format);
                 fossil_sys_memory_free(sanitized_password);
                 if (log_option.is_some) {
-                    fossil_fstream_close((fossil_fstream_t*)log_option.value);
+                    fossil_io_file_close((fossil_io_file_t*)log_option.value);
                 }
                 return 0;
             }
@@ -357,10 +357,10 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             }
             result_msg[written] = '\n';
             result_msg[written + 1] = '\0';
-            fossil_fstream_write((fossil_fstream_t*)log_option.value, result_msg, fossil_io_cstring_length(result_msg), 1);
+            fossil_io_file_write((fossil_io_file_t*)log_option.value, result_msg, fossil_io_cstring_length(result_msg), 1);
             fossil_sys_memory_free(result_msg);
         }
-        fossil_fstream_close((fossil_fstream_t*)log_option.value);
+        fossil_io_file_close((fossil_io_file_t*)log_option.value);
     }
 
     // Clean up allocated memory

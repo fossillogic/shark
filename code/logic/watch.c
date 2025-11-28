@@ -47,7 +47,7 @@ static void fossil_shark_watch_file(const char *path, const char *events, struct
     if (rc != 0) {
         if (errno == ENOENT && fossil_io_cstring_icontains(events, "delete")) {
             cstring del_msg = fossil_io_cstring_format("{red}File deleted:{normal} %s\n", path);
-            fossil_fstream_write(FOSSIL_STDOUT, del_msg, fossil_io_cstring_length(del_msg), 1);
+            fossil_io_file_write(FOSSIL_STDOUT, del_msg, fossil_io_cstring_length(del_msg), 1);
             fossil_io_cstring_free(del_msg);
         }
         return;
@@ -56,14 +56,14 @@ static void fossil_shark_watch_file(const char *path, const char *events, struct
     // Check modification time
     if (curr_stat.st_mtime != prev_stat->st_mtime && fossil_io_cstring_icontains(events, "modify")) {
         cstring mod_msg = fossil_io_cstring_format("{yellow}File modified:{normal} %s\n", path);
-        fossil_fstream_write(FOSSIL_STDOUT, mod_msg, fossil_io_cstring_length(mod_msg), 1);
+        fossil_io_file_write(FOSSIL_STDOUT, mod_msg, fossil_io_cstring_length(mod_msg), 1);
         fossil_io_cstring_free(mod_msg);
     }
 
     // Check size change
     if (curr_stat.st_size != prev_stat->st_size && fossil_io_cstring_icontains(events, "modify")) {
         cstring size_msg = fossil_io_cstring_format("{cyan}File size changed:{normal} %s\n", path);
-        fossil_fstream_write(FOSSIL_STDOUT, size_msg, fossil_io_cstring_length(size_msg), 1);
+        fossil_io_file_write(FOSSIL_STDOUT, size_msg, fossil_io_cstring_length(size_msg), 1);
         fossil_io_cstring_free(size_msg);
     }
 
@@ -110,13 +110,13 @@ int fossil_shark_watch(const char *path, bool recursive,
     WIN32_FILE_ATTRIBUTE_DATA prev_attr;
     if (!GetFileAttributesExA(path, GetFileExInfoStandard, &prev_attr)) {
         cstring err_msg = fossil_io_cstring_format("{red,bold}Failed to stat path:{normal} %s\n", path);
-        fossil_fstream_write(FOSSIL_STDERR, err_msg, fossil_io_cstring_length(err_msg), 1);
+        fossil_io_file_write(FOSSIL_STDERR, err_msg, fossil_io_cstring_length(err_msg), 1);
         fossil_io_cstring_free(err_msg);
         return GetLastError();
     }
 
     cstring msg = fossil_io_cstring_format("{green,bold}Watching %s every %d seconds...{normal}%s\n", path, interval, recursive ? " (recursive not implemented on Windows)" : "");
-    fossil_fstream_write(FOSSIL_STDOUT, msg, fossil_io_cstring_length(msg), 1);
+    fossil_io_file_write(FOSSIL_STDOUT, msg, fossil_io_cstring_length(msg), 1);
     fossil_io_cstring_free(msg);
 
     while (1) {
@@ -127,7 +127,7 @@ int fossil_shark_watch(const char *path, bool recursive,
             DWORD err = GetLastError();
             if (err == ERROR_FILE_NOT_FOUND && fossil_io_cstring_icontains(events, "delete")) {
                 cstring del_msg = fossil_io_cstring_format("{red}File deleted:{normal} %s\n", path);
-                fossil_fstream_write(FOSSIL_STDOUT, del_msg, fossil_io_cstring_length(del_msg), 1);
+                fossil_io_file_write(FOSSIL_STDOUT, del_msg, fossil_io_cstring_length(del_msg), 1);
                 fossil_io_cstring_free(del_msg);
             }
             continue;
@@ -138,7 +138,7 @@ int fossil_shark_watch(const char *path, bool recursive,
             curr_attr.ftLastWriteTime.dwHighDateTime != prev_attr.ftLastWriteTime.dwHighDateTime) {
             if (fossil_io_cstring_icontains(events, "modify")) {
                 cstring mod_msg = fossil_io_cstring_format("{yellow}File modified:{normal} %s\n", path);
-                fossil_fstream_write(FOSSIL_STDOUT, mod_msg, fossil_io_cstring_length(mod_msg), 1);
+                fossil_io_file_write(FOSSIL_STDOUT, mod_msg, fossil_io_cstring_length(mod_msg), 1);
                 fossil_io_cstring_free(mod_msg);
             }
         }
@@ -148,7 +148,7 @@ int fossil_shark_watch(const char *path, bool recursive,
         ULONGLONG curr_size = ((ULONGLONG)curr_attr.nFileSizeHigh << 32) | curr_attr.nFileSizeLow;
         if (curr_size != prev_size && fossil_io_cstring_icontains(events, "modify")) {
             cstring size_msg = fossil_io_cstring_format("{cyan}File size changed:{normal} %s\n", path);
-            fossil_fstream_write(FOSSIL_STDOUT, size_msg, fossil_io_cstring_length(size_msg), 1);
+            fossil_io_file_write(FOSSIL_STDOUT, size_msg, fossil_io_cstring_length(size_msg), 1);
             fossil_io_cstring_free(size_msg);
         }
 
@@ -158,13 +158,13 @@ int fossil_shark_watch(const char *path, bool recursive,
     struct stat st;
     if (stat(path, &st) != 0) {
         cstring err_msg = fossil_io_cstring_format("{red,bold}Failed to stat path:{normal} %s\n", path);
-        fossil_fstream_write(FOSSIL_STDERR, err_msg, fossil_io_cstring_length(err_msg), 1);
+        fossil_io_file_write(FOSSIL_STDERR, err_msg, fossil_io_cstring_length(err_msg), 1);
         fossil_io_cstring_free(err_msg);
         return errno;
     }
 
     cstring msg = fossil_io_cstring_format("{green,bold}Watching %s every %d seconds...{normal}%s\n", path, interval, recursive ? " (recursive enabled)" : "");
-    fossil_fstream_write(FOSSIL_STDOUT, msg, fossil_io_cstring_length(msg), 1);
+    fossil_io_file_write(FOSSIL_STDOUT, msg, fossil_io_cstring_length(msg), 1);
     fossil_io_cstring_free(msg);
 
     if (recursive && S_ISDIR(st.st_mode)) {

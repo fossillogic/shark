@@ -239,48 +239,26 @@ int fossil_shark_grammar(const char *file_path, bool check, bool fix,
                          bool sanitize, bool suggest, bool tone,
                          const char *detect_type);
 
-// ========================================================
-// AI Commands
-// ========================================================
-
 /**
- * Run a one-shot prompt against a module or chain.
- * @param model_id Model to use for the prompt
- * @param file_path Provide file context for the prompt
- * @param explain Request explanation from AI
- * @return 0 on success, non-zero on error
- * Common flags:
- *   -m, --model <id>   Model to use
- *   -f, --file <path>  Provide file context
- *   --explain          Request explanation
+ * @brief Generate structured summaries of text/code/log/document files.
+ *
+ * @param paths Array of file paths.
+ * @param count Number of paths.
+ * @param limit_lines Limit number of lines to analyze (0 = no limit).
+ * @param auto_detect Enable automatic file-type inference.
+ * @param extract_keywords Extract keyword list.
+ * @param extract_topics Perform simple topic clustering.
+ * @param stats Include file statistics.
+ * @param output_fson Output structured FSON format.
+ * @return int Status code.
  */
-int fossil_shark_ask(const char *model_id, const char *file_path, bool explain);
-
-/**
- * Interactive conversation session with a local module.
- * @param model_id Model to use for the chat session
- * @param keep_context Keep conversation history across interactions
- * @param save_file Save chat transcript to file
- * @return 0 on success, non-zero on error
- * Common flags:
- *   --context          Keep conversation history
- *   --save <file>      Save chat transcript
- *   -m, --model <id>   Model to use
- */
-int fossil_shark_chat(const char *model_id, bool keep_context, const char *save_file);
-
-/**
- * Summarize datasets, chains, logs, or model states.
- * @param file_path File to summarize
- * @param depth Summary depth
- * @param show_time Show timestamps in summary
- * @return 0 on success, non-zero on error
- * Common flags:
- *   -f, --file <path>  File to summarize
- *   --depth <n>        Summary depth
- *   --time             Show timestamps
- */
-int fossil_shark_summary(const char *file_path, int depth, bool show_time);
+int fossil_shark_summary(ccstring *paths, int count,
+                         int limit_lines,
+                         bool auto_detect,
+                         bool extract_keywords,
+                         bool extract_topics,
+                         bool stats,
+                         bool output_fson);
 
 #ifdef __cplusplus
 }

@@ -26,8 +26,9 @@
 #define FOSSIL_APP_COMMON_H
 
 #include <fossil/sys/framework.h>
-#include <fossil/ai/framework.h>
 #include <fossil/io/framework.h>
+#include <fossil/math/framework.h>
+#include <fossil/algorithm/framework.h>
 
 #ifdef _WIN32
 #include <direct.h>
