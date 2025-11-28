@@ -1,17 +1,22 @@
 # 🦈 Shark Tool
 ### A Command-Line Power Utility by **Fossil Logic**
 
-Shark Tool is a modern, **all-in-one command-line toolkit** designed for administrators, developers, and power users. It streamlines complex file and system operations into a single, unified interface — combining traditional UNIX-style commands with **Jellyfish AI integration** for intelligent automation and analysis.
+Shark Tool is the ultimate **all-in-one file and system administration utility**. Built for admins, developers, and power users, Shark unifies essential file management, automation, and analysis tasks into a single, powerful command-line interface—eliminating the need for multiple separate tools. Its unique commands, such as `grammar` for advanced text analysis, `summary` for structured file summaries, and `introspect` for deep file inspection, set Shark apart by providing capabilities rarely found in traditional CLI utilities.
 
 ---
 
 ## 🚀 Features
 
-- 🧰 Common file and directory operations (`show`, `copy`, `move`, `delete`, `etc`.)
-- 🗂 Archive creation and extraction
-- 🔍 Recursive search and content filtering
-- 🕒 Smart file timestamp management
-- 🧩 Cross-platform design (Linux, macOS, Windows)
+- 🧰 Comprehensive file and directory operations (`show`, `copy`, `move`, `delete`, `rename`, `create`)
+- 🗂 Powerful archive creation, extraction, and listing (zip, tar, gz)
+- 🔍 Advanced recursive search by name or content with filtering options
+- 🕒 Smart file timestamp and metadata management
+- 🧩 Cross-platform compatibility (Linux, macOS, Windows)
+- 🧭 Command palette for quick access to all features
+- 🧠 Grammar analysis, correction, and tone detection via SOAP API
+- 📊 Structured file summaries and statistics (keywords, topics, entropy)
+- 🔄 File synchronization and backup with flexible options
+- 👀 Real-time file monitoring and change detection
 
 ## 🧭 Command Palette
 
@@ -38,8 +43,6 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `introspect` | Examine file contents, type, or metadata. | `-n <lines>` Number of lines<br>`-c` Count lines, words, bytes<br>`--fson` FSON output<br>`--mime` Show MIME type |
 | `grammar` | Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning through the SOAP API. | `--check` Run grammar check<br>`--fix` Auto-correct grammar<br>`--sanitize` Remove rot-brain/meme language<br>`--suggest` Suggest alternatives<br>`--tone` Detect tone<br>`--detect <type>` Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble |
 | `summary` | Generate a structured summary of one or more files (text, logs, code, docs). | `-l, --lines <n>` Limit lines analyzed<br>`--auto` Auto-detect file type<br>`--keywords` Extract keywords<br>`--topics` Topic clustering<br>`--stats` File statistics (chars/lines/entropy)<br>`--fson` Output structured FSON summary |
-| `backup` | Create a backup of files or directories. | `-r, --recursive` Include subdirs<br>`-o, --output <dir>` Output location<br>`-f, --format <zip/tar/gz>` Backup format<br>`-e, --exclude <pattern>` Exclude files/directories<br>`--time` Timestamp backup |
-| `restore` | Restore files or directories from a backup. | `-r, --recursive` Restore subdirs<br>`-i, --input <file>` Backup file to restore<br>`-f, --force` Overwrite existing files<br>`--time` Preserve original timestamps |
 
 ---
 
