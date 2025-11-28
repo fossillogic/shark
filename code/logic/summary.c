@@ -514,7 +514,6 @@ static int summarize_file(ccstring path,
     fossil_sys_memory_free(entbuf);
     if (summary) fossil_sys_memory_free(summary);
     if (key_sentence) fossil_sys_memory_free(key_sentence);
-    if (topics) fossil_io_soap_free_topics(topics, topic_count);
     return 0;
 }
 
