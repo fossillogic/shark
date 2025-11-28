@@ -30,7 +30,7 @@
 #include "magic.h"
 
 #define FOSSIL_APP_NAME "Shark Tool"
-#define FOSSIL_APP_VERSION "0.1.1"
+#define FOSSIL_APP_VERSION "0.1.2"
 
 #ifdef __cplusplus
 extern "C" {
