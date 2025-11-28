@@ -18,6 +18,7 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 ---
 
 ### 🗂 Core File Operations
+
 | **Command** | **Description** | **Common Flags** |
 |-------------|-----------------|-----------------|
 | `show` | Display files and directories. | `-a, --all` Show hidden files<br>`-l, --long` Detailed info<br>`-h, --human` Human-readable sizes<br>`-r, --recursive` Include subdirs<br>`-d, --depth <n>` Limit recursion depth<br>`--as` Format options "list", tree, graph, grid, table, tiles.<br>`--time` Show timestamps |
@@ -37,6 +38,8 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `introspect` | Examine file contents, type, or metadata. | `-n <lines>` Number of lines<br>`-c` Count lines, words, bytes<br>`--fson` FSON output<br>`--mime` Show MIME type |
 | `grammar` | Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning through the SOAP API. | `--check` Run grammar check<br>`--fix` Auto-correct grammar<br>`--sanitize` Remove rot-brain/meme language<br>`--suggest` Suggest alternatives<br>`--tone` Detect tone<br>`--detect <type>` Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble |
 | `summary` | Generate a structured summary of one or more files (text, logs, code, docs). | `-l, --lines <n>` Limit lines analyzed<br>`--auto` Auto-detect file type<br>`--keywords` Extract keywords<br>`--topics` Topic clustering<br>`--stats` File statistics (chars/lines/entropy)<br>`--fson` Output structured FSON summary |
+| `backup` | Create a backup of files or directories. | `-r, --recursive` Include subdirs<br>`-o, --output <dir>` Output location<br>`-f, --format <zip|tar|gz>` Backup format<br>`-e, --exclude <pattern>` Exclude files/directories<br>`--time` Timestamp backup |
+| `restore` | Restore files or directories from a backup. | `-r, --recursive` Restore subdirs<br>`-i, --input <file>` Backup file to restore<br>`-f, --force` Overwrite existing files<br>`--time` Preserve original timestamps |
 
 ---
 
@@ -52,7 +55,10 @@ Shark Tool is a modern, **all-in-one command-line toolkit** designed for adminis
 | `--color` | Colorize output where applicable. |
 | `--time` | Display timestamps in output. |
 
+---
+
 ### 🧩 Usage Examples
+
 | **Example** | **Description** |
 |--------------|-----------------|
 | `shark show -alh --as=tree --time` | List all files (including hidden) in long, human-readable format as a tree, with timestamps. |
