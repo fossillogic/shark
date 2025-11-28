@@ -28,7 +28,6 @@
 #include <fossil/sys/framework.h>
 #include <fossil/io/framework.h>
 #include <fossil/math/framework.h>
-#include <fossil/tofu/framework.h>
 #include <fossil/algorithm/framework.h>
 
 #ifdef _WIN32

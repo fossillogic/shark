@@ -31,75 +31,172 @@
 // ------------------------------------------------------------
 // Helper: infer file type from extension
 // ------------------------------------------------------------
+// Maximized file type detector: supports more extensions, case-insensitive, and handles compound extensions
 static ccstring detect_type(ccstring path) {
-    size_t len = strlen(path);
+    size_t len = fossil_io_cstring_length(path);
     if (len < 2) return "unknown";
 
-    // Helper macro to simplify comparison
-    #define EXT_EQ(ext_len, ext_str) (len >= ext_len && strcmp(path + len - ext_len, ext_str) == 0)
+    // Lowercase copy for case-insensitive comparison
+    cstring extbuf = fossil_io_cstring_create_safe("", 32);
+    int extlen = 0;
+    for (int i = (int)len - 1; i >= 0 && extlen < 31; i--) {
+        if (path[i] == '.') {
+            fossil_io_cstring_free(extbuf);
+            extbuf = fossil_io_cstring_substring_safe(path, i, len - i, 32);
+            cstring lower = fossil_io_cstring_to_lower_safe(extbuf, 32);
+            fossil_io_cstring_free(extbuf);
+            extbuf = lower;
+            break;
+        }
+    }
+
+    // Compound extensions (e.g., .tar.gz, .user.js)
+    if (len >= 7 && fossil_io_cstring_iequals_safe(path + len - 7, ".tar.gz", 7)) {
+        fossil_io_cstring_free(extbuf); return "archive";
+    }
+    if (len >= 8 && fossil_io_cstring_iequals_safe(path + len - 8, ".tar.bz2", 8)) {
+        fossil_io_cstring_free(extbuf); return "archive";
+    }
+    if (len >= 9 && fossil_io_cstring_iequals_safe(path + len - 9, ".user.js", 9)) {
+        fossil_io_cstring_free(extbuf); return "javascript-user-script";
+    }
+    if (len >= 8 && fossil_io_cstring_iequals_safe(path + len - 8, ".spec.js", 8)) {
+        fossil_io_cstring_free(extbuf); return "javascript-test";
+    }
+    if (len >= 8 && fossil_io_cstring_iequals_safe(path + len - 8, ".test.js", 8)) {
+        fossil_io_cstring_free(extbuf); return "javascript-test";
+    }
 
     // Logs & Text
-    if (EXT_EQ(4, ".log")) return "log";
-    if (EXT_EQ(4, ".txt")) return "text";
-    if (EXT_EQ(3, ".md"))  return "markdown";
-    if (EXT_EQ(4, ".csv")) return "csv";
-    if (EXT_EQ(5, ".json")) return "json";
-    if (EXT_EQ(4, ".xml")) return "xml";
-    if (EXT_EQ(4, ".yml") || EXT_EQ(5, ".yaml")) return "yaml";
+    if (fossil_io_cstring_equals_safe(extbuf, ".log", 32))  { fossil_io_cstring_free(extbuf); return "log"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".txt", 32))  { fossil_io_cstring_free(extbuf); return "text"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".md", 32))   { fossil_io_cstring_free(extbuf); return "markdown"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".rst", 32))  { fossil_io_cstring_free(extbuf); return "restructuredtext"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".csv", 32))  { fossil_io_cstring_free(extbuf); return "csv"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".tsv", 32))  { fossil_io_cstring_free(extbuf); return "tsv"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".json", 32)) { fossil_io_cstring_free(extbuf); return "json"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".xml", 32))  { fossil_io_cstring_free(extbuf); return "xml"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".yml", 32) || fossil_io_cstring_equals_safe(extbuf, ".yaml", 32)) { fossil_io_cstring_free(extbuf); return "yaml"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".toml", 32)) { fossil_io_cstring_free(extbuf); return "toml"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".ini", 32))  { fossil_io_cstring_free(extbuf); return "ini"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".cfg", 32))  { fossil_io_cstring_free(extbuf); return "config"; }
 
     // Code & Headers
-    if (EXT_EQ(2, ".c")) return "c-code";
-    if (EXT_EQ(2, ".h")) return "c-header";
-    if (EXT_EQ(3, ".py")) return "python";
-    if (EXT_EQ(3, ".js")) return "javascript";
-    if (EXT_EQ(3, ".ts")) return "typescript";
-    if (EXT_EQ(3, ".rb")) return "ruby";
-    if (EXT_EQ(4, ".cpp")) return "cpp";
-    if (EXT_EQ(4, ".hpp")) return "cpp-header";
-    if (EXT_EQ(4, ".java")) return "java";
-    if (EXT_EQ(4, ".cs")) return "csharp";
-
-    // Configuration & Scripts
-    if (EXT_EQ(3, ".sh")) return "shell-script";
-    if (EXT_EQ(4, ".bat")) return "batch-script";
-    if (EXT_EQ(3, ".ps"))  return "powershell-script";
-    if (EXT_EQ(4, ".ini")) return "ini";
-    if (EXT_EQ(4, ".cfg")) return "config";
-    if (EXT_EQ(4, ".toml")) return "toml";
+    if (fossil_io_cstring_equals_safe(extbuf, ".c", 32))    { fossil_io_cstring_free(extbuf); return "c-code"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".h", 32))    { fossil_io_cstring_free(extbuf); return "c-header"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".cpp", 32))  { fossil_io_cstring_free(extbuf); return "cpp"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".cc", 32))   { fossil_io_cstring_free(extbuf); return "cpp"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".cxx", 32))  { fossil_io_cstring_free(extbuf); return "cpp"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".hpp", 32))  { fossil_io_cstring_free(extbuf); return "cpp-header"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".hh", 32))   { fossil_io_cstring_free(extbuf); return "cpp-header"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".hxx", 32))  { fossil_io_cstring_free(extbuf); return "cpp-header"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".py", 32))   { fossil_io_cstring_free(extbuf); return "python"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".pyw", 32))  { fossil_io_cstring_free(extbuf); return "python"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".ipynb", 32)){ fossil_io_cstring_free(extbuf); return "jupyter-notebook"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".js", 32))   { fossil_io_cstring_free(extbuf); return "javascript"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".ts", 32))   { fossil_io_cstring_free(extbuf); return "typescript"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".jsx", 32))  { fossil_io_cstring_free(extbuf); return "jsx"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".tsx", 32))  { fossil_io_cstring_free(extbuf); return "tsx"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".rb", 32))   { fossil_io_cstring_free(extbuf); return "ruby"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".java", 32)) { fossil_io_cstring_free(extbuf); return "java"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".cs", 32))   { fossil_io_cstring_free(extbuf); return "csharp"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".go", 32))   { fossil_io_cstring_free(extbuf); return "go"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".rs", 32))   { fossil_io_cstring_free(extbuf); return "rust"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".swift", 32)){ fossil_io_cstring_free(extbuf); return "swift"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".kt", 32))   { fossil_io_cstring_free(extbuf); return "kotlin"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".scala", 32)){ fossil_io_cstring_free(extbuf); return "scala"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".php", 32))  { fossil_io_cstring_free(extbuf); return "php"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".pl", 32))   { fossil_io_cstring_free(extbuf); return "perl"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".lua", 32))  { fossil_io_cstring_free(extbuf); return "lua"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".dart", 32)) { fossil_io_cstring_free(extbuf); return "dart"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".m", 32))    { fossil_io_cstring_free(extbuf); return "objective-c"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".mm", 32))   { fossil_io_cstring_free(extbuf); return "objective-c++"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".groovy", 32)){ fossil_io_cstring_free(extbuf); return "groovy"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".asm", 32))  { fossil_io_cstring_free(extbuf); return "assembly"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".s", 32))    { fossil_io_cstring_free(extbuf); return "assembly"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".f", 32) || fossil_io_cstring_equals_safe(extbuf, ".for", 32) || fossil_io_cstring_equals_safe(extbuf, ".f90", 32)) { fossil_io_cstring_free(extbuf); return "fortran"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".r", 32))    { fossil_io_cstring_free(extbuf); return "r"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".jl", 32))   { fossil_io_cstring_free(extbuf); return "julia"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".sh", 32))   { fossil_io_cstring_free(extbuf); return "shell-script"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".bash", 32)) { fossil_io_cstring_free(extbuf); return "shell-script"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".zsh", 32))  { fossil_io_cstring_free(extbuf); return "shell-script"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".bat", 32))  { fossil_io_cstring_free(extbuf); return "batch-script"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".ps1", 32) || fossil_io_cstring_equals_safe(extbuf, ".ps", 32)) { fossil_io_cstring_free(extbuf); return "powershell-script"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".make", 32) || fossil_io_cstring_equals_safe(extbuf, ".mk", 32)) { fossil_io_cstring_free(extbuf); return "makefile"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".dockerfile", 32)) { fossil_io_cstring_free(extbuf); return "dockerfile"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".gradle", 32)) { fossil_io_cstring_free(extbuf); return "gradle"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".cmake", 32)) { fossil_io_cstring_free(extbuf); return "cmake"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".vim", 32))   { fossil_io_cstring_free(extbuf); return "vimscript"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".emacs", 32) || fossil_io_cstring_equals_safe(extbuf, ".el", 32)) { fossil_io_cstring_free(extbuf); return "emacs-lisp"; }
 
     // Documents
-    if (EXT_EQ(4, ".pdf")) return "pdf";
-    if (EXT_EQ(5, ".docx")) return "word";
-    if (EXT_EQ(5, ".xlsx")) return "excel";
-    if (EXT_EQ(5, ".pptx")) return "powerpoint";
+    if (fossil_io_cstring_equals_safe(extbuf, ".pdf", 32))   { fossil_io_cstring_free(extbuf); return "pdf"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".doc", 32) || fossil_io_cstring_equals_safe(extbuf, ".docx", 32)) { fossil_io_cstring_free(extbuf); return "word"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".xls", 32) || fossil_io_cstring_equals_safe(extbuf, ".xlsx", 32)) { fossil_io_cstring_free(extbuf); return "excel"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".ppt", 32) || fossil_io_cstring_equals_safe(extbuf, ".pptx", 32)) { fossil_io_cstring_free(extbuf); return "powerpoint"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".odt", 32))   { fossil_io_cstring_free(extbuf); return "open-document"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".ods", 32))   { fossil_io_cstring_free(extbuf); return "open-spreadsheet"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".odp", 32))   { fossil_io_cstring_free(extbuf); return "open-presentation"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".epub", 32))  { fossil_io_cstring_free(extbuf); return "ebook"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".tex", 32))   { fossil_io_cstring_free(extbuf); return "latex"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".rtf", 32))   { fossil_io_cstring_free(extbuf); return "rtf"; }
 
     // Images
-    if (EXT_EQ(4, ".png")) return "image";
-    if (EXT_EQ(4, ".jpg") || EXT_EQ(5, ".jpeg")) return "image";
-    if (EXT_EQ(4, ".gif")) return "image";
-    if (EXT_EQ(4, ".bmp")) return "image";
-    if (EXT_EQ(4, ".svg")) return "vector-image";
+    if (fossil_io_cstring_equals_safe(extbuf, ".png", 32))   { fossil_io_cstring_free(extbuf); return "image"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".jpg", 32) || fossil_io_cstring_equals_safe(extbuf, ".jpeg", 32)) { fossil_io_cstring_free(extbuf); return "image"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".gif", 32))   { fossil_io_cstring_free(extbuf); return "image"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".bmp", 32))   { fossil_io_cstring_free(extbuf); return "image"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".svg", 32))   { fossil_io_cstring_free(extbuf); return "vector-image"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".webp", 32))  { fossil_io_cstring_free(extbuf); return "image"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".ico", 32))   { fossil_io_cstring_free(extbuf); return "icon"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".tiff", 32) || fossil_io_cstring_equals_safe(extbuf, ".tif", 32)) { fossil_io_cstring_free(extbuf); return "image"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".psd", 32))   { fossil_io_cstring_free(extbuf); return "photoshop"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".ai", 32))    { fossil_io_cstring_free(extbuf); return "illustrator"; }
 
     // Audio / Video
-    if (EXT_EQ(4, ".mp3")) return "audio";
-    if (EXT_EQ(4, ".wav")) return "audio";
-    if (EXT_EQ(4, ".ogg")) return "audio";
-    if (EXT_EQ(4, ".mp4")) return "video";
-    if (EXT_EQ(4, ".mkv")) return "video";
-    if (EXT_EQ(4, ".avi")) return "video";
+    if (fossil_io_cstring_equals_safe(extbuf, ".mp3", 32))   { fossil_io_cstring_free(extbuf); return "audio"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".wav", 32))   { fossil_io_cstring_free(extbuf); return "audio"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".ogg", 32))   { fossil_io_cstring_free(extbuf); return "audio"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".flac", 32))  { fossil_io_cstring_free(extbuf); return "audio"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".aac", 32))   { fossil_io_cstring_free(extbuf); return "audio"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".m4a", 32))   { fossil_io_cstring_free(extbuf); return "audio"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".wma", 32))   { fossil_io_cstring_free(extbuf); return "audio"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".mp4", 32))   { fossil_io_cstring_free(extbuf); return "video"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".mkv", 32))   { fossil_io_cstring_free(extbuf); return "video"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".avi", 32))   { fossil_io_cstring_free(extbuf); return "video"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".mov", 32))   { fossil_io_cstring_free(extbuf); return "video"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".wmv", 32))   { fossil_io_cstring_free(extbuf); return "video"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".webm", 32))  { fossil_io_cstring_free(extbuf); return "video"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".flv", 32))   { fossil_io_cstring_free(extbuf); return "video"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".3gp", 32))   { fossil_io_cstring_free(extbuf); return "video"; }
 
     // Compressed / Archives
-    if (EXT_EQ(4, ".zip")) return "archive";
-    if (EXT_EQ(4, ".tar")) return "archive";
-    if (EXT_EQ(7, ".tar.gz")) return "archive";
-    if (EXT_EQ(8, ".tar.bz2")) return "archive";
-    if (EXT_EQ(4, ".rar")) return "archive";
-    if (EXT_EQ(4, ".7z")) return "archive";
+    if (fossil_io_cstring_equals_safe(extbuf, ".zip", 32))   { fossil_io_cstring_free(extbuf); return "archive"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".tar", 32))   { fossil_io_cstring_free(extbuf); return "archive"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".gz", 32))    { fossil_io_cstring_free(extbuf); return "archive"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".bz2", 32))   { fossil_io_cstring_free(extbuf); return "archive"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".xz", 32))    { fossil_io_cstring_free(extbuf); return "archive"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".rar", 32))   { fossil_io_cstring_free(extbuf); return "archive"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".7z", 32))    { fossil_io_cstring_free(extbuf); return "archive"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".tgz", 32))   { fossil_io_cstring_free(extbuf); return "archive"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".tbz", 32))   { fossil_io_cstring_free(extbuf); return "archive"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".iso", 32))   { fossil_io_cstring_free(extbuf); return "disk-image"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".dmg", 32))   { fossil_io_cstring_free(extbuf); return "disk-image"; }
 
+    // Misc
+    if (fossil_io_cstring_equals_safe(extbuf, ".db", 32) || fossil_io_cstring_equals_safe(extbuf, ".sqlite", 32)) { fossil_io_cstring_free(extbuf); return "database"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".bak", 32))  { fossil_io_cstring_free(extbuf); return "backup"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".tmp", 32))  { fossil_io_cstring_free(extbuf); return "temporary"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".lock", 32)) { fossil_io_cstring_free(extbuf); return "lockfile"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".pid", 32))  { fossil_io_cstring_free(extbuf); return "pidfile"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".conf", 32)) { fossil_io_cstring_free(extbuf); return "config"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".env", 32))  { fossil_io_cstring_free(extbuf); return "envfile"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".crt", 32) || fossil_io_cstring_equals_safe(extbuf, ".pem", 32) || fossil_io_cstring_equals_safe(extbuf, ".key", 32)) { fossil_io_cstring_free(extbuf); return "certificate"; }
+    if (fossil_io_cstring_equals_safe(extbuf, ".log", 32))  { fossil_io_cstring_free(extbuf); return "log"; }
+
+    fossil_io_cstring_free(extbuf);
     // Default fallback
     return "unknown";
-
-    #undef EXT_EQ
 }
 
 // ------------------------------------------------------------
@@ -111,10 +208,10 @@ typedef struct {
 } keyword_t;
 
 static int add_keyword(keyword_t *arr, int max, int *used, const char *word) {
-    if (strlen(word) < 3) return 0;  // skip trivial words
+    if (fossil_io_cstring_length(word) < 3) return 0;  // skip trivial words
 
     for (int i = 0; i < *used; i++) {
-        if (strcmp(arr[i].word, word) == 0) {
+        if (fossil_io_cstring_iequals(arr[i].word, word)) {
             arr[i].count++;
             return 1;
         }
@@ -164,7 +261,7 @@ static int summarize_file(ccstring path,
 {
     fossil_io_file_t fp;
     if (fossil_io_file_open(&fp, path, "readb")) {
-        fossil_io_fprintf(FOSSIL_STDERR, "Could not open file: %s\n", path);
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold,pos:top}Could not open file:{normal} %s\n", path);
         return errno;
     }
 
@@ -181,6 +278,7 @@ static int summarize_file(ccstring path,
     keyword_t keywords[256];
     int kw_used = 0;
 
+    // Use detect_type helper for file type inference
     ccstring type = auto_detect ? detect_type(path) : "unknown";
 
     // For advanced analysis
@@ -192,11 +290,11 @@ static int summarize_file(ccstring path,
     const char *style = NULL, *tone = NULL, *readability_label = NULL;
 
     // ------------------------------
-    // Read file
+    // Read file (but do not output contents)
     // ------------------------------
     while (fossil_io_gets_from_stream(linebuf, 8192, &fp)) {
         line_count++;
-        int len = (int)strlen(linebuf);
+        int len = (int)fossil_io_cstring_length(linebuf);
         char_count += len;
 
         // Copy for entropy computation
@@ -217,11 +315,13 @@ static int summarize_file(ccstring path,
                 p++;
             }
 
-            char *tok = strtok(temp, " ");
+            char *saveptr = NULL;
+            char *tok = fossil_io_cstring_token(temp, " ", &saveptr);
             while (tok) {
-                for (char *c = tok; *c; c++) *c = (char)tolower(*c);
-                add_keyword(keywords, 256, &kw_used, tok);
-                tok = strtok(NULL, " ");
+                cstring lower_tok = fossil_io_cstring_to_lower(tok);
+                add_keyword(keywords, 256, &kw_used, lower_tok);
+                fossil_io_cstring_free(lower_tok);
+                tok = fossil_io_cstring_token(NULL, " ", &saveptr);
             }
         }
 
@@ -260,122 +360,104 @@ static int summarize_file(ccstring path,
     summary          = fossil_io_soap_summarize((const char *)entbuf);
     key_sentence     = fossil_io_soap_extract_key_sentence((const char *)entbuf);
 
+    //
+
     // ------------------------------------------------------------
-    // Output section
+    // Output section (do not output file contents)
     // ------------------------------------------------------------
+    // Generate AI-like summary response based on analysis values
+    fossil_io_cstring_stream *ai_stream = fossil_io_cstring_stream_create(1024);
+    fossil_io_cstring_stream_write_format(ai_stream,
+        "This file \"%s\" is detected as type \"%s\". It contains %ld lines and %ld characters. "
+        "The content has a readability score of %d (%s), clarity %d, and quality %d. "
+        "Entropy is %.3f bits/byte, indicating %s randomness. "
+        "The style is \"%s\" and the tone is \"%s\". "
+        "Passive voice usage is %d%%. "
+        "Flags detected: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s. "
+        "Top keywords: ",
+        path, type, line_count, char_count,
+        readability, readability_label ? readability_label : "unknown",
+        clarity, quality_score,
+        compute_entropy(entbuf, entused),
+        compute_entropy(entbuf, entused) > 4.0 ? "high" : "low",
+        style ? style : "unknown",
+        tone ? tone : "unknown",
+        passive_ratio,
+        ragebait     ? "ragebait, "     : "",
+        clickbait    ? "clickbait, "    : "",
+        spam         ? "spam, "         : "",
+        woke         ? "woke, "         : "",
+        bot          ? "bot, "          : "",
+        sarcasm      ? "sarcasm, "      : "",
+        formal       ? "formal, "       : "",
+        snowflake    ? "snowflake, "    : "",
+        offensive    ? "offensive, "    : "",
+        neutral      ? "neutral, "      : "",
+        hype         ? "hype, "         : "",
+        quality      ? "quality, "      : "",
+        political    ? "political, "    : "",
+        conspiracy   ? "conspiracy, "   : "",
+        marketing    ? "marketing, "    : "",
+        technobabble ? "technobabble, " : ""
+    );
+
+    // Append top keywords
+    int kw_limit = kw_used < 5 ? kw_used : 5;
+    for (int i = 0; i < kw_limit; i++) {
+        fossil_io_cstring_stream_write(ai_stream, keywords[i].word);
+        if (i + 1 < kw_limit)
+            fossil_io_cstring_stream_write(ai_stream, ", ");
+    }
+    fossil_io_cstring_stream_write(ai_stream, ".");
+
+    ccstring ai_response = fossil_io_cstring_stream_read(ai_stream);
+
     if (!output_fson) {
-        fossil_io_printf("{blue}Summary for:{normal} %s\n", path);
-        fossil_io_printf("  Type: cstr %s\n", type);
-
-        if (do_stats) {
-            fossil_io_printf("  Lines: %ld\n", line_count);
-            fossil_io_printf("  Chars: %ld\n", char_count);
-
-            double entropy = compute_entropy(entbuf, entused);
-            fossil_io_printf("  Entropy: %.3f bits/byte\n", entropy);
-
-            fossil_io_printf("  Readability: %d (%s)\n", readability, readability_label);
-            fossil_io_printf("  Clarity: %d\n", clarity);
-            fossil_io_printf("  Quality: %d\n", quality_score);
-            fossil_io_printf("  Passive voice: %d%%\n", passive_ratio);
-            fossil_io_printf("  Style: %s\n", style ? style : "unknown");
-            fossil_io_printf("  Tone: %s\n", tone ? tone : "unknown");
-        }
-
-        if (extract_keywords) {
-            fossil_io_printf("\n{blue}Top Keywords:{normal}\n");
-            for (int i = 0; i < kw_used && i < 20; i++) {
-                fossil_io_printf("  %s (%d)\n", keywords[i].word, keywords[i].count);
-            }
-        }
-
-        if (extract_topics) {
-            fossil_io_printf("\n{blue}Topics:{normal}\n");
-            fossil_io_printf("  (simple grouping of keywords)\n");
-        }
-
-        fossil_io_printf("\n{blue}Summary:{normal}\n  %s\n", summary ? summary : "(none)");
-        fossil_io_printf("\n{blue}Key Sentence:{normal}\n  %s\n", key_sentence ? key_sentence : "(none)");
-
-        fossil_io_printf("\n{blue}Content Flags:{normal}\n");
-        fossil_io_printf("  Ragebait: %s\n", ragebait ? "yes" : "no");
-        fossil_io_printf("  Clickbait: %s\n", clickbait ? "yes" : "no");
-        fossil_io_printf("  Spam: %s\n", spam ? "yes" : "no");
-        fossil_io_printf("  Woke: %s\n", woke ? "yes" : "no");
-        fossil_io_printf("  Bot: %s\n", bot ? "yes" : "no");
-        fossil_io_printf("  Sarcasm: %s\n", sarcasm ? "yes" : "no");
-        fossil_io_printf("  Formal: %s\n", formal ? "yes" : "no");
-        fossil_io_printf("  Snowflake: %s\n", snowflake ? "yes" : "no");
-        fossil_io_printf("  Offensive: %s\n", offensive ? "yes" : "no");
-        fossil_io_printf("  Neutral: %s\n", neutral ? "yes" : "no");
-        fossil_io_printf("  Hype: %s\n", hype ? "yes" : "no");
-        fossil_io_printf("  Quality: %s\n", quality ? "yes" : "no");
-        fossil_io_printf("  Political: %s\n", political ? "yes" : "no");
-        fossil_io_printf("  Conspiracy: %s\n", conspiracy ? "yes" : "no");
-        fossil_io_printf("  Marketing: %s\n", marketing ? "yes" : "no");
-        fossil_io_printf("  Technobabble: %s\n", technobabble ? "yes" : "no");
-
+        fossil_io_clear_screen();
+        fossil_io_move_cursor(1, 1);
+        fossil_io_printf("{blue,bold,pos:top}AI Summary:{normal}\n%s\n", ai_response);
+        fossil_io_flush();
     } else {
-        // FSON output
-        fossil_io_printf("object: {\n");
-        fossil_io_printf("  file: cstr: \"%s\",\n", path);
-        fossil_io_printf("  type: cstr: \"%s\",\n", type);
-
-        if (do_stats) {
-            fossil_io_printf("  stats: object: {\n");
-            fossil_io_printf("    lines: i64: %ld,\n", line_count);
-            fossil_io_printf("    chars: i64: %ld,\n", char_count);
-            fossil_io_printf("    entropy: f64: %.3f,\n", compute_entropy(entbuf, entused));
-            fossil_io_printf("    readability: i32: %d,\n", readability);
-            fossil_io_printf("    clarity: i32: %d,\n", clarity);
-            fossil_io_printf("    quality: i32: %d,\n", quality_score);
-            fossil_io_printf("    passive_voice: i32: %d,\n", passive_ratio);
-            fossil_io_printf("    style: cstr: \"%s\",\n", style ? style : "");
-            fossil_io_printf("    tone: cstr: \"%s\"\n", tone ? tone : "");
-            fossil_io_printf("  },\n");
-        }
-
-        if (extract_keywords) {
-            fossil_io_printf("  keywords: array: [");
-            for (int i = 0; i < kw_used; i++) {
-                fossil_io_printf("cstr: \"%s\"", keywords[i].word);
-                if (i + 1 < kw_used) fossil_io_printf(", ");
-            }
-            fossil_io_printf("],\n");
-        }
-
-        if (extract_topics) {
-            fossil_io_printf("  topics: array: [cstr: \"group-1\", cstr: \"group-2\"],\n");
-        }
-
-        fossil_io_printf("  summary: cstr: \"%s\",\n", summary ? summary : "");
-        fossil_io_printf("  key_sentence: cstr: \"%s\",\n", key_sentence ? key_sentence : "");
-
-        fossil_io_printf("  flags: object: {\n");
-        fossil_io_printf("    ragebait: bool: %s,\n", ragebait ? "true" : "false");
-        fossil_io_printf("    clickbait: bool: %s,\n", clickbait ? "true" : "false");
-        fossil_io_printf("    spam: bool: %s,\n", spam ? "true" : "false");
-        fossil_io_printf("    woke: bool: %s,\n", woke ? "true" : "false");
-        fossil_io_printf("    bot: bool: %s,\n", bot ? "true" : "false");
-        fossil_io_printf("    sarcasm: bool: %s,\n", sarcasm ? "true" : "false");
-        fossil_io_printf("    formal: bool: %s,\n", formal ? "true" : "false");
-        fossil_io_printf("    snowflake: bool: %s,\n", snowflake ? "true" : "false");
-        fossil_io_printf("    offensive: bool: %s,\n", offensive ? "true" : "false");
-        fossil_io_printf("    neutral: bool: %s,\n", neutral ? "true" : "false");
-        fossil_io_printf("    hype: bool: %s,\n", hype ? "true" : "false");
-        fossil_io_printf("    quality: bool: %s,\n", quality ? "true" : "false");
-        fossil_io_printf("    political: bool: %s,\n", political ? "true" : "false");
-        fossil_io_printf("    conspiracy: bool: %s,\n", conspiracy ? "true" : "false");
-        fossil_io_printf("    marketing: bool: %s,\n", marketing ? "true" : "false");
-        fossil_io_printf("    technobabble: bool: %s\n", technobabble ? "true" : "false");
-        fossil_io_printf("  }\n");
-
-        fossil_io_printf("}\n");
+        fossil_io_printf("{yellow,bold}object:{normal} {\n");
+        fossil_io_printf("  {cyan}ai_summary:{normal} cstr: \"{green}%s{normal}\"\n", ai_response);
+        fossil_io_printf("{yellow,bold}}{normal}\n");
     }
 
+    fossil_io_cstring_stream_free(ai_stream);
     fossil_sys_memory_free(linebuf);
     fossil_sys_memory_free(entbuf);
     if (summary) fossil_sys_memory_free(summary);
     if (key_sentence) fossil_sys_memory_free(key_sentence);
     return 0;
+}
+
+/**
+ * @brief Generate structured summaries of text/code/log/document files.
+ *
+ * @param paths Array of file paths.
+ * @param count Number of paths.
+ * @param limit_lines Limit number of lines to analyze (0 = no limit).
+ * @param auto_detect Enable automatic file-type inference.
+ * @param extract_keywords Extract keyword list.
+ * @param extract_topics Perform simple topic clustering.
+ * @param stats Include file statistics.
+ * @param output_fson Output structured FSON format.
+ * @return int Status code.
+ */
+int fossil_shark_summary(ccstring *paths, int count,
+                         int limit_lines,
+                         bool auto_detect,
+                         bool extract_keywords,
+                         bool extract_topics,
+                         bool stats,
+                         bool output_fson) {
+    int result = 0;
+    for (int i = 0; i < count; i++) {
+        int res = summarize_file(paths[i], limit_lines, auto_detect,
+                                extract_keywords, extract_topics,
+                                stats, output_fson);
+        if (res != 0)
+            result = res;
+    }
+    return result;
 }
