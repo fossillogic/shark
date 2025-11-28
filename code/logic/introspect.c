@@ -135,13 +135,13 @@ int fossil_shark_introspect(ccstring path, int show_head_lines,
     // Output metadata
     if (output_fson) {
         fossil_io_printf("{cyan,bold}{\n");
-        fossil_io_printf("  \"path\": \"%s\",\n", path);
-        fossil_io_printf("  \"size\": %lld,\n", (long long)st.st_size);
-        fossil_io_printf("  \"lines\": %lu,\n", lines);
-        fossil_io_printf("  \"words\": %lu,\n", words);
-        fossil_io_printf("  \"bytes\": %lu", bytes);
+        fossil_io_printf("  path: cstr: \"%s\",\n", path);
+        fossil_io_printf("  size: i64: %lld,\n", (long long)st.st_size);
+        fossil_io_printf("  lines: u64: %lu,\n", lines);
+        fossil_io_printf("  words: u64: %lu,\n", words);
+        fossil_io_printf("  bytes: u64: %lu", bytes);
         if (show_file_type) {
-            fossil_io_printf(",\n  \"type\": \"%s\"", get_mime_type(path));
+            fossil_io_printf(",\n  type: cstr: \"%s\"", get_mime_type(path));
         }
         fossil_io_printf("\n}{normal}\n");
     } else {

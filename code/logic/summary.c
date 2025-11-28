@@ -151,7 +151,6 @@ static double compute_entropy(const unsigned char *data, size_t n) {
     return entropy;
 }
 
-
 // ------------------------------------------------------------
 // Process a single file
 // ------------------------------------------------------------
@@ -184,6 +183,13 @@ static int summarize_file(ccstring path,
 
     ccstring type = auto_detect ? detect_type(path) : "unknown";
 
+    // For advanced analysis
+    int ragebait = 0, clickbait = 0, spam = 0, woke = 0, bot = 0, sarcasm = 0, formal = 0;
+    int snowflake = 0, offensive = 0, neutral = 0, hype = 0, quality = 0, political = 0;
+    int conspiracy = 0, marketing = 0, technobabble = 0;
+    int readability = 0, clarity = 0, quality_score = 0, passive_ratio = 0;
+    char *summary = NULL, *key_sentence = NULL;
+    const char *style = NULL, *tone = NULL, *readability_label = NULL;
 
     // ------------------------------
     // Read file
@@ -219,12 +225,40 @@ static int summarize_file(ccstring path,
             }
         }
 
+        // Advanced analysis (per line)
+        ragebait     += fossil_io_soap_detect_ragebait(linebuf);
+        clickbait    += fossil_io_soap_detect_clickbait(linebuf);
+        spam         += fossil_io_soap_detect_spam(linebuf);
+        woke         += fossil_io_soap_detect_woke(linebuf);
+        bot          += fossil_io_soap_detect_bot(linebuf);
+        sarcasm      += fossil_io_soap_detect_sarcasm(linebuf);
+        formal       += fossil_io_soap_detect_formal(linebuf);
+        snowflake    += fossil_io_soap_detect_snowflake(linebuf);
+        offensive    += fossil_io_soap_detect_offensive(linebuf);
+        neutral      += fossil_io_soap_detect_neutral(linebuf);
+        hype         += fossil_io_soap_detect_hype(linebuf);
+        quality      += fossil_io_soap_detect_quality(linebuf);
+        political    += fossil_io_soap_detect_political(linebuf);
+        conspiracy   += fossil_io_soap_detect_conspiracy(linebuf);
+        marketing    += fossil_io_soap_detect_marketing(linebuf);
+        technobabble += fossil_io_soap_detect_technobabble(linebuf);
+
         if (limit_lines > 0 && line_count >= limit_lines)
             break;
     }
 
     fossil_io_file_close(&fp);
 
+    // Whole-file analysis
+    readability      = fossil_io_soap_readability_score((const char *)entbuf);
+    readability_label= fossil_io_soap_readability_label((const char *)entbuf);
+    clarity          = fossil_io_soap_clarity_score((const char *)entbuf);
+    quality_score    = fossil_io_soap_quality_score((const char *)entbuf);
+    passive_ratio    = fossil_io_soap_passive_voice_ratio((const char *)entbuf);
+    style            = fossil_io_soap_analyze_style((const char *)entbuf);
+    tone             = fossil_io_soap_detect_tone((const char *)entbuf);
+    summary          = fossil_io_soap_summarize((const char *)entbuf);
+    key_sentence     = fossil_io_soap_extract_key_sentence((const char *)entbuf);
 
     // ------------------------------------------------------------
     // Output section
@@ -239,6 +273,13 @@ static int summarize_file(ccstring path,
 
             double entropy = compute_entropy(entbuf, entused);
             fossil_io_printf("  Entropy: %.3f bits/byte\n", entropy);
+
+            fossil_io_printf("  Readability: %d (%s)\n", readability, readability_label);
+            fossil_io_printf("  Clarity: %d\n", clarity);
+            fossil_io_printf("  Quality: %d\n", quality_score);
+            fossil_io_printf("  Passive voice: %d%%\n", passive_ratio);
+            fossil_io_printf("  Style: %s\n", style ? style : "unknown");
+            fossil_io_printf("  Tone: %s\n", tone ? tone : "unknown");
         }
 
         if (extract_keywords) {
@@ -253,66 +294,88 @@ static int summarize_file(ccstring path,
             fossil_io_printf("  (simple grouping of keywords)\n");
         }
 
+        fossil_io_printf("\n{blue}Summary:{normal}\n  %s\n", summary ? summary : "(none)");
+        fossil_io_printf("\n{blue}Key Sentence:{normal}\n  %s\n", key_sentence ? key_sentence : "(none)");
+
+        fossil_io_printf("\n{blue}Content Flags:{normal}\n");
+        fossil_io_printf("  Ragebait: %s\n", ragebait ? "yes" : "no");
+        fossil_io_printf("  Clickbait: %s\n", clickbait ? "yes" : "no");
+        fossil_io_printf("  Spam: %s\n", spam ? "yes" : "no");
+        fossil_io_printf("  Woke: %s\n", woke ? "yes" : "no");
+        fossil_io_printf("  Bot: %s\n", bot ? "yes" : "no");
+        fossil_io_printf("  Sarcasm: %s\n", sarcasm ? "yes" : "no");
+        fossil_io_printf("  Formal: %s\n", formal ? "yes" : "no");
+        fossil_io_printf("  Snowflake: %s\n", snowflake ? "yes" : "no");
+        fossil_io_printf("  Offensive: %s\n", offensive ? "yes" : "no");
+        fossil_io_printf("  Neutral: %s\n", neutral ? "yes" : "no");
+        fossil_io_printf("  Hype: %s\n", hype ? "yes" : "no");
+        fossil_io_printf("  Quality: %s\n", quality ? "yes" : "no");
+        fossil_io_printf("  Political: %s\n", political ? "yes" : "no");
+        fossil_io_printf("  Conspiracy: %s\n", conspiracy ? "yes" : "no");
+        fossil_io_printf("  Marketing: %s\n", marketing ? "yes" : "no");
+        fossil_io_printf("  Technobabble: %s\n", technobabble ? "yes" : "no");
+
     } else {
         // FSON output
-        fossil_io_printf("{\n");
-        fossil_io_printf("  \"file\": \"%s\",\n", path);
-        fossil_io_printf("  \"type\": \"%s\",\n", type);
+        fossil_io_printf("object: {\n");
+        fossil_io_printf("  file: cstr: \"%s\",\n", path);
+        fossil_io_printf("  type: cstr: \"%s\",\n", type);
 
         if (do_stats) {
-            fossil_io_printf("  \"stats\": {\n");
-            fossil_io_printf("    \"lines\": %ld,\n", line_count);
-            fossil_io_printf("    \"chars\": %ld,\n", char_count);
-            fossil_io_printf("    \"entropy\": %.3f\n", compute_entropy(entbuf, entused));
+            fossil_io_printf("  stats: object: {\n");
+            fossil_io_printf("    lines: i64: %ld,\n", line_count);
+            fossil_io_printf("    chars: i64: %ld,\n", char_count);
+            fossil_io_printf("    entropy: f64: %.3f,\n", compute_entropy(entbuf, entused));
+            fossil_io_printf("    readability: i32: %d,\n", readability);
+            fossil_io_printf("    clarity: i32: %d,\n", clarity);
+            fossil_io_printf("    quality: i32: %d,\n", quality_score);
+            fossil_io_printf("    passive_voice: i32: %d,\n", passive_ratio);
+            fossil_io_printf("    style: cstr: \"%s\",\n", style ? style : "");
+            fossil_io_printf("    tone: cstr: \"%s\"\n", tone ? tone : "");
             fossil_io_printf("  },\n");
         }
 
         if (extract_keywords) {
-            fossil_io_printf("  \"keywords\": [");
+            fossil_io_printf("  keywords: array: [");
             for (int i = 0; i < kw_used; i++) {
-                fossil_io_printf("\"%s\"", keywords[i].word);
+                fossil_io_printf("cstr: \"%s\"", keywords[i].word);
                 if (i + 1 < kw_used) fossil_io_printf(", ");
             }
             fossil_io_printf("],\n");
         }
 
         if (extract_topics) {
-            fossil_io_printf("  \"topics\": [\"group-1\", \"group-2\"],\n");
+            fossil_io_printf("  topics: array: [cstr: \"group-1\", cstr: \"group-2\"],\n");
         }
+
+        fossil_io_printf("  summary: cstr: \"%s\",\n", summary ? summary : "");
+        fossil_io_printf("  key_sentence: cstr: \"%s\",\n", key_sentence ? key_sentence : "");
+
+        fossil_io_printf("  flags: object: {\n");
+        fossil_io_printf("    ragebait: bool: %s,\n", ragebait ? "true" : "false");
+        fossil_io_printf("    clickbait: bool: %s,\n", clickbait ? "true" : "false");
+        fossil_io_printf("    spam: bool: %s,\n", spam ? "true" : "false");
+        fossil_io_printf("    woke: bool: %s,\n", woke ? "true" : "false");
+        fossil_io_printf("    bot: bool: %s,\n", bot ? "true" : "false");
+        fossil_io_printf("    sarcasm: bool: %s,\n", sarcasm ? "true" : "false");
+        fossil_io_printf("    formal: bool: %s,\n", formal ? "true" : "false");
+        fossil_io_printf("    snowflake: bool: %s,\n", snowflake ? "true" : "false");
+        fossil_io_printf("    offensive: bool: %s,\n", offensive ? "true" : "false");
+        fossil_io_printf("    neutral: bool: %s,\n", neutral ? "true" : "false");
+        fossil_io_printf("    hype: bool: %s,\n", hype ? "true" : "false");
+        fossil_io_printf("    quality: bool: %s,\n", quality ? "true" : "false");
+        fossil_io_printf("    political: bool: %s,\n", political ? "true" : "false");
+        fossil_io_printf("    conspiracy: bool: %s,\n", conspiracy ? "true" : "false");
+        fossil_io_printf("    marketing: bool: %s,\n", marketing ? "true" : "false");
+        fossil_io_printf("    technobabble: bool: %s\n", technobabble ? "true" : "false");
+        fossil_io_printf("  }\n");
 
         fossil_io_printf("}\n");
     }
 
-
     fossil_sys_memory_free(linebuf);
     fossil_sys_memory_free(entbuf);
-    return 0;
-}
-
-
-// ------------------------------------------------------------
-// Multi-file summary entry point
-// ------------------------------------------------------------
-int fossil_shark_summary(ccstring *paths, int count,
-                         int limit_lines,
-                         bool auto_detect,
-                         bool extract_keywords,
-                         bool extract_topics,
-                         bool stats,
-                         bool output_fson)
-{
-    for (int i = 0; i < count; i++) {
-        summarize_file(paths[i],
-                       limit_lines,
-                       auto_detect,
-                       extract_keywords,
-                       extract_topics,
-                       stats,
-                       output_fson);
-
-        if (!output_fson)
-            fossil_io_printf("\n-----------------------------------\n\n");
-    }
-
+    if (summary) fossil_sys_memory_free(summary);
+    if (key_sentence) fossil_sys_memory_free(key_sentence);
     return 0;
 }
