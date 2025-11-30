@@ -228,9 +228,6 @@ static int remove_recursive(ccstring path, bool recursive, bool force,
     return 0;
 }
 
-/**
- * Remove or delete files and directories safely
- */
 int fossil_shark_remove(ccstring path, bool recursive, bool force,
                         bool interactive, bool use_trash) {
     if (cunlikely(path == cnull)) {
