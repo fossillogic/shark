@@ -24,16 +24,6 @@
  */
 #include "fossil/code/commands.h"
 
-/**
- * Perform storage management: deduplicate, catalog, index, snapshot, organize, and prune files.
- * @param path Path to file or directory to manage
- * @param dedupe Deduplicate files
- * @param catalog Catalog files
- * @param index Index files for fast lookup
- * @param snapshot Create storage snapshot
- * @param prune Prune obsolete or redundant files
- * @return 0 on success, non-zero on error
- */
 int fossil_shark_storage(const char *path, bool dedupe, bool catalog,
                          bool index, bool snapshot, bool prune)
 {
