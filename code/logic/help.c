@@ -24,9 +24,7 @@
  */
 #include "fossil/code/commands.h"
 
-/**
- * Display help information and usage examples
- */
+
 int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
     // Show overview if command is NULL or "all" (default to "all" if command is NULL)
     if (!command || fossil_io_cstring_equals(command, "all")) {
@@ -351,6 +349,5 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
                 fossil_io_printf("{cyan,italic}------------------------------------------------------------{normal}\n");
         }
     }
-
     return 0;
 }
