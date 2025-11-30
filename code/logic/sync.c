@@ -37,7 +37,7 @@
 
 #define PATH_MAX_LEN 1024
 
-// Helper: Copy file content using fossil_io_file_t
+
 static int copy_file(ccstring src_path, ccstring dest_path) {
     int32_t rc = fossil_io_file_copy(src_path, dest_path);
     if (rc != 0) {
@@ -47,7 +47,6 @@ static int copy_file(ccstring src_path, ccstring dest_path) {
     return 0;
 }
 
-// Helper: Get file modification time (cross-platform)
 static int get_mod_time(ccstring path, time_t *mod_time) {
 #if defined(_WIN32)
     struct _stat st;
@@ -61,7 +60,6 @@ static int get_mod_time(ccstring path, time_t *mod_time) {
     return 0;
 }
 
-// Helper: Check if path is directory (cross-platform)
 static int is_directory(ccstring path) {
 #if defined(_WIN32)
     struct _stat st;
@@ -74,7 +72,6 @@ static int is_directory(ccstring path) {
 #endif
 }
 
-// Helper: Create directory (cross-platform)
 static int make_dir(ccstring path) {
 #if defined(_WIN32)
     if (_mkdir(path) != 0 && errno != EEXIST) {
@@ -90,7 +87,6 @@ static int make_dir(ccstring path) {
     return 0;
 }
 
-// Helper: Sync single file with update check
 static int sync_file(ccstring src, ccstring dest, bool update) {
     time_t src_mtime, dest_mtime;
     if (get_mod_time(src, &src_mtime) != 0) { perror("stat src"); return errno; }
@@ -168,7 +164,6 @@ int fossil_shark_sync(ccstring src, ccstring dest,
     closedir(dir);
 #endif
 
-    // Optional: delete extraneous files from destination
     if (delete_flag) {
 #if defined(_WIN32)
         snprintf(search_path, sizeof(search_path), "%s\\*", dest);
