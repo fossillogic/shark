@@ -1,28 +1,28 @@
-# 🦈 Shark Tool
+# Shark Tool
 ### A Command-Line Power Utility by **Fossil Logic**
 
 Shark Tool is the ultimate **all-in-one file and system administration utility**. Built for admins, developers, and power users, Shark unifies essential file management, automation, and analysis tasks into a single, powerful command-line interface—eliminating the need for multiple separate tools. Its unique commands, such as `grammar` for advanced text analysis, `summary` for structured file summaries, and `introspect` for deep file inspection, set Shark apart by providing capabilities rarely found in traditional CLI utilities.
 
 ---
 
-## 🚀 Features
+## Features
 
-- 🧰 Comprehensive file and directory operations (`show`, `copy`, `move`, `delete`, `rename`, `create`)
-- 🗂 Powerful archive creation, extraction, and listing (zip, tar, gz)
-- 🔍 Advanced recursive search by name or content with filtering options
-- 🕒 Smart file timestamp and metadata management
-- 🧩 Cross-platform compatibility (Linux, macOS, Windows)
-- 🧭 Command palette for quick access to all features
-- 🧠 Grammar analysis, correction, and tone detection via SOAP API
-- 📊 Structured file summaries and statistics (keywords, topics, entropy)
-- 🔄 File synchronization and backup with flexible options
-- 👀 Real-time file monitoring and change detection
+- Comprehensive file and directory operations (`show`, `copy`, `move`, `delete`, `rename`, `create`)
+- Powerful archive creation, extraction, and listing (zip, tar, gz)
+- Advanced recursive search by name or content with filtering options
+- Smart file timestamp and metadata management
+- Cross-platform compatibility (Linux, macOS, Windows)
+- Command palette for quick access to all features
+- Grammar analysis, correction, and tone detection via SOAP API
+- Structured file summaries and statistics (keywords, topics, entropy)
+- File synchronization and backup with flexible options
+- Real-time file monitoring and change detection
 
-## 🧭 Command Palette
+## Command Palette
 
 ---
 
-### 🗂 Core File Operations
+### Core File Operations
 
 | **Command** | **Description** | **Common Flags** |
 |-------------|-----------------|-----------------|
@@ -48,7 +48,7 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 
 ---
 
-### 🌍 Global Flags (Available to All Commands)
+### Global Flags (Available to All Commands)
 
 | **Flag** | **Description** |
 |-----------|-----------------|
@@ -62,7 +62,7 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 
 ---
 
-### 🧩 Usage Examples
+### Usage Examples
 
 | **Example** | **Description** |
 |--------------|-----------------|
