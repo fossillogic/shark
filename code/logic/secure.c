@@ -24,19 +24,6 @@
  */
 #include "fossil/code/commands.h"
 
-/**
- * Perform secure operations: encryption, decryption, signing, verification, hashing, secure wipe, and integrity check.
- * @param path Path to file or directory to operate on
- * @param encrypt Perform encryption
- * @param decrypt Perform decryption
- * @param sign Sign file or data
- * @param verify Verify signature
- * @param hash Perform hashing (algorithm specified by hash_alg)
- * @param hash_alg Hash algorithm name (e.g., "sha256", "md5")
- * @param scrub Securely wipe file/data
- * @param snapshot Create integrity snapshot
- * @return 0 on success, non-zero on error
- */
 int fossil_shark_secure(const char *path, bool encrypt, bool decrypt,
                         bool sign, bool verify, bool hash,
                         const char *hash_alg, bool scrub, bool snapshot)
