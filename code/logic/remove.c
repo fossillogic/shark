@@ -23,16 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <errno.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#include <direct.h>
-#endif
 
 // Helper: ask user for confirmation
 static bool confirm_removal(ccstring path) {
@@ -81,7 +72,7 @@ static int move_to_trash(ccstring path) {
     return 0;
 }
 
-// Internal recursive removal
+// Internal recursive removal using fossil_io_dir_iter_t
 static int remove_recursive(ccstring path, bool recursive, bool force,
                             bool interactive, bool use_trash) {
     if (cunlikely(path == cnull)) {
@@ -89,124 +80,66 @@ static int remove_recursive(ccstring path, bool recursive, bool force,
         return EINVAL;
     }
 
-    struct stat st;
-    if (stat(path, &st) != 0) {
+    int32_t is_dir = fossil_io_dir_is_directory(path);
+    if (is_dir < 0) {
         if (force) return 0;
         fossil_io_printf("{red}Error accessing '%s': %s{normal}\n", path, strerror(errno));
         return errno;
     }
 
-    if (S_ISDIR(st.st_mode)) {
-#ifdef _WIN32
-        WIN32_FIND_DATA find_data;
-        HANDLE dir;
-        char search_path[4096];
-        snprintf(search_path, sizeof(search_path), "%s\\*", path);
-        
-        dir = FindFirstFile(search_path, &find_data);
-        if (dir == INVALID_HANDLE_VALUE) {
-            if (force) return 0;
-            fossil_io_printf("{red}Error opening directory '%s': %d{normal}\n", path, GetLastError());
-            return GetLastError();
-        }
-
-        do {
-            if (fossil_io_cstring_equals(find_data.cFileName, ".") || 
-                fossil_io_cstring_equals(find_data.cFileName, "..")) continue;
-
-            cstring child_path = fossil_io_cstring_format("%s\\%s", path, find_data.cFileName);
-#else
-        DIR *dir = opendir(path);
-        if (dir == cnull) {
+    if (is_dir == 1) {
+        fossil_io_dir_iter_t it;
+        int32_t open_res = fossil_io_dir_iter_open(&it, path);
+        if (open_res < 0) {
             if (force) return 0;
             fossil_io_printf("{red}Error opening directory '%s': %s{normal}\n", path, strerror(errno));
             return errno;
         }
 
-        struct dirent *entry;
-        while ((entry = readdir(dir)) != cnull) {
-            if (fossil_io_cstring_equals(entry->d_name, ".") || fossil_io_cstring_equals(entry->d_name, "..")) continue;
-
-            cstring child_path = fossil_io_cstring_format("%s/%s", path, entry->d_name);
-#endif
-            if (cunlikely(child_path == cnull)) {
-#ifdef _WIN32
-                FindClose(dir);
-#else
-                closedir(dir);
-#endif
-                return ENOMEM;
-            }
-
-            struct stat child_st;
-            if (stat(child_path, &child_st) != 0) {
-                if (!force) fossil_io_printf("{red}Error accessing '%s': %s{normal}\n", child_path, strerror(errno));
-                fossil_io_cstring_free(child_path);
-                cnullify(child_path);
+        while (fossil_io_dir_iter_next(&it) > 0) {
+            fossil_io_dir_entry_t *entry = &it.current;
+            if (fossil_io_cstring_equals(entry->name, ".") || fossil_io_cstring_equals(entry->name, ".."))
                 continue;
-            }
 
-            if (S_ISDIR(child_st.st_mode)) {
+            if (entry->type == 1) { // Directory
                 if (recursive) {
-                    if (remove_recursive(child_path, recursive, force, interactive, use_trash) != 0 && !force) {
-                        fossil_io_cstring_free(child_path);
-                        cnullify(child_path);
-#ifdef _WIN32
-                        FindClose(dir);
-#else
-                        closedir(dir);
-#endif
+                    if (remove_recursive(entry->path, recursive, force, interactive, use_trash) != 0 && !force) {
+                        fossil_io_dir_iter_close(&it);
                         return 1;
                     }
                 } else {
-                    if (!force) fossil_io_printf("{red}Cannot remove directory '%s' without recursive flag.{normal}\n", child_path);
-                    fossil_io_cstring_free(child_path);
-                    cnullify(child_path);
+                    if (!force)
+                        fossil_io_printf("{red}Cannot remove directory '%s' without recursive flag.{normal}\n", entry->path);
                     continue;
                 }
             } else {
                 if (interactive && !force) {
-                    if (!confirm_removal(child_path)) {
-                        fossil_io_cstring_free(child_path);
-                        cnullify(child_path);
+                    if (!confirm_removal(entry->path)) {
                         continue;
                     }
                 }
 
                 if (use_trash) {
-                    if (move_to_trash(child_path) != 0 && !force) {
-                        fossil_io_cstring_free(child_path);
-                        cnullify(child_path);
+                    if (move_to_trash(entry->path) != 0 && !force) {
                         continue;
                     }
                 } else {
-                    if (fossil_io_file_delete(child_path) != 0 && !force) {
-                        fossil_io_printf("{red}Failed to remove '%s': %s{normal}\n", child_path, strerror(errno));
+                    if (fossil_io_file_delete(entry->path) != 0 && !force) {
+                        fossil_io_printf("{red}Failed to remove '%s': %s{normal}\n", entry->path, strerror(errno));
                     } else if (!force) {
-                        fossil_io_printf("{blue}Removed file: %s{normal}\n", child_path);
+                        fossil_io_printf("{blue}Removed file: %s{normal}\n", entry->path);
                     }
                 }
             }
-            fossil_io_cstring_free(child_path);
-            cnullify(child_path);
-#ifdef _WIN32
-        } while (FindNextFile(dir, &find_data));
-        FindClose(dir);
-#else
         }
-        closedir(dir);
-#endif
+        fossil_io_dir_iter_close(&it);
 
         if (interactive && !force) {
             if (!confirm_removal(path)) return 0;
         }
 
         if (use_trash) return move_to_trash(path);
-#ifdef _WIN32
-        if (_rmdir(path) != 0 && !force) {
-#else
-        if (rmdir(path) != 0 && !force) {
-#endif
+        if (fossil_io_dir_remove(path) != 0 && !force) {
             fossil_io_printf("{red}Failed to remove directory '%s': %s{normal}\n", path, strerror(errno));
             return errno;
         } else if (!force) {

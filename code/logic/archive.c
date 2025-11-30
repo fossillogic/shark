@@ -23,7 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <errno.h>
+
 
 // Helper function to safely create a path by combining directory and filename
 static int fossil_fpath_create_path_safe(char *dest, size_t dest_size, ccstring base_path, ccstring suffix) {

@@ -23,20 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <errno.h>
 
-#if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
-#else
-#include <unistd.h>
-#include <fcntl.h>
-#include <utime.h>
-#endif
 
 int fossil_shark_rewrite(const char *path, bool in_place, bool append,
                          const char *new_content, size_t size,

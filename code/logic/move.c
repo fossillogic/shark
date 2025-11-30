@@ -23,7 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <errno.h>
+
 
 cstring fossil_io_file_path_normalize(ccstring path) {
     if (!cnotnull(path)) return cnull;

@@ -23,11 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
+
 
 // Helper: ask user for confirmation
 static bool confirm_overwrite_rename(ccstring path) {

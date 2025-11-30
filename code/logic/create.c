@@ -23,14 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <sys/stat.h>
-#include <errno.h>
-#include <unistd.h>
-#include <libgen.h>
-#include <fcntl.h>
-#ifdef _WIN32
-#include <direct.h>
-#endif
+
 
 static int create_parent_dirs(ccstring path) {
     cstring tmp = fossil_io_cstring_create_safe(path, 4096);

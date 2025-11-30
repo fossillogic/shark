@@ -23,21 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include <errno.h>
-#include <time.h>
 
-#if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
-#include <sys/stat.h>
-#else
-#include <unistd.h>
-#include <sys/stat.h>
-#endif
-
-#include <dirent.h>
 
 __attribute__((unused))
 static void fossil_shark_watch_file(const char *path, const char *events, struct stat *prev_stat)
@@ -74,31 +60,29 @@ static void fossil_shark_watch_file(const char *path, const char *events, struct
 __attribute__((unused))
 static void fossil_shark_watch_dir(const char *dir_path, const char *events, int interval)
 {
-    DIR *dir = opendir(dir_path);
-    if (!dir) return;
+    fossil_io_dir_iter_t it;
+    if (fossil_io_dir_iter_open(&it, dir_path) != 0)
+        return;
 
-    struct dirent *entry;
-    while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+    while (fossil_io_dir_iter_next(&it) > 0) {
+        fossil_io_dir_entry_t *entry = &it.current;
+        if (strcmp(entry->name, ".") == 0 || strcmp(entry->name, "..") == 0)
             continue;
 
-        char full_path[4096];
-        snprintf(full_path, sizeof(full_path), "%s/%s", dir_path, entry->d_name);
-
-        struct stat st;
-        if (stat(full_path, &st) == 0) {
-            if (S_ISDIR(st.st_mode)) {
-                fossil_shark_watch_dir(full_path, events, interval);
-            } else {
+        if (entry->type == 1) { // Directory
+            fossil_shark_watch_dir(entry->path, events, interval);
+        } else if (entry->type == 0) { // File
+            struct stat st;
+            if (stat(entry->path, &st) == 0) {
                 struct stat prev_stat = st;
                 while (1) {
                     sleep(interval);
-                    fossil_shark_watch_file(full_path, events, &prev_stat);
+                    fossil_shark_watch_file(entry->path, events, &prev_stat);
                 }
             }
         }
     }
-    closedir(dir);
+    fossil_io_dir_iter_close(&it);
 }
 #endif
 

@@ -23,26 +23,9 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <errno.h>
 
 #define INDENT_SIZE 4
 
-#ifdef _WIN32
-    #include <windows.h>
-    #include <io.h>
-    #define PATH_SEPARATOR '\\'
-    #define PATH_SEPARATOR_STR "\\"
-#else
-    #include <sys/stat.h>
-    #include <unistd.h>
-    #include <dirent.h>
-    #define PATH_SEPARATOR '/'
-    #define PATH_SEPARATOR_STR "/"
-#endif
 
 static void print_size(off_t size, bool human_readable) {
     if (!human_readable) {

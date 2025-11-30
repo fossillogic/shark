@@ -43,7 +43,6 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 | `introspect` | Examine file contents, type, or metadata. | `-n <lines>` Number of lines<br>`-c` Count lines, words, bytes<br>`--fson` FSON output<br>`--mime` Show MIME type |
 | `grammar` | Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning through the SOAP API. | `--check` Run grammar check<br>`--fix` Auto-correct grammar<br>`--sanitize` Remove rot-brain/meme language<br>`--suggest` Suggest alternatives<br>`--tone` Detect tone<br>`--detect <type>` Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble |
 | `summary` | Generate a structured summary of one or more files (text, logs, code, docs). | `-l, --lines <n>` Limit lines analyzed<br>`--auto` Auto-detect file type<br>`--keywords` Extract keywords<br>`--topics` Topic clustering<br>`--stats` File statistics (chars/lines/entropy)<br>`--fson` Output structured FSON summary |
-| `secure` | Encryption, decryption, signing, hashing, secure wipe, and integrity check. | `-e` Encrypt<br>`-d` Decrypt<br>`-s` Sign<br>`-v` Verify<br>`-h <alg>` Hash<br>`--scrub` Wipe<br>`--snapshot` Snapshot |
 | `storage` | Deduplicate, catalog, snapshot, organize, and prune files. | `--dedupe` Duplicates<br>`--catalog` Catalog<br>`--index` Index<br>`--snapshot` Snapshot<br>`--prune` Prune |
 
 ---
@@ -82,7 +81,6 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 | `shark introspect --mime report.pdf` | Show the MIME type of a file. |
 | `shark grammar --check --tone notes.txt` | Run a grammar check and detect tone in a text file. |
 | `shark summary --auto --keywords --stats article.md` | Generate an automatic structured summary with keywords and statistics for a document. |
-| `shark secure -e -h sha256 secrets.txt` | Encrypt a file and generate a SHA-256 hash for integrity verification. |
 | `shark storage --dedupe --catalog ~/Documents/` | Deduplicate files and create a catalog of your Documents directory. |
 
 ## **Prerequisites**

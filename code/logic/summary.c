@@ -23,10 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <ctype.h>
-#include <errno.h>
-#include <math.h>
-#include <stdbool.h>
+
 
 static ccstring detect_type(ccstring path) {
     size_t len = fossil_io_cstring_length(path);
@@ -323,7 +320,6 @@ static int summarize_file(ccstring path,
             entused += len;
         }
 
-        // Keyword detection (simple tokenizing)
         if (extract_keywords || do_stats) {
             char temp[8192];
             strncpy(temp, linebuf, 8191);

@@ -23,19 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <dirent.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <ctype.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#include <io.h>
-#else
-#include <dirent.h>
-#include <sys/stat.h>
-#include <errno.h>
-#endif
 
 // Helper: case-insensitive string match using fossil_io_cstring functions
 static bool str_match(ccstring str, ccstring pattern, bool ignore_case) {
@@ -77,93 +65,36 @@ static bool content_match(ccstring file_path, ccstring pattern, bool ignore_case
     return found;
 }
 
-#ifdef _WIN32
-// Windows implementation using FindFirstFile/FindNextFile
 static int search_recursive(ccstring path, bool recursive,
                             ccstring name_pattern, ccstring content_pattern,
                             bool ignore_case) {
-    cstring search_path = fossil_io_cstring_format("%s\\*", path);
-    if (!search_path) return -1;
-
-    WIN32_FIND_DATAA find_data;
-    HANDLE hFind = FindFirstFileA(search_path, &find_data);
-    
-    if (hFind == INVALID_HANDLE_VALUE) {
-        fossil_io_cstring_free(search_path);
-        return GetLastError();
+    fossil_io_dir_iter_t it;
+    int32_t rc = fossil_io_dir_iter_open(&it, path);
+    if (rc != 0) {
+        fossil_io_printf("{red}Error opening directory: %s{normal}\n", path);
+        return rc;
     }
 
-    do {
-        if (fossil_io_cstring_equals(find_data.cFileName, ".") || 
-            fossil_io_cstring_equals(find_data.cFileName, "..")) continue;
+    while (fossil_io_dir_iter_next(&it) > 0) {
+        fossil_io_dir_entry_t *entry = &it.current;
+        // Skip . and ..
+        if (fossil_io_cstring_equals(entry->name, ".") ||
+            fossil_io_cstring_equals(entry->name, "..")) continue;
 
-        cstring full_path = fossil_io_cstring_format("%s\\%s", path, find_data.cFileName);
-        if (!full_path) continue;
-
-        if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-            if (recursive) search_recursive(full_path, recursive, name_pattern, content_pattern, ignore_case);
-        } else {
-            if (str_match(find_data.cFileName, name_pattern, ignore_case) &&
-                content_match(full_path, content_pattern, ignore_case)) {
-                fossil_io_printf("{cyan}%s{normal}\n", full_path);
+        if (entry->type == 1) { // Directory
+            if (recursive) search_recursive(entry->path, recursive, name_pattern, content_pattern, ignore_case);
+        } else if (entry->type == 0) { // Regular file
+            if (str_match(entry->name, name_pattern, ignore_case) &&
+                content_match(entry->path, content_pattern, ignore_case)) {
+                fossil_io_printf("{cyan}%s{normal}\n", entry->path);
             }
         }
-        
-        fossil_io_cstring_free(full_path);
-    } while (FindNextFileA(hFind, &find_data) != 0);
-
-    FindClose(hFind);
-    fossil_io_cstring_free(search_path);
-    return 0;
-}
-#else
-// Unix/Linux implementation using opendir/readdir
-static int search_recursive(ccstring path, bool recursive,
-                            ccstring name_pattern, ccstring content_pattern,
-                            bool ignore_case) {
-    DIR *dir = opendir(path);
-    if (!dir) {
-        perror(path);
-        return errno;
+        // Ignore symlinks and other types for search
     }
 
-    struct dirent *entry;
-    while ((entry = readdir(dir)) != NULL) {
-        if (fossil_io_cstring_equals(entry->d_name, ".") || 
-            fossil_io_cstring_equals(entry->d_name, "..")) continue;
-
-        cstring full_path = fossil_io_cstring_format("%s/%s", path, entry->d_name);
-        if (cunlikely(!full_path)) continue;
-
-        struct stat *st = (struct stat*)fossil_sys_memory_alloc(sizeof(struct stat));
-        if (cunlikely(!st)) {
-            fossil_io_cstring_free(full_path);
-            continue;
-        }
-        
-        if (stat(full_path, st) != 0) {
-            fossil_io_cstring_free(full_path);
-            fossil_sys_memory_free(st);
-            continue;
-        }
-
-        if (S_ISDIR(st->st_mode)) {
-            if (recursive) search_recursive(full_path, recursive, name_pattern, content_pattern, ignore_case);
-        } else if (S_ISREG(st->st_mode)) {
-            if (str_match(entry->d_name, name_pattern, ignore_case) &&
-                content_match(full_path, content_pattern, ignore_case)) {
-                fossil_io_printf("{cyan}%s{normal}\n", full_path);
-            }
-        }
-        
-        fossil_io_cstring_free(full_path);
-        fossil_sys_memory_free(st);
-    }
-
-    closedir(dir);
+    fossil_io_dir_iter_close(&it);
     return 0;
 }
-#endif
 
 /**
  * Search for files by name patterns or content matching
