@@ -48,15 +48,17 @@
 #endif
 
 #if defined(_WIN32)
-// stupid think has yet to be removed via new functionality in Fossil IO
-static int portable_link(const char *src, const char *dest) {
-    if (CreateHardLinkA(dest, src, NULL) == 0)
-        return -1;
-    return 0;
+#include <windows.h>
+static inline __attribute__((unused))
+int portable_link(const char *src, const char *dest) {
+    return CreateHardLinkA(dest, src, NULL) ? 0 : -1;
 }
+#ifndef link
 #define link(src, dest) portable_link(src, dest)
+#endif
+
 #else
-#include <unistd.h>      // real POSIX link()
+#include <unistd.h>
 #endif
 
 #include <errno.h>
