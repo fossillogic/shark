@@ -25,7 +25,6 @@
 #include "fossil/code/commands.h"
 #include <errno.h>
 
-// Normalize file paths for cross-platform compatibility
 cstring fossil_io_file_path_normalize(ccstring path) {
     if (!cnotnull(path)) return cnull;
 
@@ -84,9 +83,6 @@ static bool confirm_overwrite(ccstring dest) {
     return result;
 }
 
-/**
- * Move or rename files and directories
- */
 int fossil_shark_move(ccstring src, ccstring dest,
                       bool force, bool interactive, bool backup) {
     if (!cnotnull(src) || !cnotnull(dest)) {
