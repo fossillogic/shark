@@ -37,9 +37,6 @@
 #include <unistd.h>
 #endif
 
-/**
- * Helper: determine simple MIME/type from file extension
- */
 static ccstring get_mime_type(ccstring path) {
     ccstring ext = strrchr(path, '.');
     if (!cnotnull(ext)) return "application/octet-stream";
