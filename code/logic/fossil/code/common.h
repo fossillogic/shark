@@ -41,6 +41,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #define mkdir(path, mode) _mkdir(path)
+// Replacement for POSIX link()
+static int portable_link(const char *src, const char *dest)
+{
+    if (CreateHardLinkA(dest, src, NULL) == 0) {
+        return -1;
+    }
+    return 0;
+}
+
+#define link(src, dest) portable_link(src, dest)
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -50,5 +60,6 @@
 #include <errno.h>
 #include <utime.h>
 #include <libgen.h>
+#include <math.h>
 
 #endif /* FOSSIL_APP_CODE_H */
