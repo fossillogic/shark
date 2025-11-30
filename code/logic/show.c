@@ -31,10 +31,6 @@
 
 #define INDENT_SIZE 4
 
-// ========================================================
-// File and Directory Commands
-// ========================================================
-
 #ifdef _WIN32
     #include <windows.h>
     #include <io.h>
@@ -60,10 +56,6 @@ static void print_size(off_t size, bool human_readable) {
     fossil_io_printf("{blue,underline}%.1f%s{normal} ", sz, units[i]);
 }
 
-/**
- * Print advanced permissions using fossil_io_file_is_readable/writable/executable.
- * This version queries the actual file permissions using the provided API.
- */
 static void print_permissions_advanced(const char *filename) {
 #ifdef _WIN32
     fossil_io_printf("{yellow,bold}%c{normal}", fossil_io_file_is_readable(filename) ? '-' : '-');
