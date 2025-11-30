@@ -50,33 +50,6 @@ static int get_mod_time(ccstring path, time_t *mod_time) {
     return 0;
 }
 
-static int is_directory(ccstring path) {
-#if defined(_WIN32)
-    struct _stat st;
-    if (_stat(path, &st) != 0) return 0;
-    return (st.st_mode & _S_IFDIR) != 0;
-#else
-    struct stat st;
-    if (stat(path, &st) != 0) return 0;
-    return S_ISDIR(st.st_mode);
-#endif
-}
-
-static int make_dir(ccstring path) {
-#if defined(_WIN32)
-    if (_mkdir(path) != 0 && errno != EEXIST) {
-        perror("Failed to create directory");
-        return errno;
-    }
-#else
-    if (mkdir(path, 0755) != 0 && errno != EEXIST) {
-        perror("Failed to create directory");
-        return errno;
-    }
-#endif
-    return 0;
-}
-
 static int sync_file(ccstring src, ccstring dest, bool update) {
     time_t src_mtime, dest_mtime;
     if (get_mod_time(src, &src_mtime) != 0) { perror("stat src"); return errno; }
