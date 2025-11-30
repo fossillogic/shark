@@ -141,14 +141,6 @@ static void hash_to_hex(const unsigned char *h, char out[65]) {
     out[64]='\0';
 }
 
-// ---------------------------------------------------------------------------
-// STORAGE OPERATIONS IMPLEMENTATION (using fossil_io_dir_iter_t)
-// ---------------------------------------------------------------------------
-
-static void write_line(FILE *f, const char *key, const char *val) {
-    fprintf(f, "%s: %s\n", key, val);
-}
-
 // Dedup: identical files → hardlink to first instance
 static int perform_dedupe(const char *dir) {
     fossil_io_dir_iter_t it;
