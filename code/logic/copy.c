@@ -34,7 +34,6 @@
 #include <windows.h>
 #endif
 
-// Helper: copy a single file
 static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
     if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
         fossil_io_printf("{red}Error: Source and destination paths cannot be null{normal}\n");
@@ -110,7 +109,6 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
     return 0;
 }
 
-// Helper: copy directories recursively
 static int copy_directory(ccstring src, ccstring dest,
                           bool recursive, bool update, bool preserve) {
     if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
@@ -248,9 +246,6 @@ static int copy_directory(ccstring src, ccstring dest,
     return 0;
 }
 
-/**
- * Copy files or directories with various options
- */
 int fossil_shark_copy(ccstring src, ccstring dest,
                       bool recursive, bool update, bool preserve) {
     if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
