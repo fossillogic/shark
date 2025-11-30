@@ -32,9 +32,6 @@
 #include <direct.h>
 #endif
 
-/**
- * Helper: create parent directories recursively
- */
 static int create_parent_dirs(ccstring path) {
     cstring tmp = fossil_io_cstring_create_safe(path, 4096);
     if (!tmp) return 1;
@@ -72,9 +69,7 @@ static int create_parent_dirs(ccstring path) {
     return 0;
 }
 
-/**
- * Create new directories or files with specified options
- */
+
 int fossil_shark_create(ccstring path, bool create_parents,
                         ccstring type) {
     if (cunlikely(!path || !type)) {
