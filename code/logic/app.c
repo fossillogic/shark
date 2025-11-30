@@ -704,6 +704,66 @@ bool app_entry(int argc, char** argv) {
                     fossil_io_printf("{red}Grammar analysis failed: %s{reset}\n", file_path);
                 }
             }
+        } else if (fossil_io_cstring_compare(argv[i], "secure") == 0) {
+            ccstring path = cnull, hash_alg = cnull;
+            bool encrypt = false, decrypt = false, sign = false, verify = false;
+            bool hash = false, scrub = false, snapshot = false;
+
+            for (int j = i + 1; j < argc; j++) {
+                if (fossil_io_cstring_compare(argv[j], "-e") == 0) {
+                    encrypt = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-d") == 0) {
+                    decrypt = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-s") == 0) {
+                    sign = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-v") == 0) {
+                    verify = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-h") == 0 && j + 1 < argc) {
+                    hash = true;
+                    hash_alg = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--scrub") == 0) {
+                    scrub = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--snapshot") == 0) {
+                    snapshot = true;
+                } else if (!cnotnull(path)) {
+                    path = argv[j];
+                }
+                i = j;
+            }
+
+            if (cnotnull(path)) {
+                int rc = fossil_shark_secure(path, encrypt, decrypt, sign, verify, hash, hash_alg, scrub, snapshot);
+                if (rc != 0) {
+                    fossil_io_printf("{red}Secure operation failed: %s{reset}\n", path);
+                }
+            }
+        } else if (fossil_io_cstring_compare(argv[i], "storage") == 0) {
+            ccstring path = cnull;
+            bool dedupe = false, catalog = false, index = false, snapshot = false, prune = false;
+
+            for (int j = i + 1; j < argc; j++) {
+                if (fossil_io_cstring_compare(argv[j], "--dedupe") == 0) {
+                    dedupe = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--catalog") == 0) {
+                    catalog = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--index") == 0) {
+                    index = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--snapshot") == 0) {
+                    snapshot = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--prune") == 0) {
+                    prune = true;
+                } else if (!cnotnull(path)) {
+                    path = argv[j];
+                }
+                i = j;
+            }
+
+            if (cnotnull(path)) {
+                int rc = fossil_shark_storage(path, dedupe, catalog, index, snapshot, prune);
+                if (rc != 0) {
+                    fossil_io_printf("{red}Storage operation failed: %s{reset}\n", path);
+                }
+            }
         }
     }
     return 0;

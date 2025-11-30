@@ -43,8 +43,8 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 | `introspect` | Examine file contents, type, or metadata. | `-n <lines>` Number of lines<br>`-c` Count lines, words, bytes<br>`--fson` FSON output<br>`--mime` Show MIME type |
 | `grammar` | Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning through the SOAP API. | `--check` Run grammar check<br>`--fix` Auto-correct grammar<br>`--sanitize` Remove rot-brain/meme language<br>`--suggest` Suggest alternatives<br>`--tone` Detect tone<br>`--detect <type>` Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble |
 | `summary` | Generate a structured summary of one or more files (text, logs, code, docs). | `-l, --lines <n>` Limit lines analyzed<br>`--auto` Auto-detect file type<br>`--keywords` Extract keywords<br>`--topics` Topic clustering<br>`--stats` File statistics (chars/lines/entropy)<br>`--fson` Output structured FSON summary |
-| `secure` | Perform encryption, decryption, signing, hashing, secure wiping, and integrity verification. | `-e, --encrypt` Encrypt file<br>`-d, --decrypt` Decrypt file<br>`-s, --sign` Sign file<br>`-v, --verify` Verify signature<br>`-h, --hash <alg>` Compute hash (md5/sha1/sha256/blake3)<br>`--blocks` Block-level hashing<br>`--snapshot <file>` Create integrity snapshot<br>`--check <snapshot>` Verify against snapshot<br>`--scrub` Securely wipe file<br>`--passes <n>` Overwrite passes<br>`--password <pw>` Password-based encryption<br>`--keyfile <file>` Keyfile-based encryption<br>`--fson` Output structured FSON summary |
-| `storage` | Manage storage, deduplicate, catalog, snapshot, organize, and prune files. | `--dedupe` Find duplicates<br>`--hardlink` Replace duplicates with hardlinks<br>`--similar` Detect near-duplicates<br>`-c, --catalog <file>` Generate catalog<br>`--update <file>` Update catalog<br>`--index` Build searchable index<br>`--snapshot <file>` Create directory snapshot<br>`--diff <snapshot>` Compare snapshot<br>`--changes` Show added/removed/modified<br>`--by-type` Organize by file type<br>`--by-date` Organize by date<br>`--by-size` Organize by size<br>`--rules <file>` Rule-based organization<br>`--prune` Remove old/large/unused files<br>`--older-than <days>` Delete older than X days<br>`--larger-than <size>` Delete large files<br>`--dry-run` Preview actions<br>`--fson` Output structured FSON summary |
+| `secure` | Encryption, decryption, signing, hashing, secure wipe, and integrity check. | `-e` Encrypt<br>`-d` Decrypt<br>`-s` Sign<br>`-v` Verify<br>`-h <alg>` Hash<br>`--scrub` Wipe<br>`--snapshot` Snapshot |
+| `storage` | Deduplicate, catalog, snapshot, organize, and prune files. | `--dedupe` Duplicates<br>`--catalog` Catalog<br>`--index` Index<br>`--snapshot` Snapshot<br>`--prune` Prune |
 
 ---
 
@@ -82,6 +82,8 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 | `shark introspect --mime report.pdf` | Show the MIME type of a file. |
 | `shark grammar --check --tone notes.txt` | Run a grammar check and detect tone in a text file. |
 | `shark summary --auto --keywords --stats article.md` | Generate an automatic structured summary with keywords and statistics for a document. |
+| `shark secure -e -h sha256 secrets.txt` | Encrypt a file and generate a SHA-256 hash for integrity verification. |
+| `shark storage --dedupe --catalog ~/Documents/` | Deduplicate files and create a catalog of your Documents directory. |
 
 ## **Prerequisites**
 

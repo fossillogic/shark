@@ -260,6 +260,37 @@ int fossil_shark_summary(ccstring *paths, int count,
                          bool stats,
                          bool output_fson);
 
+/**
+ * Perform secure operations: encryption, decryption, signing, verification, hashing, secure wipe, and integrity check.
+ * @param path Path to file or directory to operate on
+ * @param encrypt Perform encryption
+ * @param decrypt Perform decryption
+ * @param sign Sign file or data
+ * @param verify Verify signature
+ * @param hash Perform hashing (algorithm specified by hash_alg)
+ * @param hash_alg Hash algorithm name (e.g., "sha256", "md5")
+ * @param scrub Securely wipe file/data
+ * @param snapshot Create integrity snapshot
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_secure(const char *path, bool encrypt, bool decrypt,
+                        bool sign, bool verify, bool hash,
+                        const char *hash_alg, bool scrub, bool snapshot);
+
+/**
+ * Perform storage management: deduplicate, catalog, index, snapshot, organize, and prune files.
+ * @param path Path to file or directory to manage
+ * @param dedupe Deduplicate files
+ * @param catalog Catalog files
+ * @param index Index files for fast lookup
+ * @param snapshot Create storage snapshot
+ * @param prune Prune obsolete or redundant files
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_storage(const char *path, bool dedupe, bool catalog,
+                         bool index, bool snapshot, bool prune);
+//
+
 #ifdef __cplusplus
 }
 #endif
