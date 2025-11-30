@@ -205,4 +205,5 @@ int fossil_shark_copy(ccstring src, ccstring dest,
         fossil_io_printf("{red}Error: Unsupported file type for '%s'{normal}\n", src);
         return 1;
     }
+    return 0;
 }
