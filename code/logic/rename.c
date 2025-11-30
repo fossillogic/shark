@@ -45,9 +45,6 @@ static bool confirm_overwrite_rename(ccstring path) {
     return result;
 }
 
-/**
- * Rename files or directories with safety checks
- */
 int fossil_shark_rename(ccstring old_name, ccstring new_name,
                         bool force, bool interactive) {
     if (cunlikely(!old_name || !new_name)) {
