@@ -87,9 +87,6 @@ static bool is_regular_file(ccstring path) {
 #endif
 }
 
-/**
- * Compare two files (text or binary)
- */
 int fossil_shark_compare(ccstring path1, ccstring path2,
                          bool text_diff, bool binary_diff,
                          int context_lines, bool ignore_case) {
