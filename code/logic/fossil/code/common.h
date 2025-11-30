@@ -31,10 +31,15 @@
 #include <fossil/algorithm/framework.h>
 
 #ifdef _WIN32
+#include <windows.h>
+#include <fileapi.h>
+#include <winbase.h>
+#include <handleapi.h>
 #include <direct.h>
 #include <io.h>
 #else
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #endif
 
