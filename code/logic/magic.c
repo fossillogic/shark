@@ -663,6 +663,4 @@ void fossil_it_magic_danger_report(
     report->overall_level = maxLevel;
     report->warning_required = (maxLevel >= FOSSIL_TI_DANGER_MEDIUM || total_score >= 10);
     report->block_recommended = (maxLevel >= FOSSIL_TI_DANGER_CRITICAL || total_score >= 16);
-
-    // If you want to provide a summary, add a summary_reason field to the struct.
 }
