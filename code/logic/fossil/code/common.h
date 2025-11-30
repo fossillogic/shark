@@ -41,19 +41,22 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #define mkdir(path, mode) _mkdir(path)
-int portable_link(const char *src, const char *dest)
-{
-    if (CreateHardLinkA(dest, src, NULL) == 0) {
-        return -1;
-    }
-    return 0;
-}
-
-#define link(src, dest) portable_link(src, dest)
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#endif
+
+#if defined(_WIN32)
+// stupid think has yet to be removed via new functionality in Fossil IO
+static int portable_link(const char *src, const char *dest) {
+    if (CreateHardLinkA(dest, src, NULL) == 0)
+        return -1;
+    return 0;
+}
+#define link(src, dest) portable_link(src, dest)
+#else
+#include <unistd.h>      // real POSIX link()
 #endif
 
 #include <errno.h>
