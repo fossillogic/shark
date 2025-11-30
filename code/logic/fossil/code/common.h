@@ -40,5 +40,6 @@
 
 #include <errno.h>
 #include <utime.h>
+#include <libgen.h>
 
 #endif /* FOSSIL_APP_CODE_H */
