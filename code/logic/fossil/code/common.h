@@ -41,8 +41,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #define mkdir(path, mode) _mkdir(path)
-// Replacement for POSIX link()
-static int portable_link(const char *src, const char *dest)
+int portable_link(const char *src, const char *dest)
 {
     if (CreateHardLinkA(dest, src, NULL) == 0) {
         return -1;
