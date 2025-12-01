@@ -569,6 +569,9 @@ void fossil_it_magic_danger_analyze(
 
     // Size
     u64 sz = 0;
+    #ifndef _WIN32
+    struct stat st;
+    #endif
     if (out->is_directory) {
         fossil_io_dir_size(path, &sz);
     } else if (is_file > 0) {
@@ -577,7 +580,6 @@ void fossil_it_magic_danger_analyze(
             if (_stat(path, &st) == 0)
                 sz = (u64)st.st_size;
         #else
-            struct stat st;
             if (stat(path, &st) == 0)
                 sz = (u64)st.st_size;
         #endif
@@ -597,8 +599,6 @@ void fossil_it_magic_danger_analyze(
                 }
             }
         }
-    }
-
     // Recently modified
     out->recently_modified = 0;
     u64 mod_time = 0;
@@ -607,11 +607,12 @@ void fossil_it_magic_danger_analyze(
         if (_stat(path, &st) == 0)
             mod_time = (u64)st.st_mtime;
     #else
-        struct stat st;
         if (stat(path, &st) == 0)
             mod_time = (u64)st.st_mtime;
     #endif
     u64 now = (u64)time(cnull);
+    if (mod_time && now && (now > mod_time) && ((now - mod_time) < 24 * 3600))
+        out->recently_modified = 1;
     if (mod_time && now && (now > mod_time) && ((now - mod_time) < 24 * 3600))
         out->recently_modified = 1;
 
