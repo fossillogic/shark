@@ -301,7 +301,7 @@ bool app_entry(int argc, char** argv) {
                 ++i; // Skip next argument
             }
         } else if (fossil_io_cstring_compare(argv[i], "--clear") == 0) {
-            fossil_io_printf("\033[H\033[J"); // ANSI escape sequence to clear screen
+            fossil_io_clear_screen(); // ANSI escape sequence to clear screen
         }
         // File Operations Commands
         else if (fossil_io_cstring_compare(argv[i], "show") == 0) {
