@@ -185,13 +185,6 @@ static int fossil_it_magic_contains_secret(ccstring path) {
     return 0;
 }
 
-static i64 fossil_it_magic_directory_size(ccstring path) {
-    u64 total = 0;
-    if (fossil_io_dir_size(path, &total) == 0)
-        return (i64)total;
-    return 0;
-}
-
 /* ==========================================================================
  * Similarity Utilities
  * ========================================================================== */
