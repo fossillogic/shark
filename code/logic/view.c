@@ -23,9 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <ctype.h>
-#include <sys/stat.h>
-#include <time.h>
+
 
 /* -----------------------------------------------------------------------
     Utility: detect if file is binary

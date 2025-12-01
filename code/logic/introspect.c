@@ -23,34 +23,37 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>   // strcasecmp on POSIX
-#include <stdbool.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <ctype.h>
 
-#if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
 
-/**
- * Helper: determine simple MIME/type from file extension
- */
 static ccstring get_mime_type(ccstring path) {
     ccstring ext = strrchr(path, '.');
     if (!cnotnull(ext)) return "application/octet-stream";
     ext++;
     if (fossil_io_cstring_iequals(ext, "txt")) return "text/plain";
     if (fossil_io_cstring_iequals(ext, "c") || fossil_io_cstring_iequals(ext, "h")) return "text/plain";
-    if (fossil_io_cstring_iequals(ext, "html")) return "text/html";
+    if (fossil_io_cstring_iequals(ext, "cpp") || fossil_io_cstring_iequals(ext, "hpp")) return "text/x-c++src";
+    if (fossil_io_cstring_iequals(ext, "py")) return "text/x-python";
+    if (fossil_io_cstring_iequals(ext, "js")) return "application/javascript";
+    if (fossil_io_cstring_iequals(ext, "html") || fossil_io_cstring_iequals(ext, "htm")) return "text/html";
+    if (fossil_io_cstring_iequals(ext, "css")) return "text/css";
     if (fossil_io_cstring_iequals(ext, "json")) return "application/json";
+    if (fossil_io_cstring_iequals(ext, "xml")) return "application/xml";
+    if (fossil_io_cstring_iequals(ext, "csv")) return "text/csv";
+    if (fossil_io_cstring_iequals(ext, "md")) return "text/markdown";
     if (fossil_io_cstring_iequals(ext, "jpg") || fossil_io_cstring_iequals(ext, "jpeg")) return "image/jpeg";
     if (fossil_io_cstring_iequals(ext, "png")) return "image/png";
+    if (fossil_io_cstring_iequals(ext, "gif")) return "image/gif";
+    if (fossil_io_cstring_iequals(ext, "bmp")) return "image/bmp";
+    if (fossil_io_cstring_iequals(ext, "svg")) return "image/svg+xml";
     if (fossil_io_cstring_iequals(ext, "zip")) return "application/zip";
+    if (fossil_io_cstring_iequals(ext, "tar")) return "application/x-tar";
+    if (fossil_io_cstring_iequals(ext, "gz")) return "application/gzip";
+    if (fossil_io_cstring_iequals(ext, "pdf")) return "application/pdf";
+    if (fossil_io_cstring_iequals(ext, "mp3")) return "audio/mpeg";
+    if (fossil_io_cstring_iequals(ext, "wav")) return "audio/wav";
+    if (fossil_io_cstring_iequals(ext, "mp4")) return "video/mp4";
+    if (fossil_io_cstring_iequals(ext, "mov")) return "video/quicktime";
+    if (fossil_io_cstring_iequals(ext, "avi")) return "video/x-msvideo";
     return "application/octet-stream";
 }
 

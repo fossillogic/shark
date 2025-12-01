@@ -23,15 +23,8 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <ctype.h>
-#include <errno.h>
-#include <math.h>
-#include <stdbool.h>
 
-// ------------------------------------------------------------
-// Helper: infer file type from extension
-// ------------------------------------------------------------
-// Maximized file type detector: supports more extensions, case-insensitive, and handles compound extensions
+
 static ccstring detect_type(ccstring path) {
     size_t len = fossil_io_cstring_length(path);
     if (len < 2) return "unknown";
@@ -199,9 +192,6 @@ static ccstring detect_type(ccstring path) {
     return "unknown";
 }
 
-// ------------------------------------------------------------
-// Utility: simple keyword frequency table
-// ------------------------------------------------------------
 typedef struct {
     char word[64];
     int count;
@@ -226,10 +216,6 @@ static int add_keyword(keyword_t *arr, int max, int *used, const char *word) {
     return 1;
 }
 
-
-// ------------------------------------------------------------
-// Utility: compute Shannon entropy
-// ------------------------------------------------------------
 static double compute_entropy(const unsigned char *data, size_t n) {
     if (n == 0) return 0.0;
 
@@ -248,11 +234,7 @@ static double compute_entropy(const unsigned char *data, size_t n) {
     return entropy;
 }
 
-// ------------------------------------------------------------
-// Utility: extract topics from text (simple frequency-based clustering)
-// ------------------------------------------------------------
 static ccstring *_extract_topics(const char *text, int *topic_count) {
-    // Simple implementation: find most frequent keywords as "topics"
     keyword_t keywords[128];
     int kw_used = 0;
 
@@ -284,9 +266,6 @@ static ccstring *_extract_topics(const char *text, int *topic_count) {
     return topics;
 }
 
-// ------------------------------------------------------------
-// Process a single file
-// ------------------------------------------------------------
 static int summarize_file(ccstring path,
                           int limit_lines,
                           bool auto_detect,
@@ -329,9 +308,6 @@ static int summarize_file(ccstring path,
     long word_count = 0;
     long max_line_length = 0;
 
-    // ------------------------------
-    // Read file (but do not output contents)
-    // ------------------------------
     while (fossil_io_gets_from_stream(linebuf, 8192, &fp)) {
         line_count++;
         int len = (int)fossil_io_cstring_length(linebuf);
@@ -344,7 +320,6 @@ static int summarize_file(ccstring path,
             entused += len;
         }
 
-        // Keyword detection (simple tokenizing)
         if (extract_keywords || do_stats) {
             char temp[8192];
             strncpy(temp, linebuf, 8191);
@@ -411,9 +386,6 @@ static int summarize_file(ccstring path,
         topics = _extract_topics((const char *)entbuf, &topic_count);
     }
 
-    // ------------------------------------------------------------
-    // Output section (do not output file contents)
-    // ------------------------------------------------------------
     // Generate AI-like summary response based on analysis values
     fossil_io_cstring_stream *ai_stream = fossil_io_cstring_stream_create(1024);
     fossil_io_cstring_stream_write_format(ai_stream,
@@ -517,19 +489,6 @@ static int summarize_file(ccstring path,
     return 0;
 }
 
-/**
- * @brief Generate structured summaries of text/code/log/document files.
- *
- * @param paths Array of file paths.
- * @param count Number of paths.
- * @param limit_lines Limit number of lines to analyze (0 = no limit).
- * @param auto_detect Enable automatic file-type inference.
- * @param extract_keywords Extract keyword list.
- * @param extract_topics Perform simple topic clustering.
- * @param stats Include file statistics.
- * @param output_fson Output structured FSON format.
- * @return int Status code.
- */
 int fossil_shark_summary(ccstring *paths, int count,
                          int limit_lines,
                          bool auto_detect,

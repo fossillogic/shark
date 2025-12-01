@@ -53,12 +53,6 @@ static char *read_file(const char *path) {
     return buf;
 }
 
-/**
- * Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning.
- * Uses SOAP API for advanced grammar and content analysis.
- *
- * @return 0 on success, non-zero on error
- */
 int fossil_shark_grammar(ccstring file_path, bool check, bool fix,
                          bool sanitize, bool suggest, bool tone,
                          ccstring detect_type)

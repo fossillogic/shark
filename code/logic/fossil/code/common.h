@@ -28,17 +28,42 @@
 #include <fossil/sys/framework.h>
 #include <fossil/io/framework.h>
 #include <fossil/math/framework.h>
-#include <fossil/algorithm/framework.h>
+#include <fossil/cryptic/framework.h>
 
 #ifdef _WIN32
+#include <windows.h>
+#include <fileapi.h>
+#include <winbase.h>
+#include <handleapi.h>
 #include <direct.h>
 #include <io.h>
+#define _CRT_INTERNAL_NONSTDC_NAMES 1
+#include <sys/types.h>
+#include <sys/stat.h>
+#define mkdir(path, mode) _mkdir(path)
 #else
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
+#if defined(_WIN32)
+#include <windows.h>
+static inline __attribute__((unused))
+int portable_link(const char *src, const char *dest) {
+    return CreateHardLinkA(dest, src, NULL) ? 0 : -1;
+}
+#ifndef link
+#define link(src, dest) portable_link(src, dest)
+#endif
+
+#else
 #include <unistd.h>
 #endif
 
 #include <errno.h>
 #include <utime.h>
+#include <libgen.h>
+#include <math.h>
 
 #endif /* FOSSIL_APP_CODE_H */

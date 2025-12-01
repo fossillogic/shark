@@ -23,17 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/magic.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <dirent.h>
-#include <sys/stat.h>
 #include <limits.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <stdint.h>
-#include <math.h>
-
 
 /* Remove enum redefining PATH_MAX, rely on limits.h definition */
 
@@ -110,19 +100,19 @@ static int fossil_it_magic_is_code_file(ccstring path) {
         ".ninja",
         ".gitignore", ".gitattributes", ".editorconfig", ".env"
     };
-    static const int code_exts_count = sizeof(code_exts) / sizeof(code_exts[0]);
+    static const i32 code_exts_count = (i32)(sizeof(code_exts) / sizeof(code_exts[0]));
 
-    for (int i = 0; i < code_exts_count; i++) {
+    for (i32 i = 0; i < code_exts_count; i++) {
         if (fossil_io_cstring_case_compare(ext, code_exts[i]) == 0)
             return 1;
     }
 
     static ccstring special_names[] = {
-        "Makefile", "CMakeLists.txt", "Dockerfile", "BUILD", "WORKSPACE", "SConstruct", "Rakefile", "Gemfile"
+        "Makefile", "CMakeLists.txt", "Dockerfile", "BUILD", "WORKSPACE", "SConstruct", "Rakefile", "Gemfile", "meson.build"
     };
     ccstring base = strrchr(path, '/');
     base = cnotnull(base) ? base + 1 : path;
-    for (int i = 0; i < (int)(sizeof(special_names)/sizeof(special_names[0])); i++) {
+    for (i32 i = 0; i < (i32)(sizeof(special_names)/sizeof(special_names[0])); i++) {
         if (fossil_io_cstring_compare(base, special_names[i]) == 0)
             return 1;
     }
@@ -130,70 +120,69 @@ static int fossil_it_magic_is_code_file(ccstring path) {
 }
 
 static int fossil_it_magic_contains_git(ccstring path) {
-    char buf[PATH_MAX];
-    snprintf(buf, sizeof(buf), "%s/.git", path);
-    struct stat st;
-    if (stat(buf, &st) == 0 && S_ISDIR(st.st_mode))
-        return 1;
-    snprintf(buf, sizeof(buf), "%s/.gitignore", path);
-    if (stat(buf, &st) == 0)
-        return 1;
-    return 0;
+    fossil_io_dir_iter_t it;
+    if (fossil_io_dir_iter_open(&it, path) != 0)
+        return 0;
+
+    i32 found = 0;
+    do {
+        ccstring name = it.current.name;
+        if (fossil_io_cstring_equals(name, ".git") && it.current.type == 1) { // 1=dir
+            found = 1;
+            break;
+        }
+        if (fossil_io_cstring_equals(name, ".gitignore") && (it.current.type == 0 || it.current.type == 2)) { // 0=file, 2=symlink
+            found = 1;
+            break;
+        }
+    } while (fossil_io_dir_iter_next(&it) > 0);
+
+    fossil_io_dir_iter_close(&it);
+    return found;
 }
 
 static int fossil_it_magic_contains_secret(ccstring path) {
-    char buf[PATH_MAX];
     static ccstring secret_files[] = {
-        ".env", "secret.key", "id_rsa", "private.pem", "credentials.json", "config.yml", "secrets.yml"
+        ".env", "secret.key", "id_rsa", "id_dsa", "id_ed25519", "id_ecdsa",
+        "private.pem", "private.key", "server.key", "client.key", "jwt.key",
+        "credentials.json", "credentials.yml", "config.yml", "config.yaml",
+        "secrets.yml", "secrets.yaml", "passwords.txt", "password.txt",
+        "passwd", "shadow", "auth.json", "auth.yaml", "auth.yml",
+        "api_key.txt", "api_keys.txt", "apikey.txt", "apikeys.txt",
+        "token.txt", "tokens.txt", "access_token.txt", "refresh_token.txt",
+        "vault.json", "vault.yml", "vault.yaml", "db_password.txt",
+        "db_secrets.txt", "db_credentials.txt", "ssh_config", "pgpass",
+        ".docker_secret", ".aws/credentials", ".npmrc", ".netrc",
+        ".gcp_secret.json", ".azure_secret.json", ".git-credentials",
+        ".pypirc", ".gem/credentials", "firebase.json", "firebase.key",
+        "service-account.json", "service_account.json", "client_secret.json",
+        "client_secrets.json", "google_api_key.txt", "azure_api_key.txt",
+        "aws_secret_access_key.txt", "aws_access_key_id.txt"
     };
-    static const int secret_count = sizeof(secret_files) / sizeof(secret_files[0]);
-    for (int i = 0; i < secret_count; i++) {
-        snprintf(buf, sizeof(buf), "%s/%s", path, secret_files[i]);
-        struct stat st;
-        if (stat(buf, &st) == 0)
-            return 1;
-    }
-    DIR *d = opendir(path);
-    if (!cnotnull(d)) return 0;
-    struct dirent *ent;
-    while ((ent = readdir(d)) != cnull) {
-        if (fossil_io_cstring_icontains(ent->d_name, "password") || fossil_io_cstring_icontains(ent->d_name, "secret")) {
-            closedir(d);
-            return 1;
+    static const i32 secret_count = (i32)(sizeof(secret_files) / sizeof(secret_files[0]));
+    char candidate[1024];
+
+    for (i32 i = 0; i < secret_count; i++) {
+        if (fossil_io_dir_join(path, secret_files[i], candidate, sizeof(candidate)) == 0) {
+            if (fossil_io_dir_is_file(candidate) > 0)
+                return 1;
         }
     }
-    closedir(d);
+
+    fossil_io_dir_iter_t it;
+    if (fossil_io_dir_iter_open(&it, path) != 0)
+        return 0;
+
+    do {
+        ccstring name = it.current.name;
+        if (fossil_io_cstring_icontains(name, "password") || fossil_io_cstring_icontains(name, "secret")) {
+            fossil_io_dir_iter_close(&it);
+            return 1;
+        }
+    } while (fossil_io_dir_iter_next(&it) > 0);
+
+    fossil_io_dir_iter_close(&it);
     return 0;
-}
-
-static long fossil_it_magic_directory_size(ccstring path) {
-    long total = 0;
-    DIR *d = opendir(path);
-    if (!cnotnull(d)) return 0;
-
-    struct dirent *ent;
-    struct stat st;
-    char full[PATH_MAX];
-
-    while ((ent = readdir(d)) != cnull) {
-        if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
-            continue;
-
-        int needed = snprintf(full, sizeof(full), "%s/%s", path, ent->d_name);
-        if (needed < 0 || needed >= (int)sizeof(full)) {
-            // Truncated, skip this entry
-            continue;
-        }
-        if (stat(full, &st) == 0) {
-            if (S_ISDIR(st.st_mode)) {
-                total += fossil_it_magic_directory_size(full);
-            } else {
-                total += st.st_size;
-            }
-        }
-    }
-    closedir(d);
-    return total;
 }
 
 /* ==========================================================================
@@ -205,12 +194,12 @@ int fossil_it_magic_jaccard_index(ccstring s1, ccstring s2) {
     if (!cnotnull(s1) || !cnotnull(s2)) return 0;
 
     char tokens1[32][32], tokens2[32][32];
-    int count1 = 0, count2 = 0;
+    i32 count1 = 0, count2 = 0;
 
     ccstring p = s1;
     while (*p && count1 < 32) {
         while (*p && !isalnum((unsigned char)*p)) p++;
-        int i = 0;
+        i32 i = 0;
         while (*p && isalnum((unsigned char)*p) && i < 31)
             tokens1[count1][i++] = tolower((unsigned char)*p++);
         if (i) {
@@ -221,7 +210,7 @@ int fossil_it_magic_jaccard_index(ccstring s1, ccstring s2) {
     p = s2;
     while (*p && count2 < 32) {
         while (*p && !isalnum((unsigned char)*p)) p++;
-        int i = 0;
+        i32 i = 0;
         while (*p && isalnum((unsigned char)*p) && i < 31)
             tokens2[count2][i++] = tolower((unsigned char)*p++);
         if (i) {
@@ -230,10 +219,10 @@ int fossil_it_magic_jaccard_index(ccstring s1, ccstring s2) {
         }
     }
 
-    int match = 0;
-    int used[32] = {0};
-    for (int i = 0; i < count1; i++) {
-        for (int j = 0; j < count2; j++) {
+    i32 match = 0;
+    i32 used[32] = {0};
+    for (i32 i = 0; i < count1; i++) {
+        for (i32 j = 0; j < count2; j++) {
             if (!used[j] && fossil_io_cstring_compare(tokens1[i], tokens2[j]) == 0) {
                 match++;
                 used[j] = 1;
@@ -241,28 +230,27 @@ int fossil_it_magic_jaccard_index(ccstring s1, ccstring s2) {
             }
         }
     }
-    int total = count1 + count2 - match;
+    i32 total = count1 + count2 - match;
     return total ? (100 * match / total) : 0;
 }
 
 // Advanced Levenshtein: case-insensitive, transpositions (Damerau-Levenshtein)
 int fossil_it_magic_levenshtein_distance(ccstring s1, ccstring s2) {
     if (!cnotnull(s1) || !cnotnull(s2)) return INT_MAX;
-    int len1 = (int)strlen(s1), len2 = (int)strlen(s2);
+    i32 len1 = (i32)strlen(s1), len2 = (i32)strlen(s2);
 
-    int *dp = (int *)calloc((size_t)(len1 + 2) * (size_t)(len2 + 2), sizeof(int));
+    i32 *dp = (i32 *)fossil_sys_memory_calloc((size_t)(len1 + 2) * (size_t)(len2 + 2), sizeof(i32));
     if (!cnotnull(dp)) return INT_MAX;
 
-    /* Use only one DP macro, do not redefine */
-    for (int j = 0; j <= len2; j++) dp[(0)*(len2+2)+(j)] = j;
+    for (i32 j = 0; j <= len2; j++) dp[(0)*(len2+2)+(j)] = j;
 
-    for (int i = 1; i <= len1; i++) {
-        for (int j = 1; j <= len2; j++) {
-            int cost = (tolower((unsigned char)s1[i - 1]) == tolower((unsigned char)s2[j - 1])) ? 0 : 1;
-            int del = DP(i - 1, j) + 1;
-            int ins = DP(i, j - 1) + 1;
-            int sub = DP(i - 1, j - 1) + cost;
-            int min = del < ins ? del : ins;
+    for (i32 i = 1; i <= len1; i++) {
+        for (i32 j = 1; j <= len2; j++) {
+            i32 cost = (tolower((unsigned char)s1[i - 1]) == tolower((unsigned char)s2[j - 1])) ? 0 : 1;
+            i32 del = DP(i - 1, j) + 1;
+            i32 ins = DP(i, j - 1) + 1;
+            i32 sub = DP(i - 1, j - 1) + cost;
+            i32 min = del < ins ? del : ins;
             min = (min < sub) ? min : sub;
             DP(i, j) = min;
 
@@ -274,22 +262,22 @@ int fossil_it_magic_levenshtein_distance(ccstring s1, ccstring s2) {
         }
     }
 
-    int result = DP(len1, len2);
-    free(dp);
+    i32 result = DP(len1, len2);
+    fossil_sys_memory_free(dp);
     #undef DP
     return result;
 }
 
-float fossil_it_magic_similarity(ccstring a, ccstring b) {
+f32 fossil_it_magic_similarity(ccstring a, ccstring b) {
     if (!cnotnull(a) || !cnotnull(b)) return 0.0f;
-    int len_a = (int)strlen(a), len_b = (int)strlen(b);
+    i32 len_a = (i32)strlen(a), len_b = (i32)strlen(b);
     if (len_a == 0 && len_b == 0) return 1.0f;
 
-    int dist = fossil_it_magic_levenshtein_distance(a, b);
-    int max_len = len_a > len_b ? len_a : len_b;
-    float sim = 1.0f - ((float)dist / (float)max_len);
+    i32 dist = fossil_it_magic_levenshtein_distance(a, b);
+    i32 max_len = len_a > len_b ? len_a : len_b;
+    f32 sim = 1.0f - ((f32)dist / (f32)max_len);
 
-    int jaccard = fossil_it_magic_jaccard_index(a, b);
+    i32 jaccard = fossil_it_magic_jaccard_index(a, b);
     sim += jaccard / 200.0f;
 
     if (fossil_io_cstring_case_starts_with(a, b))
@@ -310,34 +298,32 @@ float fossil_it_magic_similarity(ccstring a, ccstring b) {
 ccstring fossil_it_magic_suggest_command(
     ccstring input,
     ccstring *commands,
-    int num_commands,
+    i32 num_commands,
     fossil_ti_reason_t *out_reason
 ) {
     if (!cnotnull(input) || !cnotnull(commands) || num_commands <= 0) return cnull;
 
     ccstring best_match = cnull;
-    float best_score = 0.0f;
-    int best_distance = INT_MAX;
-    int best_jaccard = 0;
-    int best_prefix = 0;
-    int best_suffix = 0;
-    int best_case_insensitive = 0;
-    // Removed unused variable: int best_length = 1;
+    f32 best_score = 0.0f;
+    i32 best_distance = INT_MAX;
+    i32 best_jaccard = 0;
+    i32 best_prefix = 0;
+    i32 best_suffix = 0;
+    i32 best_case_insensitive = 0;
 
-    for (int i = 0; i < num_commands; i++) {
+    for (i32 i = 0; i < num_commands; i++) {
         if (!cnotnull(commands[i])) continue;
 
-        int distance = fossil_it_magic_levenshtein_distance(input, commands[i]);
-        int jaccard = fossil_it_magic_jaccard_index(input, commands[i]);
-        int prefix = fossil_io_cstring_starts_with(input, commands[i]);
-        int suffix = (strlen(input) <= strlen(commands[i]) &&
+        i32 distance = fossil_it_magic_levenshtein_distance(input, commands[i]);
+        i32 jaccard = fossil_it_magic_jaccard_index(input, commands[i]);
+        i32 prefix = fossil_io_cstring_starts_with(input, commands[i]);
+        i32 suffix = (strlen(input) <= strlen(commands[i]) &&
                      fossil_io_cstring_case_ends_with(commands[i], input)) ? 1 : 0;
-        int case_insensitive = fossil_io_cstring_iequals(input, commands[i]);
-        int exact = fossil_io_cstring_equals(input, commands[i]);
+        i32 case_insensitive = fossil_io_cstring_iequals(input, commands[i]);
+        i32 exact = fossil_io_cstring_equals(input, commands[i]);
 
-        // int len = (int)strlen(commands[i]); // Removed unused variable
-        float sim = fossil_it_magic_similarity(input, commands[i]);
-        float score = sim;
+        f32 sim = fossil_it_magic_similarity(input, commands[i]);
+        f32 score = sim;
 
         if (prefix) score += 0.15f;
         if (suffix) score += 0.10f;
@@ -358,7 +344,6 @@ ccstring fossil_it_magic_suggest_command(
             best_prefix = prefix;
             best_suffix = suffix;
             best_case_insensitive = case_insensitive;
-            // Removed assignment to best_length
         }
     }
 
@@ -373,12 +358,19 @@ ccstring fossil_it_magic_suggest_command(
         out_reason->prefix_match = best_prefix;
         out_reason->suffix_match = best_suffix;
         out_reason->case_insensitive = best_case_insensitive;
-        out_reason->reason = (best_score >= 0.95f) ? "Exact or strong semantic match" :
-                             (best_score >= 0.85f) ? "Strong semantic and token match" :
-                             (best_score >= 0.7f) ? "Close semantic match" :
-                             best_prefix ? "Prefix match" :
-                             best_case_insensitive ? "Case-insensitive match" :
-                             "Low confidence match";
+        out_reason->reason = (best_score >= 0.99f) ? "Exact match" :
+                     (best_score >= 0.95f) ? "Strong semantic match" :
+                     (best_score >= 0.90f) ? "Strong semantic and token match" :
+                     (best_score >= 0.85f) ? "High semantic and token similarity" :
+                     (best_score >= 0.80f) ? "Good semantic similarity" :
+                     (best_score >= 0.75f) ? "Moderate semantic similarity" :
+                     (best_score >= 0.70f) ? "Close semantic match" :
+                     best_prefix && best_suffix ? "Prefix and suffix match" :
+                     best_prefix ? "Prefix match" :
+                     best_suffix ? "Suffix match" :
+                     best_case_insensitive ? "Case-insensitive match" :
+                     (best_jaccard >= 50) ? "Token overlap match" :
+                     "Low confidence match";
     }
 
     return (best_score >= 0.7f) ? best_match : cnull;
@@ -394,61 +386,57 @@ void fossil_it_magic_path_suggest(
     fossil_ti_path_suggestion_set_t *out
 ) {
     out->count = 0;
-    DIR *d = opendir(base_dir);
-    if (!cnotnull(d)) return;
+    fossil_io_dir_iter_t it;
+    if (fossil_io_dir_iter_open(&it, base_dir) != 0)
+        return;
 
-    struct dirent *ent;
     struct {
         char name[PATH_MAX];
-        float score;
+        f32 score;
         int exists;
     } candidates[32];
 
-    float best_score = 0.0f;
-    // Removed unused variable: int best_idx = -1;
-    int idx = 0;
+    f32 best_score = 0.0f;
+    i32 idx = 0;
 
-    while ((ent = readdir(d)) && idx < 32) {
-        if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
+    while (fossil_io_dir_iter_next(&it) > 0 && idx < 32) {
+        ccstring entry_name = it.current.name;
+        if (!strcmp(entry_name, ".") || !strcmp(entry_name, ".."))
             continue;
-        float score = fossil_it_magic_similarity(bad_path, ent->d_name);
 
-        if (fossil_io_cstring_case_starts_with(bad_path, ent->d_name))
+        f32 score = fossil_it_magic_similarity(bad_path, entry_name);
+
+        if (fossil_io_cstring_case_starts_with(bad_path, entry_name))
             score += 0.10f;
-        if (strlen(bad_path) <= strlen(ent->d_name) &&
-            fossil_io_cstring_case_ends_with(ent->d_name, bad_path))
+        if (strlen(bad_path) <= strlen(entry_name) &&
+            fossil_io_cstring_case_ends_with(entry_name, bad_path))
             score += 0.07f;
 
         if (score < 0.18f) continue;
 
-        int needed = snprintf(candidates[idx].name, sizeof(candidates[idx].name), "%s/%s", base_dir, ent->d_name);
-        if (needed < 0 || needed >= (int)sizeof(candidates[idx].name)) {
-            // Truncated, skip this candidate
+        if (fossil_io_dir_join(base_dir, entry_name, candidates[idx].name, sizeof(candidates[idx].name)) != 0)
             continue;
-        }
-        struct stat st;
-        candidates[idx].exists = (stat(candidates[idx].name, &st) == 0);
+
+        candidates[idx].exists = (fossil_io_dir_exists(candidates[idx].name) > 0 || fossil_io_dir_is_file(candidates[idx].name) > 0);
         candidates[idx].score = score;
         if (score > best_score) {
             best_score = score;
-            // Removed assignment to best_idx
         }
         idx++;
     }
-    closedir(d);
+    fossil_io_dir_iter_close(&it);
 
-    for (int i = 0; i < idx - 1; i++) {
-        for (int j = i + 1; j < idx; j++) {
+    for (i32 i = 0; i < idx - 1; i++) {
+        for (i32 j = i + 1; j < idx; j++) {
             if (candidates[j].score > candidates[i].score) {
-                /* Portable swap instead of typeof */
-                struct { char name[PATH_MAX]; float score; int exists; } tmp;
+                struct { char name[PATH_MAX]; f32 score; int exists; } tmp;
                 memcpy(&tmp, &candidates[i], sizeof(tmp));
                 memcpy(&candidates[i], &candidates[j], sizeof(tmp));
                 memcpy(&candidates[j], &tmp, sizeof(tmp));
             }
         }
     }
-    for (int i = 0; i < idx; i++) {
+    for (i32 i = 0; i < idx; i++) {
         strncpy(out->list[out->count].candidate_path, candidates[i].name, sizeof(out->list[out->count].candidate_path)-1);
         out->list[out->count].candidate_path[sizeof(out->list[out->count].candidate_path)-1] = cterm;
         out->list[out->count].similarity_score = candidates[i].score;
@@ -460,16 +448,16 @@ void fossil_it_magic_path_suggest(
 void fossil_it_magic_autorecovery_token(
     ccstring token,
     ccstring candidates[],
-    int candidate_count,
+    i32 candidate_count,
     fossil_ti_autorecovery_t *out
 ) {
-    float best_score = 0.0f;
-    int best_idx = -1;
-    float second_best_score = 0.0f;
-    int second_best_idx = -1;
+    f32 best_score = 0.0f;
+    i32 best_idx = -1;
+    f32 second_best_score = 0.0f;
+    i32 second_best_idx = -1;
 
-    for (int i = 0; i < candidate_count; i++) {
-        float score = fossil_it_magic_similarity(token, candidates[i]);
+    for (i32 i = 0; i < candidate_count; i++) {
+        f32 score = fossil_it_magic_similarity(token, candidates[i]);
         if (fossil_io_cstring_case_starts_with(token, candidates[i]))
             score += 0.10f;
         if (strlen(token) <= strlen(candidates[i]) &&
@@ -487,25 +475,34 @@ void fossil_it_magic_autorecovery_token(
         }
     }
 
-    strncpy(out->original_token, token, sizeof(out->original_token)-1);
+    // Use safe string copy for all output fields
+    cstring orig = fossil_io_cstring_copy_safe(token, sizeof(out->original_token)-1);
+    strncpy(out->original_token, orig ? orig : "", sizeof(out->original_token)-1);
     out->original_token[sizeof(out->original_token)-1] = cterm;
+    if (orig) fossil_io_cstring_free_safe(&orig);
 
-    // Fill first_best_token and first_best_confidence
     if (best_idx >= 0) {
-        strncpy(out->first_best_token, candidates[best_idx], sizeof(out->first_best_token)-1);
+        cstring best = fossil_io_cstring_copy_safe(candidates[best_idx], sizeof(out->first_best_token)-1);
+        strncpy(out->first_best_token, best ? best : "", sizeof(out->first_best_token)-1);
         out->first_best_token[sizeof(out->first_best_token)-1] = cterm;
+        if (best) fossil_io_cstring_free_safe(&best);
+
         out->first_best_confidence = best_score;
 
-        // Fill recovered_token and confidence for compatibility
-        strncpy(out->recovered_token, candidates[best_idx], sizeof(out->recovered_token)-1);
+        cstring rec = fossil_io_cstring_copy_safe(candidates[best_idx], sizeof(out->recovered_token)-1);
+        strncpy(out->recovered_token, rec ? rec : "", sizeof(out->recovered_token)-1);
         out->recovered_token[sizeof(out->recovered_token)-1] = cterm;
+        if (rec) fossil_io_cstring_free_safe(&rec);
+
         out->confidence = best_score;
         out->applied = (best_score > 0.80f);
 
-        // Fill second_best_token and second_best_confidence
         if (second_best_idx >= 0) {
-            strncpy(out->second_best_token, candidates[second_best_idx], sizeof(out->second_best_token)-1);
+            cstring second = fossil_io_cstring_copy_safe(candidates[second_best_idx], sizeof(out->second_best_token)-1);
+            strncpy(out->second_best_token, second ? second : "", sizeof(out->second_best_token)-1);
             out->second_best_token[sizeof(out->second_best_token)-1] = cterm;
+            if (second) fossil_io_cstring_free_safe(&second);
+
             out->second_best_confidence = second_best_score;
         } else {
             out->second_best_token[0] = cterm;
@@ -530,50 +527,64 @@ void fossil_it_magic_danger_analyze(
     ccstring path,
     fossil_ti_danger_item_t *out
 ) {
-    struct stat st;
-    memset(out, 0, sizeof(*out));
-    strncpy(out->target_path, path, sizeof(out->target_path)-1);
+    fossil_sys_memory_zero(out, sizeof(*out));
+    // Use safe copy for target_path
+    cstring safe_path = fossil_io_cstring_copy_safe(path, sizeof(out->target_path)-1);
+    strncpy(out->target_path, safe_path ? safe_path : "", sizeof(out->target_path)-1);
+    out->target_path[sizeof(out->target_path)-1] = cterm;
+    if (safe_path) fossil_io_cstring_free_safe(&safe_path);
 
-    if (stat(path, &st) != 0) {
-        out->level = FOSSIL_TI_DANGER_NONE;
-        return;
-    }
+    i32 is_dir = fossil_io_dir_is_directory(path);
+    i32 is_file = fossil_io_dir_is_file(path);
+    i32 is_symlink = fossil_io_dir_is_symlink(path);
 
-    out->is_directory = S_ISDIR(st.st_mode);
-    out->writable =
+    out->is_directory = (is_dir > 0);
+    out->is_symlink = (is_symlink > 0);
+
+    // Permissions and size/stat
     #ifdef _WIN32
-        (_access(path, 2) == 0);
+        out->writable = (_access(path, 2) == 0);
+        out->world_writable = 0;
+        struct _stat st;
+        int stat_ok = _stat(path, &st) == 0;
     #else
-        (st.st_mode & S_IWUSR) != 0;
+        struct stat st;
+        int stat_ok = stat(path, &st) == 0;
+        if (stat_ok) {
+            out->writable = (st.st_mode & S_IWUSR) != 0;
+            out->world_writable = (st.st_mode & S_IWOTH) != 0;
+        } else {
+            out->writable = 0;
+            out->world_writable = 0;
+        }
     #endif
 
+    // Code/secrets detection
     out->contains_code = out->is_directory ? fossil_it_magic_contains_git(path) : fossil_it_magic_is_code_file(path);
     out->contains_secrets = out->is_directory ? fossil_it_magic_contains_secret(path) : 0;
 
-    long sz = out->is_directory ? fossil_it_magic_directory_size(path) : (long)st.st_size;
+    // Size
+    u64 sz = 0;
+    if (out->is_directory) {
+        fossil_io_dir_size(path, &sz);
+    } else if (is_file > 0) {
+        #ifdef _WIN32
+            if (stat_ok)
+                sz = (u64)st.st_size;
+        #else
+            if (stat_ok)
+                sz = (u64)st.st_size;
+        #endif
+    }
     out->large_size = (sz > 10 * 1024 * 1024);
 
-    out->world_writable =
-    #ifdef _WIN32
-        0; // Windows does not have S_IWOTH
-    #else
-        (st.st_mode & S_IWOTH) != 0;
-    #endif
-
-    #if defined(S_ISLNK)
-        out->is_symlink = S_ISLNK(st.st_mode);
-    #elif defined(_WIN32)
-        out->is_symlink = 0; // Symlink detection not portable on Windows
-    #else
-        out->is_symlink = 0;
-    #endif
-
-    static ccstring danger_exts[] = { ".exe", ".dll", ".bin", ".sh", ".bat", ".cmd", ".scr", ".pif", ".com", ".js", ".vbs" };
+    // Suspicious extension
+    static ccstring danger_exts[] = { ".exe", ".dll", ".bin", ".sh", ".bat", ".cmd", ".scr", ".pif", ".com", ".js", ".vbs", ".elf" };
     out->suspicious_extension = 0;
-    if (!out->is_directory) {
+    if (!out->is_directory && is_file > 0) {
         ccstring ext = strrchr(path, '.');
         if (cnotnull(ext)) {
-            for (int i = 0; i < (int)(sizeof(danger_exts)/sizeof(danger_exts[0])); i++) {
+            for (i32 i = 0; i < (i32)(sizeof(danger_exts)/sizeof(danger_exts[0])); i++) {
                 if (fossil_io_cstring_case_compare(ext, danger_exts[i]) == 0) {
                     out->suspicious_extension = 1;
                     break;
@@ -582,26 +593,29 @@ void fossil_it_magic_danger_analyze(
         }
     }
 
+    // Recently modified
     out->recently_modified = 0;
+    u64 mod_time = 0;
     #ifdef _WIN32
-        out->recently_modified = 0; // st_mtime may not be reliable on Windows
+        if (stat_ok)
+            mod_time = (u64)st.st_mtime;
     #else
-        time_t now = time(cnull);
-        if (now != (time_t)-1 && (now - st.st_mtime) < 24 * 3600)
-            out->recently_modified = 1;
+        if (stat_ok)
+            mod_time = (u64)st.st_mtime;
     #endif
+    u64 now = (u64)time(cnull);
+    if (mod_time && now && (now > mod_time) && ((now - mod_time) < 24 * 3600))
+        out->recently_modified = 1;
 
+    // Contains suspicious files (use directory iterator)
     out->contains_suspicious_files = 0;
     if (out->is_directory) {
-        DIR *d = opendir(path);
-        if (cnotnull(d)) {
-            struct dirent *ent;
-            while ((ent = readdir(d)) != cnull) {
-                if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
-                    continue;
-                ccstring ext = strrchr(ent->d_name, '.');
+        fossil_io_dir_iter_t it;
+        if (fossil_io_dir_iter_open(&it, path) == 0) {
+            while (fossil_io_dir_iter_next(&it) > 0) {
+                ccstring ext = strrchr(it.current.name, '.');
                 if (cnotnull(ext)) {
-                    for (int i = 0; i < (int)(sizeof(danger_exts)/sizeof(danger_exts[0])); i++) {
+                    for (i32 i = 0; i < (i32)(sizeof(danger_exts)/sizeof(danger_exts[0])); i++) {
                         if (fossil_io_cstring_case_compare(ext, danger_exts[i]) == 0) {
                             out->contains_suspicious_files = 1;
                             break;
@@ -611,11 +625,11 @@ void fossil_it_magic_danger_analyze(
                 if (out->contains_suspicious_files)
                     break;
             }
-            closedir(d);
+            fossil_io_dir_iter_close(&it);
         }
     }
 
-    int score = 0;
+    i32 score = 0;
     if (out->contains_code) score += 3;
     if (out->contains_secrets) score += 5;
     if (out->large_size) score += 2;
@@ -639,14 +653,14 @@ void fossil_it_magic_danger_analyze(
 
 void fossil_it_magic_danger_report(
     ccstring paths[],
-    int path_count,
+    i32 path_count,
     fossil_ti_danger_report_t *report
 ) {
-    memset(report, 0, sizeof(*report));
+    fossil_sys_memory_zero(report, sizeof(*report));
     fossil_ti_danger_level_t maxLevel = FOSSIL_TI_DANGER_NONE;
-    int total_score = 0;
+    i32 total_score = 0;
 
-    for (int i = 0; i < path_count && i < 8; i++) {
+    for (i32 i = 0; i < path_count && i < 8; i++) {
         fossil_it_magic_danger_analyze(paths[i], &report->items[i]);
         report->item_count++;
         if (report->items[i].level > maxLevel)
@@ -663,6 +677,4 @@ void fossil_it_magic_danger_report(
     report->overall_level = maxLevel;
     report->warning_required = (maxLevel >= FOSSIL_TI_DANGER_MEDIUM || total_score >= 10);
     report->block_recommended = (maxLevel >= FOSSIL_TI_DANGER_CRITICAL || total_score >= 16);
-
-    // If you want to provide a summary, add a summary_reason field to the struct.
 }

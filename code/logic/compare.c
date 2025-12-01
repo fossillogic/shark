@@ -23,11 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <sys/stat.h>
-#include <errno.h>
-#ifdef _WIN32
-#include <windows.h>
-#endif
+
 
 // Helper: read line from file, return dynamically allocated string
 static cstring read_line(fossil_io_file_t *stream) {
@@ -87,9 +83,6 @@ static bool is_regular_file(ccstring path) {
 #endif
 }
 
-/**
- * Compare two files (text or binary)
- */
 int fossil_shark_compare(ccstring path1, ccstring path2,
                          bool text_diff, bool binary_diff,
                          int context_lines, bool ignore_case) {

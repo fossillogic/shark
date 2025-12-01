@@ -23,671 +23,151 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <errno.h>
 
 #define INDENT_SIZE 4
 
-// ========================================================
-// File and Directory Commands
-// ========================================================
-
-#ifdef _WIN32
-    #include <windows.h>
-    #include <io.h>
-    #define PATH_SEPARATOR '\\'
-    #define PATH_SEPARATOR_STR "\\"
-#else
-    #include <sys/stat.h>
-    #include <unistd.h>
-    #include <dirent.h>
-    #define PATH_SEPARATOR '/'
-    #define PATH_SEPARATOR_STR "/"
-#endif
 
 static void print_size(off_t size, bool human_readable) {
     if (!human_readable) {
-        fossil_io_printf("%lld ", (long long)size);
+        fossil_io_printf("{cyan}%lld{normal} ", (long long)size);
         return;
     }
     ccstring units[] = {"B", "KB", "MB", "GB", "TB"};
     double sz = (double)size;
     int i = 0;
     while (sz >= 1024 && i < 4) { sz /= 1024; i++; }
-    fossil_io_printf("{blue}%.1f%s{normal} ", sz, units[i]);
+    fossil_io_printf("{blue,underline}%.1f%s{normal} ", sz, units[i]);
 }
 
-static void print_permissions(mode_t mode) {
+static void print_permissions_advanced(const char *filename) {
 #ifdef _WIN32
-    // Windows simplified permissions
-    fossil_io_printf("{blue}%c{normal}", (mode & _S_IFDIR) ? 'd' : '-');
-    fossil_io_printf("{blue}%c%c%c{normal} ",
-           (mode & _S_IREAD) ? 'r' : '-',
-           (mode & _S_IWRITE) ? 'w' : '-',
-           (mode & _S_IEXEC) ? 'x' : '-');
+    fossil_io_printf("{yellow,bold}%c{normal}", fossil_io_file_is_readable(filename) ? '-' : '-');
+    fossil_io_printf("{green}%c{normal}", fossil_io_file_is_readable(filename) ? 'r' : '-');
+    fossil_io_printf("{green}%c{normal}", fossil_io_file_is_writable(filename) ? 'w' : '-');
+    fossil_io_printf("{green}%c{normal} ", fossil_io_file_is_executable(filename) ? 'x' : '-');
 #else
-    // Unix-style permissions
-    fossil_io_printf("{blue}%c{normal}", S_ISDIR(mode) ? 'd' : '-');
-    fossil_io_printf("{blue}%c%c%c%c%c%c%c%c%c{normal} ",
-           mode & S_IRUSR ? 'r' : '-',
-           mode & S_IWUSR ? 'w' : '-',
-           mode & S_IXUSR ? 'x' : '-',
-           mode & S_IRGRP ? 'r' : '-',
-           mode & S_IWGRP ? 'w' : '-',
-           mode & S_IXGRP ? 'x' : '-',
-           mode & S_IROTH ? 'r' : '-',
-           mode & S_IWOTH ? 'w' : '-',
-           mode & S_IXOTH ? 'x' : '-');
+    fossil_io_printf("{yellow,bold}%c{normal}", '-'); // Directory/file type not available via API
+    // User
+    fossil_io_printf("{green}%c{normal}", fossil_io_file_is_readable(filename) ? 'r' : '-');
+    fossil_io_printf("{green}%c{normal}", fossil_io_file_is_writable(filename) ? 'w' : '-');
+    fossil_io_printf("{green}%c{normal}", fossil_io_file_is_executable(filename) ? 'x' : '-');
+    // Group and Other not available via API, print as '-'
+    fossil_io_printf("{magenta}---{normal}");
+    fossil_io_printf("{cyan}---{normal} ");
 #endif
 }
 
-static void print_entry(ccstring path, ccstring name, struct stat *st,
-                        bool long_format, bool human_readable, bool show_time,
-                        ccstring prefix) {
-    if (cnotnull(prefix))
-        fossil_io_printf("{blue}%s{normal}", prefix);
+static int show_list(ccstring path, bool show_all, bool long_format,
+                     bool human_readable, bool show_time) {
+    fossil_io_dir_iter_t it;
+    int32_t open_result = fossil_io_dir_iter_open(&it, path);
+    if (open_result < 0) return open_result;
 
-    if (long_format) {
-        print_permissions(st->st_mode);
-        print_size(st->st_size, human_readable);
+    fossil_io_printf("{pos:top}{bold,underline,blue}Directory Listing: %s{normal}\n", path);
 
-        if (show_time) {
-            char *tbuf = fossil_sys_memory_alloc(64);
-            if (cunlikely(!tbuf)) {
-                fossil_io_fprintf(FOSSIL_STDERR, "Memory allocation failed\n");
-                return;
+    while (fossil_io_dir_iter_next(&it) > 0 && it.active) {
+        fossil_io_dir_entry_t *entry = &it.current;
+        if (!show_all && entry->name[0] == '.') continue;
+
+        if (long_format) {
+            print_permissions_advanced(entry->path);
+            print_size(entry->size, human_readable);
+            if (show_time) {
+                fossil_io_printf("{bright_black}%llu{normal} ", (unsigned long long)entry->modified);
             }
-            struct tm *tm_info = localtime(&st->st_mtime);
-            strftime(tbuf, 64, "%Y-%m-%d %H:%M:%S", tm_info);
-            fossil_io_printf("{blue}%s{normal} ", tbuf);
-            fossil_sys_memory_free(tbuf);
-            cnullify(tbuf);
         }
+        fossil_io_printf("{green}%s{normal}\n", entry->name);
     }
 
-    if (cnotnull(path) && *path != '\0')
-        fossil_io_printf("{blue}%s%c%s{normal}\n", path, PATH_SEPARATOR, name);
-    else
-        fossil_io_printf("{blue}%s{normal}\n", name);
-}
-
-#ifdef _WIN32
-static int browse_directory_interactive_win(ccstring path) {
-    WIN32_FIND_DATAA findFileData;
-    HANDLE hFind;
-    char searchPattern[MAX_PATH];
-    
-    snprintf(searchPattern, MAX_PATH, "%s\\*", path);
-    hFind = FindFirstFileA(searchPattern, &findFileData);
-    
-    if (hFind == INVALID_HANDLE_VALUE) {
-        fossil_io_fprintf(FOSSIL_STDERR, "Error opening directory: %s\n", path);
-        return GetLastError();
-    }
-
-    char **choices = fossil_sys_memory_alloc(256 * sizeof(char*));
-    if (cunlikely(!choices)) {
-        FindClose(hFind);
-        return ERROR_NOT_ENOUGH_MEMORY;
-    }
-    
-    int num_choices = 0;
-    
-    do {
-        if (strcmp(findFileData.cFileName, ".") == 0) continue;
-        if (num_choices >= 255) break;
-        
-        choices[num_choices] = fossil_sys_memory_strdup(findFileData.cFileName);
-        if (cunlikely(!choices[num_choices])) {
-            for (int i = 0; i < num_choices; i++) {
-                fossil_sys_memory_free(choices[i]);
-                cnullify(choices[i]);
-            }
-            fossil_sys_memory_free(choices);
-            FindClose(hFind);
-            return ERROR_NOT_ENOUGH_MEMORY;
-        }
-        num_choices++;
-    } while (FindNextFileA(hFind, &findFileData) != 0);
-    
-    FindClose(hFind);
-
-    if (num_choices == 0) {
-        fossil_io_printf("Directory is empty.\n");
-        fossil_sys_memory_free(choices);
-        cnullify(choices);
-        return 0;
-    }
-
-    const char **menu_choices = fossil_sys_memory_alloc(256 * sizeof(char*));
-    if (cunlikely(!menu_choices)) {
-        for (int i = 0; i < num_choices; i++) {
-            fossil_sys_memory_free(choices[i]);
-            cnullify(choices[i]);
-        }
-        fossil_sys_memory_free(choices);
-        return ERROR_NOT_ENOUGH_MEMORY;
-    }
-    
-    for (int i = 0; i < num_choices; i++) {
-        menu_choices[i] = choices[i];
-    }
-
-    char *prompt = fossil_sys_memory_alloc(512);
-    if (cunlikely(!prompt)) {
-        for (int i = 0; i < num_choices; i++) {
-            fossil_sys_memory_free(choices[i]);
-            cnullify(choices[i]);
-        }
-        fossil_sys_memory_free(choices);
-        fossil_sys_memory_free(menu_choices);
-        return ERROR_NOT_ENOUGH_MEMORY;
-    }
-    
-    snprintf(prompt, 512, "Select file/directory in %s:", path);
-    
-    int selected = fossil_io_display_menu(prompt, menu_choices, num_choices);
-    if (clikely(selected >= 0 && selected < num_choices)) {
-        fossil_io_printf("Selected: %s\n", choices[selected]);
-        
-        cstring full_path = fossil_io_cstring_format("%s%c%s", path, PATH_SEPARATOR, choices[selected]);
-        if (cnotnull(full_path)) {
-            DWORD attrs = GetFileAttributesA(full_path);
-            if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
-                char *input = fossil_sys_memory_alloc(256);
-                if (cnotnull(input)) {
-                    fossil_io_printf("Enter subdirectory? (y/n): ");
-                    if (fossil_io_gets(input, 256) == 0) {
-                        fossil_io_trim(input);
-                        if (input[0] == 'y' || input[0] == 'Y') {
-                            browse_directory_interactive_win(full_path);
-                        }
-                    }
-                    fossil_sys_memory_free(input);
-                    cnullify(input);
-                }
-            }
-            fossil_io_cstring_free(full_path);
-            cnullify(full_path);
-        }
-    }
-    
-    for (int i = 0; i < num_choices; i++) {
-        fossil_sys_memory_free(choices[i]);
-        cnullify(choices[i]);
-    }
-    fossil_sys_memory_free(choices);
-    fossil_sys_memory_free(menu_choices);
-    fossil_sys_memory_free(prompt);
-    cnullify(choices);
-    cnullify(menu_choices);
-    cnullify(prompt);
-    
+    fossil_io_dir_iter_close(&it);
+    fossil_io_flush();
     return 0;
-}
-#endif
-
-static int browse_directory_interactive(ccstring path) {
-#ifdef _WIN32
-    return browse_directory_interactive_win(path);
-#else
-    DIR *dir = opendir(path);
-    if (cunlikely(!dir)) {
-        fossil_io_fprintf(FOSSIL_STDERR, "Error opening directory: %s\n", path);
-        return errno;
-    }
-
-    char **choices = fossil_sys_memory_alloc(256 * sizeof(char*));
-    if (cunlikely(!choices)) {
-        closedir(dir);
-        return ENOMEM;
-    }
-    
-    int num_choices = 0;
-    struct dirent *entry;
-    
-    while ((entry = readdir(dir)) != cnull && num_choices < 255) {
-        if (strcmp(entry->d_name, ".") == 0) continue;
-        choices[num_choices] = fossil_sys_memory_strdup(entry->d_name);
-        if (cunlikely(!choices[num_choices])) {
-            for (int i = 0; i < num_choices; i++) {
-                fossil_sys_memory_free(choices[i]);
-                cnullify(choices[i]);
-            }
-            fossil_sys_memory_free(choices);
-            closedir(dir);
-            return ENOMEM;
-        }
-        num_choices++;
-    }
-    closedir(dir);
-
-    if (num_choices == 0) {
-        fossil_io_printf("Directory is empty.\n");
-        fossil_sys_memory_free(choices);
-        cnullify(choices);
-        return 0;
-    }
-
-    const char **menu_choices = fossil_sys_memory_alloc(256 * sizeof(char*));
-    if (cunlikely(!menu_choices)) {
-        for (int i = 0; i < num_choices; i++) {
-            fossil_sys_memory_free(choices[i]);
-            cnullify(choices[i]);
-        }
-        fossil_sys_memory_free(choices);
-        return ENOMEM;
-    }
-    
-    for (int i = 0; i < num_choices; i++) {
-        menu_choices[i] = choices[i];
-    }
-
-    char *prompt = fossil_sys_memory_alloc(512);
-    if (cunlikely(!prompt)) {
-        for (int i = 0; i < num_choices; i++) {
-            fossil_sys_memory_free(choices[i]);
-            cnullify(choices[i]);
-        }
-        fossil_sys_memory_free(choices);
-        fossil_sys_memory_free(menu_choices);
-        return ENOMEM;
-    }
-    
-    snprintf(prompt, 512, "Select file/directory in %s:", path);
-    
-    int selected = fossil_io_display_menu(prompt, menu_choices, num_choices);
-    if (clikely(selected >= 0 && selected < num_choices)) {
-        fossil_io_printf("Selected: %s\n", choices[selected]);
-        
-        cstring full_path = fossil_io_cstring_format("%s%c%s", path, PATH_SEPARATOR, choices[selected]);
-        if (cnotnull(full_path)) {
-            struct stat st;
-            if (stat(full_path, &st) == 0 && S_ISDIR(st.st_mode)) {
-                char *input = fossil_sys_memory_alloc(256);
-                if (cnotnull(input)) {
-                    fossil_io_printf("Enter subdirectory? (y/n): ");
-                    if (fossil_io_gets(input, 256) == 0) {
-                        fossil_io_trim(input);
-                        if (input[0] == 'y' || input[0] == 'Y') {
-                            browse_directory_interactive(full_path);
-                        }
-                    }
-                    fossil_sys_memory_free(input);
-                    cnullify(input);
-                }
-            }
-            fossil_io_cstring_free(full_path);
-            cnullify(full_path);
-        }
-    }
-    
-    for (int i = 0; i < num_choices; i++) {
-        fossil_sys_memory_free(choices[i]);
-        cnullify(choices[i]);
-    }
-    fossil_sys_memory_free(choices);
-    fossil_sys_memory_free(menu_choices);
-    fossil_sys_memory_free(prompt);
-    cnullify(choices);
-    cnullify(menu_choices);
-    cnullify(prompt);
-    
-    return 0;
-#endif
-}
-
-static int show_tree_with_progress(ccstring path, bool show_all, bool long_format,
-                                  bool human_readable, bool show_time,
-                                  int depth, int current_depth, ccstring prefix) {
-#ifdef _WIN32
-    WIN32_FIND_DATAA findFileData;
-    HANDLE hFind;
-    char searchPattern[MAX_PATH];
-    
-    snprintf(searchPattern, MAX_PATH, "%s\\*", path);
-    hFind = FindFirstFileA(searchPattern, &findFileData);
-    
-    if (hFind == INVALID_HANDLE_VALUE) return GetLastError();
-
-    int total_entries = 0;
-    do {
-        if (!show_all && findFileData.cFileName[0] == '.') continue;
-        total_entries++;
-    } while (FindNextFileA(hFind, &findFileData) != 0);
-    
-    FindClose(hFind);
-    hFind = FindFirstFileA(searchPattern, &findFileData);
-    
-    int processed = 0;
-    do {
-        if (!show_all && findFileData.cFileName[0] == '.') continue;
-
-        cstring full_path = fossil_io_cstring_format("%s%c%s", path, PATH_SEPARATOR, findFileData.cFileName);
-        if (cunlikely(!full_path)) continue;
-        
-        struct stat st;
-        if (stat(full_path, &st) != 0) {
-            fossil_io_cstring_free(full_path);
-            cnullify(full_path);
-            continue;
-        }
-
-        print_entry(full_path, findFileData.cFileName, &st, long_format, human_readable, show_time, prefix);
-
-        if ((findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && 
-            strcmp(findFileData.cFileName, ".") != 0 && strcmp(findFileData.cFileName, "..") != 0 && 
-            (depth == 0 || current_depth < depth)) {
-            cstring child_prefix = fossil_io_cstring_format("%s│   ", cunwrap_or(prefix, ""));
-            if (cnotnull(child_prefix)) {
-                show_tree_with_progress(full_path, show_all, long_format, human_readable, show_time,
-                                       depth, current_depth + 1, child_prefix);
-                fossil_io_cstring_free(child_prefix);
-                cnullify(child_prefix);
-            }
-        }
-
-        processed++;
-        if (clikely(total_entries > 10)) {
-            int progress = (processed * 100) / total_entries;
-            fossil_io_show_progress(progress);
-        }
-
-        fossil_io_cstring_free(full_path);
-        cnullify(full_path);
-    } while (FindNextFileA(hFind, &findFileData) != 0);
-
-    FindClose(hFind);
-    return 0;
-#else
-    DIR *dir = opendir(path);
-    if (cunlikely(!dir)) return errno;
-
-    int total_entries = 0;
-    struct dirent *entry;
-    while ((entry = readdir(dir)) != cnull) {
-        if (!show_all && entry->d_name[0] == '.') continue;
-        total_entries++;
-    }
-    rewinddir(dir);
-
-    int processed = 0;
-    while ((entry = readdir(dir)) != cnull) {
-        if (!show_all && entry->d_name[0] == '.') continue;
-
-        cstring full_path = fossil_io_cstring_format("%s%c%s", path, PATH_SEPARATOR, entry->d_name);
-        if (cunlikely(!full_path)) continue;
-        
-        struct stat st;
-        if (stat(full_path, &st) != 0) {
-            fossil_io_cstring_free(full_path);
-            cnullify(full_path);
-            continue;
-        }
-
-        print_entry(full_path, entry->d_name, &st, long_format, human_readable, show_time, prefix);
-
-        if (S_ISDIR(st.st_mode) && strcmp(entry->d_name, ".") != 0 &&
-            strcmp(entry->d_name, "..") != 0 && (depth == 0 || current_depth < depth)) {
-            cstring child_prefix = fossil_io_cstring_format("%s│   ", cunwrap_or(prefix, ""));
-            if (cnotnull(child_prefix)) {
-                show_tree_with_progress(full_path, show_all, long_format, human_readable, show_time,
-                                       depth, current_depth + 1, child_prefix);
-                fossil_io_cstring_free(child_prefix);
-                cnullify(child_prefix);
-            }
-        }
-
-        processed++;
-        if (clikely(total_entries > 10)) {
-            int progress = (processed * 100) / total_entries;
-            fossil_io_show_progress(progress);
-        }
-
-        fossil_io_cstring_free(full_path);
-        cnullify(full_path);
-    }
-
-    closedir(dir);
-    return 0;
-#endif
 }
 
 static int show_tree(ccstring path, bool show_all, bool long_format,
                      bool human_readable, bool show_time,
-                     int depth, int current_depth, ccstring prefix) {
-#ifdef _WIN32
-    WIN32_FIND_DATAA findFileData;
-    HANDLE hFind;
-    char searchPattern[MAX_PATH];
-    
-    snprintf(searchPattern, MAX_PATH, "%s\\*", path);
-    hFind = FindFirstFileA(searchPattern, &findFileData);
-    
-    if (hFind == INVALID_HANDLE_VALUE) return GetLastError();
+                     int depth, int current_depth, ccstring prefix)
+{
+    fossil_io_dir_iter_t it;
+    int32_t open_result = fossil_io_dir_iter_open(&it, path);
+    if (open_result < 0) return open_result;
 
-    do {
-        if (!show_all && findFileData.cFileName[0] == '.') continue;
-
-        cstring full_path = fossil_io_cstring_format("%s%c%s", path, PATH_SEPARATOR, findFileData.cFileName);
-        if (cunlikely(!full_path)) continue;
-        
-        struct stat st;
-        if (stat(full_path, &st) != 0) {
-            fossil_io_cstring_free(full_path);
-            cnullify(full_path);
-            continue;
-        }
-
-        cstring new_prefix = fossil_io_cstring_format("%s+-- ", cunwrap_or(prefix, ""));
-        if (cunlikely(!new_prefix)) {
-            fossil_io_cstring_free(full_path);
-            cnullify(full_path);
-            continue;
-        }
-
-        print_entry(full_path, findFileData.cFileName, &st, long_format, human_readable, show_time, prefix);
-
-        if ((findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && 
-            strcmp(findFileData.cFileName, ".") != 0 && strcmp(findFileData.cFileName, "..") != 0 && 
-            (depth == 0 || current_depth < depth)) {
-            cstring child_prefix = fossil_io_cstring_format("%s|   ", cunwrap_or(prefix, ""));
-            if (cnotnull(child_prefix)) {
-                show_tree(full_path, show_all, long_format, human_readable, show_time,
-                          depth, current_depth + 1, child_prefix);
-                fossil_io_cstring_free(child_prefix);
-                cnullify(child_prefix);
-            }
-        }
-
-        fossil_io_cstring_free(new_prefix);
-        fossil_io_cstring_free(full_path);
-        cnullify(new_prefix);
-        cnullify(full_path);
-    } while (FindNextFileA(hFind, &findFileData) != 0);
-
-    FindClose(hFind);
-    return 0;
-#else
-    DIR *dir = opendir(path);
-    if (cunlikely(!dir)) return errno;
-
-    struct dirent *entry;
-    while ((entry = readdir(dir)) != cnull) {
-        if (!show_all && entry->d_name[0] == '.') continue;
-
-        cstring full_path = fossil_io_cstring_format("%s%c%s", path, PATH_SEPARATOR, entry->d_name);
-        if (cunlikely(!full_path)) continue;
-        
-        struct stat st;
-        if (stat(full_path, &st) != 0) {
-            fossil_io_cstring_free(full_path);
-            cnullify(full_path);
-            continue;
-        }
-
-        cstring new_prefix = fossil_io_cstring_format("%s├── ", cunwrap_or(prefix, ""));
-        if (cunlikely(!new_prefix)) {
-            fossil_io_cstring_free(full_path);
-            cnullify(full_path);
-            continue;
-        }
-
-        print_entry(full_path, entry->d_name, &st, long_format, human_readable, show_time, prefix);
-
-        if (S_ISDIR(st.st_mode) && strcmp(entry->d_name, ".") != 0 &&
-            strcmp(entry->d_name, "..") != 0 && (depth == 0 || current_depth < depth)) {
-            cstring child_prefix = fossil_io_cstring_format("%s│   ", cunwrap_or(prefix, ""));
-            if (cnotnull(child_prefix)) {
-                show_tree(full_path, show_all, long_format, human_readable, show_time,
-                          depth, current_depth + 1, child_prefix);
-                fossil_io_cstring_free(child_prefix);
-                cnullify(child_prefix);
-            }
-        }
-
-        fossil_io_cstring_free(new_prefix);
-        fossil_io_cstring_free(full_path);
-        cnullify(new_prefix);
-        cnullify(full_path);
+    if (current_depth == 0) {
+        fossil_io_printf("{pos:top}{bold,underline,blue}Directory Tree: %s{normal}\n", path);
     }
 
-    closedir(dir);
+    while (fossil_io_dir_iter_next(&it) > 0 && it.active) {
+        fossil_io_dir_entry_t *entry = &it.current;
+        if (!show_all && entry->name[0] == '.') continue;
+
+        fossil_io_printf("%s", prefix ? prefix : "");
+        fossil_io_printf("{bright_yellow}|--{normal} ");
+
+        if (long_format) {
+            print_permissions_advanced(entry->path);
+            print_size(entry->size, human_readable);
+            if (show_time) {
+                fossil_io_printf("{bright_black}%llu{normal} ", (unsigned long long)entry->modified);
+            }
+        }
+        fossil_io_printf("{cyan}%s{normal}\n", entry->name);
+
+        if (entry->type == 1 &&
+            strcmp(entry->name, ".") != 0 &&
+            strcmp(entry->name, "..") != 0 &&
+            (depth == 0 || current_depth < depth)) {
+            cstring new_prefix = fossil_io_cstring_format("%s%s", prefix ? prefix : "", "    ");
+            show_tree(entry->path, show_all, long_format, human_readable, show_time,
+                      depth, current_depth + 1, new_prefix);
+            fossil_io_cstring_free(new_prefix);
+            cnullify(new_prefix);
+        }
+    }
+
+    fossil_io_dir_iter_close(&it);
+    fossil_io_flush();
     return 0;
-#endif
 }
 
 static int show_graph(ccstring path, bool show_all, bool long_format,
                       bool human_readable, bool show_time,
-                      int depth, int current_depth, int indent) {
-#ifdef _WIN32
-    WIN32_FIND_DATAA findFileData;
-    HANDLE hFind;
-    char searchPattern[MAX_PATH];
-    
-    snprintf(searchPattern, MAX_PATH, "%s\\*", path);
-    hFind = FindFirstFileA(searchPattern, &findFileData);
-    
-    if (hFind == INVALID_HANDLE_VALUE) return GetLastError();
+                      int depth, int current_depth, int indent)
+{
+    fossil_io_dir_iter_t it;
+    int32_t open_result = fossil_io_dir_iter_open(&it, path);
+    if (open_result < 0) return open_result;
 
-    do {
-        if (!show_all && findFileData.cFileName[0] == '.') continue;
-
-        cstring full_path = fossil_io_cstring_format("%s%c%s", path, PATH_SEPARATOR, findFileData.cFileName);
-        if (cunlikely(!full_path)) continue;
-        
-        struct stat st;
-        if (stat(full_path, &st) != 0) {
-            fossil_io_cstring_free(full_path);
-            cnullify(full_path);
-            continue;
-        }
-
-        for (int i = 0; i < indent; i++) fossil_io_printf("  ");
-        print_entry(full_path, findFileData.cFileName, &st, long_format, human_readable, show_time, cnull);
-
-        if ((findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && 
-            strcmp(findFileData.cFileName, ".") != 0 && strcmp(findFileData.cFileName, "..") != 0 && 
-            (depth == 0 || current_depth < depth)) {
-            show_graph(full_path, show_all, long_format, human_readable, show_time,
-                       depth, current_depth + 1, indent + 1);
-        }
-
-        fossil_io_cstring_free(full_path);
-        cnullify(full_path);
-    } while (FindNextFileA(hFind, &findFileData) != 0);
-
-    FindClose(hFind);
-    return 0;
-#else
-    DIR *dir = opendir(path);
-    if (cunlikely(!dir)) return errno;
-
-    struct dirent *entry;
-    while ((entry = readdir(dir)) != cnull) {
-        if (!show_all && entry->d_name[0] == '.') continue;
-
-        cstring full_path = fossil_io_cstring_format("%s%c%s", path, PATH_SEPARATOR, entry->d_name);
-        if (cunlikely(!full_path)) continue;
-        
-        struct stat st;
-        if (stat(full_path, &st) != 0) {
-            fossil_io_cstring_free(full_path);
-            cnullify(full_path);
-            continue;
-        }
-
-        for (int i = 0; i < indent; i++) fossil_io_printf("  ");
-        print_entry(full_path, entry->d_name, &st, long_format, human_readable, show_time, cnull);
-
-        if (S_ISDIR(st.st_mode) && strcmp(entry->d_name, ".") != 0 &&
-            strcmp(entry->d_name, "..") != 0 && (depth == 0 || current_depth < depth)) {
-            show_graph(full_path, show_all, long_format, human_readable, show_time,
-                       depth, current_depth + 1, indent + 1);
-        }
-
-        fossil_io_cstring_free(full_path);
-        cnullify(full_path);
+    if (current_depth == 0) {
+        fossil_io_printf("{pos:top}{bold,underline,blue}Directory Graph: %s{normal}\n", path);
     }
 
-    closedir(dir);
-    return 0;
-#endif
-}
+    while (fossil_io_dir_iter_next(&it) > 0 && it.active) {
+        fossil_io_dir_entry_t *entry = &it.current;
+        if (!show_all && entry->name[0] == '.') continue;
 
-static int show_tiles(ccstring path, bool show_all, bool long_format,
-                      bool human_readable, bool show_time,
-                      int depth) {
-
-    DIR *dir = opendir(path);
-    if (!dir) return errno;
-
-    struct dirent *entry;
-
-    while ((entry = readdir(dir)) != cnull) {
-        // Skip hidden files if show_all is false
-        if (!show_all && entry->d_name[0] == '.') continue;
-
-        // Build full path
-        cstring full = fossil_io_cstring_format("%s/%s", path, entry->d_name);
-        if (!full) continue;
-
-        struct stat st;
-        if (stat(full, &st) != 0) {
-            fossil_io_cstring_free(full);
-            continue;
-        }
-
-        // Print file info
-        fossil_io_printf("\n{blue}------------------------------{normal}\n");
-        fossil_io_printf("{blue}Name:{normal} %s\n", entry->d_name);
-        fossil_io_printf("{blue}Type:{normal} %s\n", S_ISDIR(st.st_mode) ? "Directory" : "File");
+        fossil_io_move_cursor(current_depth + 2, indent * INDENT_SIZE + 1);
+        fossil_io_printf("{bright_yellow}|--{normal} ");
 
         if (long_format) {
-            fossil_io_printf("{blue}Size:{normal} ");
-            print_size(st.st_size, human_readable);
-            fossil_io_printf("\n");
-
+            print_permissions_advanced(entry->path);
+            print_size(entry->size, human_readable);
             if (show_time) {
-                char tbuf[64];
-                struct tm *tmn = localtime(&st.st_mtime);
-                strftime(tbuf, sizeof(tbuf), "%Y-%m-%d %H:%M:%S", tmn);
-                fossil_io_printf("{blue}Modified:{normal} %s\n", tbuf);
+                fossil_io_printf("{bright_black}%llu{normal} ", (unsigned long long)entry->modified);
             }
         }
+        fossil_io_printf("{magenta}%s{normal}\n", entry->name);
 
-        // Recurse into subdirectories if depth > 1
-        if (S_ISDIR(st.st_mode) && depth > 1) {
-            show_tiles(full, show_all, long_format, human_readable, show_time, depth - 1);
+        if (entry->type == 1 &&
+            strcmp(entry->name, ".") != 0 &&
+            strcmp(entry->name, "..") != 0 &&
+            (depth == 0 || current_depth < depth)) {
+            show_graph(entry->path, show_all, long_format, human_readable, show_time,
+                       depth, current_depth + 1, indent + 1);
         }
-
-        fossil_io_cstring_free(full);
     }
 
-    fossil_io_printf("{blue}------------------------------{normal}\n\n");
-    closedir(dir);
+    fossil_io_dir_iter_close(&it);
+    fossil_io_flush();
     return 0;
 }
 
@@ -705,27 +185,23 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
                                                             1024, 
                                                             FOSSIL_CTX_FILENAME);
     if (sanitize_result & (FOSSIL_SAN_PATH | FOSSIL_SAN_SCRIPT | FOSSIL_SAN_SHELL)) {
-        fossil_io_fprintf(FOSSIL_STDERR, "Suspicious path detected, using sanitized version\n");
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Suspicious path detected, using sanitized version{normal}\n");
         path = sanitized_path;
     }
 
     int effective_depth = recursive ? depth : 1;
 
+    fossil_io_clear_screen();
+
     int result = 0;
     if (cunlikely(!format) || fossil_io_cstring_equals(format, "list")) {
-        result = show_graph(path, show_all, long_format, human_readable, show_time, effective_depth, 0, 0);
+        result = show_list(path, show_all, long_format, human_readable, show_time);
     } else if (fossil_io_cstring_equals(format, "tree")) {
         result = show_tree(path, show_all, long_format, human_readable, show_time, effective_depth, 0, cempty);
     } else if (fossil_io_cstring_equals(format, "graph")) {
         result = show_graph(path, show_all, long_format, human_readable, show_time, effective_depth, 0, 0);
-    } else if (fossil_io_cstring_equals(format, "interactive")) {
-        result = browse_directory_interactive(path);
-    } else if (fossil_io_cstring_equals(format, "progress")) {
-        result = show_tree_with_progress(path, show_all, long_format, human_readable, show_time, effective_depth, 0, cempty);
-    } else if (fossil_io_cstring_equals(format, "tiles")) {
-        result = show_tiles(path, show_all, long_format, human_readable, show_time, effective_depth);
     } else {
-        fossil_io_fprintf(FOSSIL_STDERR, "{blue}Unknown format: %s{normal}\n", format);
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Unknown format: %s{normal}\n", format);
         result = 1;
     }
 

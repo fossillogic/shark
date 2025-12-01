@@ -40,8 +40,8 @@ extern "C" {
  */
 typedef struct fossil_ti_path_suggestion_s {
     char  candidate_path[512];   /**< Valid filesystem path */
-    float similarity_score;      /**< 0.0 - 1.0 ("edit distance" ↔ "semantic similarity") */
-    int   exists;                /**< Non-zero if path exists on disk */
+    f32   similarity_score;      /**< 0.0 - 1.0 ("edit distance" ↔ "semantic similarity") */
+    i32   exists;                /**< Non-zero if path exists on disk */
 } fossil_ti_path_suggestion_t;
 
 /**
@@ -49,7 +49,7 @@ typedef struct fossil_ti_path_suggestion_s {
  */
 typedef struct fossil_ti_path_suggestion_set_s {
     fossil_ti_path_suggestion_t list[16]; /**< Up to 16 ranked matches */
-    int count;                             /**< Number of valid entries in list */
+    i32 count;                            /**< Number of valid entries in list */
 } fossil_ti_path_suggestion_set_t;
 
 /**
@@ -57,7 +57,7 @@ typedef struct fossil_ti_path_suggestion_set_s {
  */
 typedef struct fossil_ti_path_ai_report_s {
     fossil_ti_path_suggestion_set_t sets[8]; /**< Up to 8 tokens needing help */
-    int set_count;                            /**< Number of valid sets */
+    i32 set_count;                           /**< Number of valid sets */
 } fossil_ti_path_ai_report_t;
 
 /* ==========================================================================
@@ -70,12 +70,12 @@ typedef struct fossil_ti_path_ai_report_s {
 typedef struct fossil_ti_autorecovery_s {
     char  original_token[256];        /**< Input token */
     char  recovered_token[256];       /**< Suggested correction */
-    float confidence;                 /**< 0.0 - 1.0 confidence score */
-    int   applied;                    /**< 1 = auto-applied, 0 = manual review */
-    char  first_best_token[256];        /**< Best suggestion */
-    float first_best_confidence;      /**< Confidence score for best suggestion */
+    f32   confidence;                 /**< 0.0 - 1.0 confidence score */
+    i32   applied;                    /**< 1 = auto-applied, 0 = manual review */
+    char  first_best_token[256];      /**< Best suggestion */
+    f32   first_best_confidence;      /**< Confidence score for best suggestion */
     char  second_best_token[256];     /**< Second-best suggestion */
-    float second_best_confidence;     /**< Confidence score for second-best */
+    f32   second_best_confidence;     /**< Confidence score for second-best */
 } fossil_ti_autorecovery_t;
 
 /* ==========================================================================
@@ -100,17 +100,17 @@ typedef struct fossil_ti_danger_item_s {
     char target_path[512];              /**< Path being analyzed */
     fossil_ti_danger_level_t level;     /**< Danger level */
 
-    int is_directory;                   /**< Non-zero if directory */
-    int contains_code;                  /**< Non-zero if contains code files (.c, .h, .cpp, .py, etc.) */
-    int contains_vcs;                   /**< Non-zero if VCS detected (.git, .svn) */
-    int contains_secrets;               /**< Non-zero if secret files detected (.env, .key, .pem) */
-    int large_size;                     /**< Non-zero if large (> threshold) */
-    int writable;                       /**< Non-zero if writable */
-    int world_writable;                 /**< Non-zero if world-writable */
-    int is_symlink;                     /**< Non-zero if symlink */
-    int suspicious_extension;           /**< Non-zero if file has suspicious extension (.exe, .dll, etc.) */
-    int recently_modified;              /**< Non-zero if modified in last 24 hours */
-    int contains_suspicious_files;      /**< Non-zero if directory contains suspicious files */
+    i32 is_directory;                   /**< Non-zero if directory */
+    i32 contains_code;                  /**< Non-zero if contains code files (.c, .h, .cpp, .py, etc.) */
+    i32 contains_vcs;                   /**< Non-zero if VCS detected (.git, .svn) */
+    i32 contains_secrets;               /**< Non-zero if secret files detected (.env, .key, .pem) */
+    i32 large_size;                     /**< Non-zero if large (> threshold) */
+    i32 writable;                       /**< Non-zero if writable */
+    i32 world_writable;                 /**< Non-zero if world-writable */
+    i32 is_symlink;                     /**< Non-zero if symlink */
+    i32 suspicious_extension;           /**< Non-zero if file has suspicious extension (.exe, .dll, etc.) */
+    i32 recently_modified;              /**< Non-zero if modified in last 24 hours */
+    i32 contains_suspicious_files;      /**< Non-zero if directory contains suspicious files */
 } fossil_ti_danger_item_t;
 
 /**
@@ -118,12 +118,12 @@ typedef struct fossil_ti_danger_item_s {
  */
 typedef struct fossil_ti_danger_report_s {
     fossil_ti_danger_item_t items[8];   /**< Individual path analyses */
-    int item_count;                      /**< Number of valid items */
+    i32 item_count;                     /**< Number of valid items */
 
     fossil_ti_danger_level_t overall_level; /**< Max level across all items */
 
-    int block_recommended;               /**< Non-zero = halt unless --force present */
-    int warning_required;                /**< Non-zero = display multi-line warning */
+    i32 block_recommended;              /**< Non-zero = halt unless --force present */
+    i32 warning_required;               /**< Non-zero = display multi-line warning */
 } fossil_ti_danger_report_t;
 
 /* ==========================================================================
@@ -136,12 +136,12 @@ typedef struct fossil_ti_danger_report_s {
 typedef struct fossil_ti_reason_s {
     const char *input;                 /**< Original input */
     const char *suggested;             /**< Suggested correction */
-    int         edit_distance;         /**< Levenshtein distance */
-    float       confidence_score;      /**< 0.0 - 1.0 confidence */
-    int         jaccard_index;         /**< 0-100 token overlap similarity */
-    int         prefix_match;          /**< 1 if input is prefix of suggested */
-    int         suffix_match;          /**< 1 if input is suffix of suggested */
-    int         case_insensitive;      /**< 1 if match is case-insensitive */
+    i32         edit_distance;         /**< Levenshtein distance */
+    f32         confidence_score;      /**< 0.0 - 1.0 confidence */
+    i32         jaccard_index;         /**< 0-100 token overlap similarity */
+    i32         prefix_match;          /**< 1 if input is prefix of suggested */
+    i32         suffix_match;          /**< 1 if input is suffix of suggested */
+    i32         case_insensitive;      /**< 1 if match is case-insensitive */
     const char *reason;                /**< Human-readable explanation */
 } fossil_ti_reason_t;
 
@@ -157,7 +157,7 @@ typedef struct fossil_ti_reason_s {
  * and computes the Jaccard index as (matches / union of tokens), scaled to 0-100.
  * Used to measure token-level similarity, robust to word order and punctuation.
  */
-int fossil_it_magic_jaccard_index(const char *s1, const char *s2);
+i32 fossil_it_magic_jaccard_index(const char *s1, const char *s2);
 
 /**
  * @brief Compute Levenshtein distance between two strings.
@@ -167,7 +167,7 @@ int fossil_it_magic_jaccard_index(const char *s1, const char *s2);
  * This implementation is case-insensitive and supports transpositions (Damerau-Levenshtein).
  * Used for fuzzy matching and typo correction.
  */
-int fossil_it_magic_levenshtein_distance(const char *s1, const char *s2);
+i32 fossil_it_magic_levenshtein_distance(const char *s1, const char *s2);
 
 /**
  * @brief Compute a normalized similarity score (0.0 - 1.0) between two strings.
@@ -177,7 +177,7 @@ int fossil_it_magic_levenshtein_distance(const char *s1, const char *s2);
  * semantically and structurally similar, and is capped between 0.0 and 1.0.
  * Used for ranking candidates in suggestions and corrections.
  */
-float fossil_it_magic_similarity(const char *a, const char *b);
+f32 fossil_it_magic_similarity(const char *a, const char *b);
 
 /* ==========================================================================
  * Command Suggestion
@@ -200,7 +200,7 @@ float fossil_it_magic_similarity(const char *a, const char *b);
 const char *fossil_it_magic_suggest_command(
     const char *input,
     const char **commands,
-    int num_commands,
+    i32 num_commands,
     fossil_ti_reason_t *out_reason
 );
 
@@ -242,7 +242,7 @@ void fossil_it_magic_path_suggest(
 void fossil_it_magic_autorecovery_token(
     const char *token,
     const char *candidates[],
-    int candidate_count,
+    i32 candidate_count,
     fossil_ti_autorecovery_t *out
 );
 
@@ -279,7 +279,7 @@ void fossil_it_magic_danger_analyze(
  */
 void fossil_it_magic_danger_report(
     const char *paths[],
-    int path_count,
+    i32 path_count,
     fossil_ti_danger_report_t *report
 );
 

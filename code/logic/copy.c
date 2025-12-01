@@ -23,18 +23,8 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <sys/stat.h>
-#include <unistd.h>
-#include <errno.h>
-#include <dirent.h>
-#include <fcntl.h>
-#include <utime.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
-// Helper: copy a single file
 static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
     if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
         fossil_io_printf("{red}Error: Source and destination paths cannot be null{normal}\n");
@@ -92,7 +82,6 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
         HANDLE hFile = CreateFileA(dest, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         if (hFile != INVALID_HANDLE_VALUE) {
             FILETIME ft;
-            // Convert Unix timestamp to Windows FILETIME
             LONGLONG ll = Int32x32To64(st_src.st_mtime, 10000000) + 116444736000000000;
             ft.dwLowDateTime = (DWORD)ll;
             ft.dwHighDateTime = (DWORD)(ll >> 32);
@@ -110,7 +99,6 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
     return 0;
 }
 
-// Helper: copy directories recursively
 static int copy_directory(ccstring src, ccstring dest,
                           bool recursive, bool update, bool preserve) {
     if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
@@ -124,107 +112,50 @@ static int copy_directory(ccstring src, ccstring dest,
         return errno; 
     }
 
-    // Create destination directory
+    // Create destination directory using fossil_io_dir_create
     fossil_io_printf("{cyan}Creating directory: %s{normal}\n", dest);
-#ifdef _WIN32
-    if (CreateDirectoryA(dest, NULL) == 0) {
-        if (GetLastError() != ERROR_ALREADY_EXISTS) {
-            fossil_io_printf("{red}Error: Cannot create directory '%s': Error %lu{normal}\n", dest, GetLastError());
-            return 1;
-        }
-    }
-#else
-    if (mkdir(dest, st.st_mode) != 0) {
-        if (errno != EEXIST) { 
-            fossil_io_printf("{red}Error: Cannot create directory '%s': %s{normal}\n", dest, strerror(errno));
-            return errno; 
-        }
-    }
-#endif
-
-#ifdef _WIN32
-    WIN32_FIND_DATAA findData;
-    char searchPath[MAX_PATH];
-    snprintf(searchPath, sizeof(searchPath), "%s\\*", src);
-    
-    HANDLE hFind = FindFirstFileA(searchPath, &findData);
-    if (hFind == INVALID_HANDLE_VALUE) {
-        fossil_io_printf("{red}Error: Cannot open directory '%s': Error %lu{normal}\n", src, GetLastError());
+    int32_t dir_create_result = fossil_io_dir_create(dest);
+    if (dir_create_result < 0 && dir_create_result != -EEXIST) {
+        fossil_io_printf("{red}Error: Cannot create directory '%s'{normal}\n", dest);
         return 1;
     }
 
-    do {
-        if (strcmp(findData.cFileName, ".") == 0 || strcmp(findData.cFileName, "..") == 0) continue;
-
-        cstring src_path = fossil_io_cstring_format("%s\\%s", src, findData.cFileName);
-        cstring dest_path = fossil_io_cstring_format("%s\\%s", dest, findData.cFileName);
-#else
-    DIR *dir = opendir(src);
-    if (cunlikely(!cnotnull(dir))) { 
-        fossil_io_printf("{red}Error: Cannot open directory '%s': %s{normal}\n", src, strerror(errno));
-        return errno; 
+    // Use directory iterator API for traversal
+    fossil_io_dir_iter_t it;
+    if (fossil_io_dir_iter_open(&it, src) < 0) {
+        fossil_io_printf("{red}Error: Cannot open directory '%s'{normal}\n", src);
+        return 1;
     }
 
-    struct dirent *entry;
-    while ((entry = readdir(dir)) != cnull) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
+    while (fossil_io_dir_iter_next(&it) > 0) {
+        fossil_io_dir_entry_t *entry = &it.current;
+        // Skip "." and ".."
+        if (strcmp(entry->name, ".") == 0 || strcmp(entry->name, "..") == 0)
+            continue;
 
-        cstring src_path = fossil_io_cstring_format("%s/%s", src, entry->d_name);
-        cstring dest_path = fossil_io_cstring_format("%s/%s", dest, entry->d_name);
-#endif
-
-        if (cunlikely(!cnotnull(src_path) || !cnotnull(dest_path))) {
-            fossil_io_cstring_free(src_path);
-            fossil_io_cstring_free(dest_path);
-#ifdef _WIN32
-            FindClose(hFind);
-#else
-            closedir(dir);
-#endif
+        char dest_path[1024];
+        if (fossil_io_dir_join(dest, entry->name, dest_path, sizeof(dest_path)) < 0) {
+            fossil_io_printf("{red}Error: Path join failed for '%s'{normal}\n", entry->name);
+            fossil_io_dir_iter_close(&it);
             return 1;
         }
 
-        if (stat(src_path, &st) != 0) {
-            fossil_io_cstring_free(src_path);
-            fossil_io_cstring_free(dest_path);
-            continue;
-        }
-
-        if (S_ISDIR(st.st_mode)) {
+        if (entry->type == 1) { // Directory
             if (recursive) {
-                if (copy_directory(src_path, dest_path, recursive, update, preserve) != 0) {
-                    fossil_io_cstring_free(src_path);
-                    fossil_io_cstring_free(dest_path);
-#ifdef _WIN32
-                    FindClose(hFind);
-#else
-                    closedir(dir);
-#endif
+                if (copy_directory(entry->path, dest_path, recursive, update, preserve) != 0) {
+                    fossil_io_dir_iter_close(&it);
                     return 1;
                 }
             }
-        } else if (S_ISREG(st.st_mode)) {
-            if (copy_file(src_path, dest_path, update, preserve) != 0) {
-                fossil_io_cstring_free(src_path);
-                fossil_io_cstring_free(dest_path);
-#ifdef _WIN32
-                FindClose(hFind);
-#else
-                closedir(dir);
-#endif
+        } else if (entry->type == 0) { // File
+            if (copy_file(entry->path, dest_path, update, preserve) != 0) {
+                fossil_io_dir_iter_close(&it);
                 return 1;
             }
         }
-
-        fossil_io_cstring_free(src_path);
-        fossil_io_cstring_free(dest_path);
-#ifdef _WIN32
-    } while (FindNextFileA(hFind, &findData) != 0);
-    FindClose(hFind);
-#else
+        // Symlinks and other types can be handled here if needed
     }
-    closedir(dir);
-#endif
+    fossil_io_dir_iter_close(&it);
 
     // Preserve directory timestamps
     if (preserve) {
@@ -248,9 +179,6 @@ static int copy_directory(ccstring src, ccstring dest,
     return 0;
 }
 
-/**
- * Copy files or directories with various options
- */
 int fossil_shark_copy(ccstring src, ccstring dest,
                       bool recursive, bool update, bool preserve) {
     if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
@@ -277,4 +205,5 @@ int fossil_shark_copy(ccstring src, ccstring dest,
         fossil_io_printf("{red}Error: Unsupported file type for '%s'{normal}\n", src);
         return 1;
     }
+    return 0;
 }

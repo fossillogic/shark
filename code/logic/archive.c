@@ -23,7 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/commands.h"
-#include <errno.h>
+
 
 // Helper function to safely create a path by combining directory and filename
 static int fossil_fpath_create_path_safe(char *dest, size_t dest_size, ccstring base_path, ccstring suffix) {
@@ -91,9 +91,6 @@ static fossil_io_archive_type_t get_archive_type_from_format(ccstring format) {
     return FOSSIL_IO_ARCHIVE_UNKNOWN;
 }
 
-/**
- * Perform archive operations (create, extract, list)
- */
 int fossil_shark_archive(ccstring path, bool create, bool extract,
                          bool list, ccstring format, ccstring password) {
     if (!path) {
@@ -193,7 +190,6 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         }
     }
 
-    // Create a log file for the operation (cross-platform path handling)
     char *log_filename = (char*)fossil_sys_memory_alloc(1024);
     if (cunlikely(!log_filename)) {
         fossil_io_printf("{red}Error: Failed to allocate log filename buffer.{normal}\n");
@@ -297,8 +293,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             ret = 1;
         } else {
             fossil_io_show_progress(50);
-            
-            // Extract all files to current directory (cross-platform)
+
             if (!fossil_io_archive_extract_all(archive, ".")) {
                 fossil_io_printf("{red}Error: Failed to extract archive{normal}\n");
                 ret = 1;
@@ -347,7 +342,6 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             size_t written = 0;
             fossil_sys_memory_copy(result_msg, "Operation completed with return code: ", 38);
             written += 38;
-            // Convert return code to string in cross-platform manner
             if (ret == 0) {
                 fossil_sys_memory_copy(result_msg + written, "0", 1);
                 written += 1;
