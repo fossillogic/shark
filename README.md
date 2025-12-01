@@ -1,4 +1,7 @@
-# Shark Tool
+<p align="center">
+    <img src=".github/logo.png" alt="Shark Tool Logo" width="620"/>
+</p>
+
 ### A Command-Line Power Utility by **Fossil Logic**
 
 Shark Tool is the ultimate **all-in-one file and system administration utility**. Built for admins, developers, and power users, Shark unifies essential file management, automation, and analysis tasks into a single, powerful command-line interface—eliminating the need for multiple separate tools. Its unique commands, such as `grammar` for advanced text analysis, `summary` for structured file summaries, and `introspect` for deep file inspection, set Shark apart by providing capabilities rarely found in traditional CLI utilities.
