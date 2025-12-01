@@ -599,6 +599,8 @@ void fossil_it_magic_danger_analyze(
                 }
             }
         }
+    }
+
     // Recently modified
     out->recently_modified = 0;
     u64 mod_time = 0;
@@ -611,8 +613,6 @@ void fossil_it_magic_danger_analyze(
             mod_time = (u64)st.st_mtime;
     #endif
     u64 now = (u64)time(cnull);
-    if (mod_time && now && (now > mod_time) && ((now - mod_time) < 24 * 3600))
-        out->recently_modified = 1;
     if (mod_time && now && (now > mod_time) && ((now - mod_time) < 24 * 3600))
         out->recently_modified = 1;
 
