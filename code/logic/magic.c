@@ -541,13 +541,16 @@ void fossil_it_magic_danger_analyze(
     out->is_directory = (is_dir > 0);
     out->is_symlink = (is_symlink > 0);
 
-    // Permissions
+    // Permissions and size/stat
     #ifdef _WIN32
         out->writable = (_access(path, 2) == 0);
         out->world_writable = 0;
+        struct _stat st;
+        int stat_ok = _stat(path, &st) == 0;
     #else
         struct stat st;
-        if (stat(path, &st) == 0) {
+        int stat_ok = stat(path, &st) == 0;
+        if (stat_ok) {
             out->writable = (st.st_mode & S_IWUSR) != 0;
             out->world_writable = (st.st_mode & S_IWOTH) != 0;
         } else {
@@ -562,18 +565,14 @@ void fossil_it_magic_danger_analyze(
 
     // Size
     u64 sz = 0;
-    #ifndef _WIN32
-    struct stat st;
-    #endif
     if (out->is_directory) {
         fossil_io_dir_size(path, &sz);
     } else if (is_file > 0) {
         #ifdef _WIN32
-            struct _stat st;
-            if (_stat(path, &st) == 0)
+            if (stat_ok)
                 sz = (u64)st.st_size;
         #else
-            if (stat(path, &st) == 0)
+            if (stat_ok)
                 sz = (u64)st.st_size;
         #endif
     }
@@ -598,11 +597,10 @@ void fossil_it_magic_danger_analyze(
     out->recently_modified = 0;
     u64 mod_time = 0;
     #ifdef _WIN32
-        struct _stat st;
-        if (_stat(path, &st) == 0)
+        if (stat_ok)
             mod_time = (u64)st.st_mtime;
     #else
-        if (stat(path, &st) == 0)
+        if (stat_ok)
             mod_time = (u64)st.st_mtime;
     #endif
     u64 now = (u64)time(cnull);
