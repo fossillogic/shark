@@ -207,22 +207,21 @@ bool app_entry(int argc, char** argv) {
                 float similarity = fossil_it_magic_similarity(argv[i], suggested);
                 fossil_io_printf(
                     "{yellow}Did you mean: {cyan}%s{yellow}?{reset}\n"
-                    "  {bright_black}TI Reasoning:{reset}\n"
-                    "    Edit Distance: %d\n"
-                    "    Similarity Score: %.2f\n"
-                    "    Jaccard Index: %d\n"
-                    "    Prefix Match: %d\n"
-                    "    Suffix Match: %d\n"
-                    "    Case-Insensitive: %d\n"
-                    "    Reason: %s\n",
+                    "  {bright_cyan}TI Reason:{reset} {magenta}%s{reset} "
+                    "({blue}edit:{reset} {yellow}%d{reset}, "
+                    "{blue}sim:{reset} {yellow}%.2f{reset}, "
+                    "{blue}jaccard:{reset} {yellow}%d{reset}, "
+                    "{blue}prefix:{reset} {yellow}%d{reset}, "
+                    "{blue}suffix:{reset} {yellow}%d{reset}, "
+                    "{blue}ci:{reset} {yellow}%d{reset})\n",
                     suggested,
+                    ti_reason.reason,
                     edit_dist,
                     similarity,
                     jaccard,
                     ti_reason.prefix_match,
                     ti_reason.suffix_match,
-                    ti_reason.case_insensitive,
-                    ti_reason.reason
+                    ti_reason.case_insensitive
                 );
             } else {
                 fossil_io_printf(
