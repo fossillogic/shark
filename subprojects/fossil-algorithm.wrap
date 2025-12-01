@@ -1,6 +1,0 @@
-[wrap-git]
-url = https://github.com/fossillogic/fossil-algorithm.git
-revision = v0.1.0
-
-[provide]
-dependency_names = fossil-algorithm
