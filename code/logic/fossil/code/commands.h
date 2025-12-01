@@ -47,9 +47,9 @@ extern "C" {
  * @param depth Current depth in recursive listing
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_show(const char *path, bool show_all, bool long_format,
+int fossil_shark_show(ccstring path, bool show_all, bool long_format,
                       bool human_readable, bool recursive,
-                      const char *format, bool show_time, int depth);
+                      ccstring format, bool show_time, int depth);
 
 /**
  * Move or rename files and directories
@@ -60,7 +60,7 @@ int fossil_shark_show(const char *path, bool show_all, bool long_format,
  * @param backup Create backup of existing destination
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_move(const char *src, const char *dest,
+int fossil_shark_move(ccstring src, ccstring dest,
                       bool force, bool interactive, bool backup);
 
 /**
@@ -72,7 +72,7 @@ int fossil_shark_move(const char *src, const char *dest,
  * @param preserve Preserve file attributes and permissions
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_copy(const char *src, const char *dest,
+int fossil_shark_copy(ccstring src, ccstring dest,
                       bool recursive, bool update, bool preserve);
 
 /**
@@ -84,7 +84,7 @@ int fossil_shark_copy(const char *src, const char *dest,
  * @param use_trash Move to trash instead of permanent deletion
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_remove(const char *path, bool recursive, bool force,
+int fossil_shark_remove(ccstring path, bool recursive, bool force,
                         bool interactive, bool use_trash);
 
 /**
@@ -95,7 +95,7 @@ int fossil_shark_remove(const char *path, bool recursive, bool force,
  * @param interactive Prompt before overwriting existing files
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_rename(const char *old_name, const char *new_name,
+int fossil_shark_rename(ccstring old_name, ccstring new_name,
                         bool force, bool interactive);
 
 /**
@@ -105,8 +105,8 @@ int fossil_shark_rename(const char *old_name, const char *new_name,
  * @param type Type of item to create ("file" or "dir")
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_create(const char *path, bool create_parents,
-                        const char *type);  // "file" or "dir"
+int fossil_shark_create(ccstring path, bool create_parents,
+                        ccstring type);  // "file" or "dir"
 
 /**
  * Search for files by name patterns or content matching
@@ -117,8 +117,8 @@ int fossil_shark_create(const char *path, bool create_parents,
  * @param ignore_case Perform case-insensitive matching
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_search(const char *path, bool recursive,
-                        const char *name_pattern, const char *content_pattern,
+int fossil_shark_search(ccstring path, bool recursive,
+                        ccstring name_pattern, ccstring content_pattern,
                         bool ignore_case);
 
 /**
@@ -131,8 +131,8 @@ int fossil_shark_search(const char *path, bool recursive,
  * @param password Password for encrypted archives
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_archive(const char *path, bool create, bool extract,
-                         bool list, const char *format, const char *password);
+int fossil_shark_archive(ccstring path, bool create, bool extract,
+                         bool list, ccstring format, ccstring password);
 
 /**
  * View and display file contents with various formatting options
@@ -145,7 +145,7 @@ int fossil_shark_archive(const char *path, bool create, bool extract,
  * @param show_time Display file timestamps
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_view(const char *path, bool number_lines,
+int fossil_shark_view(ccstring path, bool number_lines,
                       bool number_non_blank, bool squeeze_blank,
                       int head_lines, int tail_lines, bool show_time);
 
@@ -159,12 +159,13 @@ int fossil_shark_view(const char *path, bool number_lines,
  * @param ignore_case Ignore case differences in text comparison
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_compare(const char *path1, const char *path2,
+int fossil_shark_compare(ccstring path1, ccstring path2,
                          bool text_diff, bool binary_diff,
                          int context_lines, bool ignore_case);
 
 /**
  * Display help information and usage examples
+ * @param command Command name to show help for
  * @param show_examples Include usage examples in help output
  * @param full_manual Show complete manual instead of brief help
  * @return 0 on success, non-zero on error
@@ -180,7 +181,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual);
  * @param delete Remove extraneous files from target
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_sync(const char *src, const char *dest,
+int fossil_shark_sync(ccstring src, ccstring dest,
                       bool recursive, bool update, bool delete);
 
 /**
@@ -191,8 +192,8 @@ int fossil_shark_sync(const char *src, const char *dest,
  * @param interval Poll interval in seconds
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_watch(const char *path, bool recursive,
-                       const char *events, int interval);
+int fossil_shark_watch(ccstring path, bool recursive,
+                       ccstring events, int interval);
 
 /**
  * Modify or update file contents, timestamps, or size
@@ -205,8 +206,8 @@ int fossil_shark_watch(const char *path, bool recursive,
  * @param update_mod_time Update file modification time
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_rewrite(const char *path, bool in_place, bool append,
-                         const char *new_content, size_t size,
+int fossil_shark_rewrite(ccstring path, bool in_place, bool append,
+                         ccstring new_content, size_t size,
                          bool update_access_time, bool update_mod_time);
 
 /**
@@ -219,7 +220,7 @@ int fossil_shark_rewrite(const char *path, bool in_place, bool append,
  * @param output_json Output metadata in JSON format
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_introspect(const char *path, int show_head_lines,
+int fossil_shark_introspect(ccstring path, int show_head_lines,
                              int show_tail_lines, bool count_lines_words_bytes,
                              bool show_file_type, bool output_json);
 
@@ -235,9 +236,9 @@ int fossil_shark_introspect(const char *path, int show_head_lines,
  * @param detect_type Type of detector to run (e.g., ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble)
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_grammar(const char *file_path, bool check, bool fix,
+int fossil_shark_grammar(ccstring file_path, bool check, bool fix,
                          bool sanitize, bool suggest, bool tone,
-                         const char *detect_type);
+                         ccstring detect_type);
 
 /**
  * @brief Generate structured summaries of text/code/log/document files.
@@ -270,9 +271,8 @@ int fossil_shark_summary(ccstring *paths, int count,
  * @param prune Prune obsolete or redundant files
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_storage(const char *path, bool dedupe, bool catalog,
+int fossil_shark_storage(ccstring path, bool dedupe, bool catalog,
                          bool index, bool snapshot, bool prune);
-//
 
 #ifdef __cplusplus
 }
