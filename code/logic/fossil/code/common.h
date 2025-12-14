@@ -47,16 +47,6 @@
 #include <unistd.h>
 #endif
 
-#if defined(_WIN32)
-#include <windows.h>
-static inline __attribute__((unused))
-int portable_link(const char *src, const char *dest) {
-    return CreateHardLinkA(dest, src, NULL) ? 0 : -1;
-}
-#ifndef link
-#define link(src, dest) portable_link(src, dest)
-#endif
-
 #else
 #include <unistd.h>
 #endif

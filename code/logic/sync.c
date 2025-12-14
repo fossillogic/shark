@@ -51,45 +51,35 @@ static int get_mod_time(ccstring path, time_t *mod_time) {
 }
 
 static int compute_file_hash(ccstring path, char *hash_out, size_t hash_out_len) {
-    FILE *fp = fopen(path, "rb");
-    if (!fp) return errno;
+    fossil_io_file_t file;
+    int rc = fossil_io_file_open(&file, path, "rb");
+    if (rc != 0) return errno;
 
-    unsigned char buf[4096];
-    size_t total = 0;
-    int rc = 0;
-
-    // For simplicity, always use crc32/u32/hex here
-    // You can parameterize as needed
-    char algorithm[] = "crc32";
-    char bits[] = "u32";
-    char base[] = "hex";
-
-    // Read file into memory (could be improved for large files)
     unsigned char *file_data = NULL;
     size_t file_size = 0;
-    while (!feof(fp)) {
-        size_t n = fread(buf, 1, sizeof(buf), fp);
+    unsigned char buf[4096];
+
+    while (1) {
+        size_t n = fossil_io_file_read(&file, buf, 1, sizeof(buf));
         if (n > 0) {
             unsigned char *tmp = realloc(file_data, file_size + n);
             if (!tmp) {
                 free(file_data);
-                fclose(fp);
+                fossil_io_file_close(&file);
                 return ENOMEM;
             }
             file_data = tmp;
             memcpy(file_data + file_size, buf, n);
             file_size += n;
         }
-        if (ferror(fp)) {
-            free(file_data);
-            fclose(fp);
-            return errno;
-        }
+        if (n < sizeof(buf)) break; // EOF or error
     }
-    fclose(fp);
 
+    fossil_io_file_close(&file);
+
+    // Use crc32/u32/hex as before
     rc = fossil_cryptic_hash_compute(
-        algorithm, bits, base,
+        "crc32", "u32", "hex",
         hash_out, hash_out_len,
         file_data, file_size
     );
