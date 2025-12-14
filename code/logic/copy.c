@@ -46,15 +46,14 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
         {
             fossil_io_file_t src_stream;
             if (fossil_io_file_open(&src_stream, src, "rb") == 0) {
-                char buffer[8192];
                 size_t total = 0;
                 // Read file into buffer (for demonstration, read up to 1MB)
                 char* file_data = malloc(st_src.st_size);
                 if (file_data) {
                     size_t n;
-                    while ((n = fossil_io_file_read(&src_stream, file_data + total, 1, st_src.st_size - total)) > 0) {
+                    while ((n = fossil_io_file_read(&src_stream, file_data + total, 1, (size_t)st_src.st_size - total)) > 0) {
                         total += n;
-                        if (total >= st_src.st_size) break;
+                        if (total >= (size_t)st_src.st_size) break;
                     }
                     src_hash_res = fossil_cryptic_hash_compute(
                         "xxhash64", "auto", "hex",
@@ -77,9 +76,9 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
                 size_t total = 0;
                 if (file_data) {
                     size_t n;
-                    while ((n = fossil_io_file_read(&dest_stream, file_data + total, 1, st_dest.st_size - total)) > 0) {
+                    while ((n = fossil_io_file_read(&dest_stream, file_data + total, 1, (size_t)st_dest.st_size - total)) > 0) {
                         total += n;
-                        if (total >= st_dest.st_size) break;
+                        if (total >= (size_t)st_dest.st_size) break;
                     }
                     dest_hash_res = fossil_cryptic_hash_compute(
                         "xxhash64", "auto", "hex",
