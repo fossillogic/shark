@@ -27,33 +27,115 @@
 
 static ccstring get_mime_type(ccstring path) {
     ccstring ext = strrchr(path, '.');
-    if (!cnotnull(ext)) return "application/octet-stream";
+    if (!cnotnull(ext)) {
+        // Check for extensionless Meson build files
+        if (fossil_io_cstring_iequals(path, "meson.build") || fossil_io_cstring_iequals(path, "meson_options.txt") || fossil_io_cstring_iequals(path, "meson.options"))
+            return "text/x-meson";
+        return "application/octet-stream";
+    }
     ext++;
+    // Meson build files
+    if (fossil_io_cstring_iequals(ext, "build") && fossil_io_cstring_icontains(path, "meson.build")) return "text/x-meson";
+    if (fossil_io_cstring_iequals(ext, "txt") && fossil_io_cstring_icontains(path, "meson_options.txt")) return "text/x-meson";
+    if (fossil_io_cstring_iequals(ext, "options") && fossil_io_cstring_icontains(path, "meson.options")) return "text/x-meson";
+    // Build system files
+    if (fossil_io_cstring_iequals(ext, "mk") || fossil_io_cstring_iequals(ext, "makefile")) return "text/x-makefile";
+    if (fossil_io_cstring_iequals(ext, "cmake")) return "text/x-cmake";
+    if (fossil_io_cstring_iequals(ext, "ninja")) return "text/x-ninja";
+    if (fossil_io_cstring_iequals(ext, "gradle")) return "text/x-gradle";
+    if (fossil_io_cstring_iequals(ext, "pom") || fossil_io_cstring_iequals(ext, "pom.xml")) return "application/xml";
+    if (fossil_io_cstring_iequals(ext, "bazel") || fossil_io_cstring_iequals(ext, "bzl")) return "text/x-bazel";
+    if (fossil_io_cstring_iequals(ext, "build")) return "text/plain";
+    if (fossil_io_cstring_iequals(ext, "workspace")) return "text/plain";
+    if (fossil_io_cstring_iequals(ext, "sln")) return "text/x-msbuild";
+    if (fossil_io_cstring_iequals(ext, "vcxproj")) return "application/xml";
+    if (fossil_io_cstring_iequals(ext, "csproj")) return "application/xml";
+    if (fossil_io_cstring_iequals(ext, "xcodeproj")) return "text/plain";
+    if (fossil_io_cstring_iequals(ext, "pro")) return "text/x-qmake";
+    if (fossil_io_cstring_iequals(ext, "gyp")) return "application/json";
+    if (fossil_io_cstring_iequals(ext, "gypi")) return "application/json";
+    if (fossil_io_cstring_iequals(ext, "am")) return "text/x-makefile";
+    if (fossil_io_cstring_iequals(ext, "in")) return "text/plain";
+    // Existing types
     if (fossil_io_cstring_iequals(ext, "txt")) return "text/plain";
     if (fossil_io_cstring_iequals(ext, "c") || fossil_io_cstring_iequals(ext, "h")) return "text/plain";
     if (fossil_io_cstring_iequals(ext, "cpp") || fossil_io_cstring_iequals(ext, "hpp")) return "text/x-c++src";
     if (fossil_io_cstring_iequals(ext, "py")) return "text/x-python";
     if (fossil_io_cstring_iequals(ext, "js")) return "application/javascript";
+    if (fossil_io_cstring_iequals(ext, "ts")) return "application/typescript";
     if (fossil_io_cstring_iequals(ext, "html") || fossil_io_cstring_iequals(ext, "htm")) return "text/html";
     if (fossil_io_cstring_iequals(ext, "css")) return "text/css";
     if (fossil_io_cstring_iequals(ext, "json")) return "application/json";
     if (fossil_io_cstring_iequals(ext, "xml")) return "application/xml";
     if (fossil_io_cstring_iequals(ext, "csv")) return "text/csv";
     if (fossil_io_cstring_iequals(ext, "md")) return "text/markdown";
+    if (fossil_io_cstring_iequals(ext, "yml") || fossil_io_cstring_iequals(ext, "yaml")) return "application/x-yaml";
+    if (fossil_io_cstring_iequals(ext, "ini")) return "text/plain";
+    if (fossil_io_cstring_iequals(ext, "conf")) return "text/plain";
+    if (fossil_io_cstring_iequals(ext, "log")) return "text/plain";
+    if (fossil_io_cstring_iequals(ext, "sh")) return "application/x-sh";
+    if (fossil_io_cstring_iequals(ext, "bat")) return "application/x-msdos-program";
+    if (fossil_io_cstring_iequals(ext, "exe")) return "application/vnd.microsoft.portable-executable";
+    if (fossil_io_cstring_iequals(ext, "dll")) return "application/vnd.microsoft.portable-executable";
+    if (fossil_io_cstring_iequals(ext, "so")) return "application/x-sharedlib";
+    if (fossil_io_cstring_iequals(ext, "bin")) return "application/octet-stream";
+    if (fossil_io_cstring_iequals(ext, "jar")) return "application/java-archive";
+    if (fossil_io_cstring_iequals(ext, "war")) return "application/java-archive";
+    if (fossil_io_cstring_iequals(ext, "class")) return "application/java-vm";
+    if (fossil_io_cstring_iequals(ext, "go")) return "text/x-go";
+    if (fossil_io_cstring_iequals(ext, "rs")) return "text/x-rustsrc";
+    if (fossil_io_cstring_iequals(ext, "swift")) return "text/x-swift";
+    if (fossil_io_cstring_iequals(ext, "php")) return "application/x-httpd-php";
+    if (fossil_io_cstring_iequals(ext, "rb")) return "text/x-ruby";
+    if (fossil_io_cstring_iequals(ext, "pl")) return "text/x-perl";
+    if (fossil_io_cstring_iequals(ext, "lua")) return "text/x-lua";
+    if (fossil_io_cstring_iequals(ext, "sql")) return "application/sql";
     if (fossil_io_cstring_iequals(ext, "jpg") || fossil_io_cstring_iequals(ext, "jpeg")) return "image/jpeg";
     if (fossil_io_cstring_iequals(ext, "png")) return "image/png";
     if (fossil_io_cstring_iequals(ext, "gif")) return "image/gif";
     if (fossil_io_cstring_iequals(ext, "bmp")) return "image/bmp";
     if (fossil_io_cstring_iequals(ext, "svg")) return "image/svg+xml";
+    if (fossil_io_cstring_iequals(ext, "ico")) return "image/x-icon";
+    if (fossil_io_cstring_iequals(ext, "webp")) return "image/webp";
+    if (fossil_io_cstring_iequals(ext, "tif") || fossil_io_cstring_iequals(ext, "tiff")) return "image/tiff";
     if (fossil_io_cstring_iequals(ext, "zip")) return "application/zip";
     if (fossil_io_cstring_iequals(ext, "tar")) return "application/x-tar";
     if (fossil_io_cstring_iequals(ext, "gz")) return "application/gzip";
+    if (fossil_io_cstring_iequals(ext, "bz2")) return "application/x-bzip2";
+    if (fossil_io_cstring_iequals(ext, "xz")) return "application/x-xz";
+    if (fossil_io_cstring_iequals(ext, "7z")) return "application/x-7z-compressed";
+    if (fossil_io_cstring_iequals(ext, "rar")) return "application/vnd.rar";
     if (fossil_io_cstring_iequals(ext, "pdf")) return "application/pdf";
+    if (fossil_io_cstring_iequals(ext, "epub")) return "application/epub+zip";
     if (fossil_io_cstring_iequals(ext, "mp3")) return "audio/mpeg";
     if (fossil_io_cstring_iequals(ext, "wav")) return "audio/wav";
+    if (fossil_io_cstring_iequals(ext, "ogg")) return "audio/ogg";
+    if (fossil_io_cstring_iequals(ext, "flac")) return "audio/flac";
+    if (fossil_io_cstring_iequals(ext, "aac")) return "audio/aac";
+    if (fossil_io_cstring_iequals(ext, "m4a")) return "audio/mp4";
     if (fossil_io_cstring_iequals(ext, "mp4")) return "video/mp4";
     if (fossil_io_cstring_iequals(ext, "mov")) return "video/quicktime";
     if (fossil_io_cstring_iequals(ext, "avi")) return "video/x-msvideo";
+    if (fossil_io_cstring_iequals(ext, "wmv")) return "video/x-ms-wmv";
+    if (fossil_io_cstring_iequals(ext, "mkv")) return "video/x-matroska";
+    if (fossil_io_cstring_iequals(ext, "webm")) return "video/webm";
+    if (fossil_io_cstring_iequals(ext, "flv")) return "video/x-flv";
+    if (fossil_io_cstring_iequals(ext, "apk")) return "application/vnd.android.package-archive";
+    if (fossil_io_cstring_iequals(ext, "deb")) return "application/vnd.debian.binary-package";
+    if (fossil_io_cstring_iequals(ext, "rpm")) return "application/x-rpm";
+    if (fossil_io_cstring_iequals(ext, "iso")) return "application/x-iso9660-image";
+    if (fossil_io_cstring_iequals(ext, "dmg")) return "application/x-apple-diskimage";
+    if (fossil_io_cstring_iequals(ext, "psd")) return "image/vnd.adobe.photoshop";
+    if (fossil_io_cstring_iequals(ext, "ai")) return "application/postscript";
+    if (fossil_io_cstring_iequals(ext, "ps")) return "application/postscript";
+    if (fossil_io_cstring_iequals(ext, "ttf")) return "font/ttf";
+    if (fossil_io_cstring_iequals(ext, "otf")) return "font/otf";
+    if (fossil_io_cstring_iequals(ext, "woff")) return "font/woff";
+    if (fossil_io_cstring_iequals(ext, "woff2")) return "font/woff2";
+    if (fossil_io_cstring_iequals(ext, "eot")) return "application/vnd.ms-fontobject";
+    if (fossil_io_cstring_iequals(ext, "apk")) return "application/vnd.android.package-archive";
+    if (fossil_io_cstring_iequals(ext, "ics")) return "text/calendar";
+    if (fossil_io_cstring_iequals(ext, "vcf")) return "text/vcard";
     return "application/octet-stream";
 }
 
@@ -137,16 +219,16 @@ int fossil_shark_introspect(ccstring path, int show_head_lines,
 
     // Output metadata
     if (output_fson) {
-        fossil_io_printf("{cyan,bold}{\n");
-        fossil_io_printf("  path: cstr: \"%s\",\n", path);
-        fossil_io_printf("  size: i64: %lld,\n", (long long)st.st_size);
-        fossil_io_printf("  lines: u64: %lu,\n", lines);
-        fossil_io_printf("  words: u64: %lu,\n", words);
-        fossil_io_printf("  bytes: u64: %lu", bytes);
+        puts("{");
+        fossil_io_printf("  {blue,bold}path: {cyan}cstr:{reset} \"%s\",\n", path);
+        fossil_io_printf("  {blue,bold}size: {cyan}i64:{reset} %lld,\n", (long long)st.st_size);
+        fossil_io_printf("  {blue,bold}lines: {cyan}u64:{reset} %lu,\n", lines);
+        fossil_io_printf("  {blue,bold}words: {cyan}u64:{reset} %lu,\n", words);
+        fossil_io_printf("  {blue,bold}bytes: {cyan}u64:{reset} %lu", bytes);
         if (show_file_type) {
-            fossil_io_printf(",\n  type: cstr: \"%s\"", get_mime_type(path));
+            fossil_io_printf(",\n  {blue,bold}type: {cyan}cstr:{reset} \"%s\"", get_mime_type(path));
         }
-        fossil_io_printf("\n}{normal}\n");
+        fossil_io_printf("\n}\n");
     } else {
         fossil_io_printf("{cyan,bold}File: %s{normal}\n", path);
         fossil_io_printf("{magenta}Size: %lld bytes{normal}\n", (long long)st.st_size);

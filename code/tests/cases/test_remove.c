@@ -34,7 +34,7 @@
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 // Define the test suite and add test cases
-FOSSIL_TEST_SUITE(c_remove_command_suite);
+FOSSIL_SUITE(c_remove_command_suite);
 
 // Setup function for the test suite
 FOSSIL_SETUP(c_remove_command_suite) {
@@ -56,25 +56,25 @@ FOSSIL_TEARDOWN(c_remove_command_suite) {
 
 // Test cases for fossil_shark_remove function
 
-FOSSIL_TEST_CASE(c_test_remove_null_path) {
+FOSSIL_TEST(c_test_remove_null_path) {
     // Should handle null path gracefully
     int result = fossil_shark_remove(cnull, false, false, false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_nonexistent_file) {
+FOSSIL_TEST(c_test_remove_nonexistent_file) {
     // Should handle non-existent file gracefully
     int result = fossil_shark_remove("/nonexistent/file.txt", false, false, false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_nonexistent_file_force) {
+FOSSIL_TEST(c_test_remove_nonexistent_file_force) {
     // Should succeed with force flag even for non-existent files
     int result = fossil_shark_remove("/nonexistent/file.txt", false, true, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_single_file) {
+FOSSIL_TEST(c_test_remove_single_file) {
     // Create test file
     FILE *temp = fopen("test_remove_file.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -90,7 +90,7 @@ FOSSIL_TEST_CASE(c_test_remove_single_file) {
     ASSUME_ITS_CNULL(check);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_single_file_to_trash) {
+FOSSIL_TEST(c_test_remove_single_file_to_trash) {
     // Create test file
     FILE *temp = fopen("test_trash_file.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -106,7 +106,7 @@ FOSSIL_TEST_CASE(c_test_remove_single_file_to_trash) {
     ASSUME_ITS_CNULL(check);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_empty_directory) {
+FOSSIL_TEST(c_test_remove_empty_directory) {
     // Create empty directory
     #ifdef _WIN32
     _mkdir("test_empty_dir");
@@ -119,7 +119,7 @@ FOSSIL_TEST_CASE(c_test_remove_empty_directory) {
     ASSUME_ITS_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_directory_recursive) {
+FOSSIL_TEST(c_test_remove_directory_recursive) {
     // Create directory with subdirectory and files
     #ifdef _WIN32
     _mkdir("test_recursive_dir");
@@ -144,7 +144,7 @@ FOSSIL_TEST_CASE(c_test_remove_directory_recursive) {
     ASSUME_ITS_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_directory_recursive_to_trash) {
+FOSSIL_TEST(c_test_remove_directory_recursive_to_trash) {
     // Create directory with files
     #ifdef _WIN32
     _mkdir("test_trash_dir");
@@ -162,7 +162,7 @@ FOSSIL_TEST_CASE(c_test_remove_directory_recursive_to_trash) {
     ASSUME_ITS_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_multiple_files_force) {
+FOSSIL_TEST(c_test_remove_multiple_files_force) {
     // Create test files
     FILE *temp1 = fopen("force_file1.txt", "w");
     ASSUME_NOT_CNULL(temp1);
@@ -182,7 +182,7 @@ FOSSIL_TEST_CASE(c_test_remove_multiple_files_force) {
     ASSUME_ITS_EQUAL_I32(0, result2);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_nested_directory_structure) {
+FOSSIL_TEST(c_test_remove_nested_directory_structure) {
     // Create nested directory structure
     #ifdef _WIN32
     _mkdir("test_nested");
@@ -204,7 +204,7 @@ FOSSIL_TEST_CASE(c_test_remove_nested_directory_structure) {
     ASSUME_ITS_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_readonly_file_force) {
+FOSSIL_TEST(c_test_remove_readonly_file_force) {
     // Create test file
     FILE *temp = fopen("readonly_test.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -216,7 +216,7 @@ FOSSIL_TEST_CASE(c_test_remove_readonly_file_force) {
     ASSUME_ITS_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_special_characters_filename) {
+FOSSIL_TEST(c_test_remove_special_characters_filename) {
     // Create file with special characters
     FILE *temp = fopen("special-file_test.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -228,7 +228,7 @@ FOSSIL_TEST_CASE(c_test_remove_special_characters_filename) {
     ASSUME_ITS_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_remove_large_directory_structure) {
+FOSSIL_TEST(c_test_remove_large_directory_structure) {
     // Create directory with multiple files
     #ifdef _WIN32
     _mkdir("large_test_dir");
