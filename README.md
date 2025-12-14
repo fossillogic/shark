@@ -29,7 +29,7 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 
 | **Command** | **Description** | **Common Flags** |
 |-------------|-----------------|-----------------|
-| `show` | Display files and directories. | `-a, --all` Show hidden files<br>`-l, --long` Detailed info<br>`-h, --human` Human-readable sizes<br>`-r, --recursive` Include subdirs<br>`-d, --depth <n>` Limit recursion depth<br>`--as` Format options **"list"**, **tree**, **graph**, **tiles**.<br>`--time` Show timestamps |
+| `show` | Display files and directories. | `-a, --all` Show hidden files<br>`-l, --long` Detailed info<br>`-h, --human` Human-readable sizes<br>`-r, --recursive` Include subdirs<br>`-d, --depth <n>` Limit recursion depth<br>`--as` Format options **"list"**, **tree**, **graph**.<br>`--time` Show timestamps |
 | `move` | Move or rename files/directories. | `-f, --force` Overwrite without prompt<br>`-i, --interactive` Ask before overwrite<br>`-b, --backup` Backup before move |
 | `copy` | Copy files or directories. | `-r, --recursive` Copy subdirectories<br>`-u, --update` Only copy newer<br>`-p, --preserve` Keep permissions/timestamps |
 | `remove` / `delete` | Delete files or directories. | `-r, --recursive` Delete contents<br>`-f, --force` No confirmation<br>`-i, --interactive` Confirm per file<br>`--trash` Move to system trash |
@@ -44,7 +44,7 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 | `watch` | Continuously monitor files or directories. | `-r, --recursive` Include subdirs<br>`-e, --events <list>` Filter events: create/modify/delete<br>`-t, --interval <n>` Poll interval in seconds |
 | `rewrite` | Modify or update file contents, timestamps, or size. | `-i` In-place edit<br>`--append` Append instead of overwrite<br>`-n` No newline<br>`--size <n>` Set exact file size |
 | `introspect` | Examine file contents, type, or metadata. | `-n <lines>` Number of lines<br>`-c` Count lines, words, bytes<br>`--fson` FSON output<br>`--mime` Show MIME type |
-| `grammar` | Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning through the SOAP API. | `--check` Run grammar check<br>`--fix` Auto-correct grammar<br>`--sanitize` Remove rot-brain/meme language<br>`--suggest` Suggest alternatives<br>`--tone` Detect tone<br>`--detect <type>` Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble |
+| `grammar` | Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning through the SOAP API. | `--check` Run grammar check<br>`--fix` Auto-correct grammar<br>`--sanitize` Remove rot-brain/meme language<br>`--suggest` Suggest alternatives<br>`--tone` Detect tone<br>`--detect <type>` Run detectors: `ragebait`, `clickbait`, `spam`, `woke`, `bot`, `sarcasm`, `formal`, `snowflake`, `offensive`, `neutral`, `hype`, `quality`, `political`, `conspiracy`, `marketing`, `technobabble` |
 
 ---
 
