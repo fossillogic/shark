@@ -35,7 +35,7 @@
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 // Define the test suite and add test cases
-FOSSIL_TEST_SUITE(c_compare_command_suite);
+FOSSIL_SUITE(c_compare_command_suite);
 
 // Setup function for the test suite
 FOSSIL_SETUP(c_compare_command_suite) {
@@ -57,7 +57,7 @@ FOSSIL_TEARDOWN(c_compare_command_suite) {
 
 // Test cases for fossil_shark_compare function
 
-FOSSIL_TEST_CASE(c_test_compare_null_parameters) {
+FOSSIL_TEST(c_test_compare_null_parameters) {
     // Test with null path1
     int result = fossil_shark_compare(cnull, "test.txt", true, false, 0, false);
     ASSUME_NOT_EQUAL_I32(0, result);
@@ -71,7 +71,7 @@ FOSSIL_TEST_CASE(c_test_compare_null_parameters) {
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_compare_identical_text_files) {
+FOSSIL_TEST(c_test_compare_identical_text_files) {
     // Create two identical files
     FILE *file1 = fopen("identical1.txt", "w");
     ASSUME_NOT_CNULL(file1);
@@ -92,7 +92,7 @@ FOSSIL_TEST_CASE(c_test_compare_identical_text_files) {
     remove("identical2.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_compare_different_text_files) {
+FOSSIL_TEST(c_test_compare_different_text_files) {
     // Create two different files
     FILE *file1 = fopen("different1.txt", "w");
     ASSUME_NOT_CNULL(file1);
@@ -113,7 +113,7 @@ FOSSIL_TEST_CASE(c_test_compare_different_text_files) {
     remove("different2.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_compare_identical_binary_files) {
+FOSSIL_TEST(c_test_compare_identical_binary_files) {
     // Create two identical binary files
     FILE *file1 = fopen("binary1.bin", "wb");
     ASSUME_NOT_CNULL(file1);
@@ -135,7 +135,7 @@ FOSSIL_TEST_CASE(c_test_compare_identical_binary_files) {
     remove("binary2.bin");
 }
 
-FOSSIL_TEST_CASE(c_test_compare_different_binary_files) {
+FOSSIL_TEST(c_test_compare_different_binary_files) {
     // Create two different binary files
     FILE *file1 = fopen("binary_diff1.bin", "wb");
     ASSUME_NOT_CNULL(file1);
@@ -158,7 +158,7 @@ FOSSIL_TEST_CASE(c_test_compare_different_binary_files) {
     remove("binary_diff2.bin");
 }
 
-FOSSIL_TEST_CASE(c_test_compare_case_sensitive) {
+FOSSIL_TEST(c_test_compare_case_sensitive) {
     // Create files with case differences
     FILE *file1 = fopen("case1.txt", "w");
     ASSUME_NOT_CNULL(file1);
@@ -179,7 +179,7 @@ FOSSIL_TEST_CASE(c_test_compare_case_sensitive) {
     remove("case2.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_compare_case_insensitive) {
+FOSSIL_TEST(c_test_compare_case_insensitive) {
     // Create files with case differences
     FILE *file1 = fopen("case_ignore1.txt", "w");
     ASSUME_NOT_CNULL(file1);
@@ -200,7 +200,7 @@ FOSSIL_TEST_CASE(c_test_compare_case_insensitive) {
     remove("case_ignore2.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_compare_with_context_lines) {
+FOSSIL_TEST(c_test_compare_with_context_lines) {
     // Create files with multiple lines and differences
     FILE *file1 = fopen("context1.txt", "w");
     ASSUME_NOT_CNULL(file1);
@@ -221,7 +221,7 @@ FOSSIL_TEST_CASE(c_test_compare_with_context_lines) {
     remove("context2.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_compare_empty_files) {
+FOSSIL_TEST(c_test_compare_empty_files) {
     // Create two empty files
     FILE *file1 = fopen("empty1.txt", "w");
     ASSUME_NOT_CNULL(file1);
@@ -240,7 +240,7 @@ FOSSIL_TEST_CASE(c_test_compare_empty_files) {
     remove("empty2.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_compare_different_length_files) {
+FOSSIL_TEST(c_test_compare_different_length_files) {
     // Create files with different lengths
     FILE *file1 = fopen("short.txt", "w");
     ASSUME_NOT_CNULL(file1);
@@ -261,13 +261,13 @@ FOSSIL_TEST_CASE(c_test_compare_different_length_files) {
     remove("long.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_compare_nonexistent_files) {
+FOSSIL_TEST(c_test_compare_nonexistent_files) {
     // Try to compare non-existent files
     int result = fossil_shark_compare("nonexistent1.txt", "nonexistent2.txt", true, false, 0, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_compare_one_nonexistent_file) {
+FOSSIL_TEST(c_test_compare_one_nonexistent_file) {
     // Create one file
     FILE *file1 = fopen("exists.txt", "w");
     ASSUME_NOT_CNULL(file1);
@@ -282,7 +282,7 @@ FOSSIL_TEST_CASE(c_test_compare_one_nonexistent_file) {
     remove("exists.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_compare_neither_text_nor_binary) {
+FOSSIL_TEST(c_test_compare_neither_text_nor_binary) {
     // Create two files
     FILE *file1 = fopen("neither1.txt", "w");
     ASSUME_NOT_CNULL(file1);
@@ -303,7 +303,7 @@ FOSSIL_TEST_CASE(c_test_compare_neither_text_nor_binary) {
     remove("neither2.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_compare_large_files) {
+FOSSIL_TEST(c_test_compare_large_files) {
     // Create large files for performance testing
     FILE *file1 = fopen("large1.txt", "w");
     ASSUME_NOT_CNULL(file1);

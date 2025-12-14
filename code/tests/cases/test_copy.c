@@ -35,7 +35,7 @@
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 // Define the test suite and add test cases
-FOSSIL_TEST_SUITE(c_copy_command_suite);
+FOSSIL_SUITE(c_copy_command_suite);
 
 // Setup function for the test suite
 FOSSIL_SETUP(c_copy_command_suite) {
@@ -57,7 +57,7 @@ FOSSIL_TEARDOWN(c_copy_command_suite) {
 
 // Test cases for fossil_shark_copy function
 
-FOSSIL_TEST_CASE(c_test_copy_null_parameters) {
+FOSSIL_TEST(c_test_copy_null_parameters) {
     // Test with null source
     int result = fossil_shark_copy(cnull, "dest.txt", false, false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
@@ -71,7 +71,7 @@ FOSSIL_TEST_CASE(c_test_copy_null_parameters) {
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_copy_simple_file) {
+FOSSIL_TEST(c_test_copy_simple_file) {
     // Create source file
     FILE *src_file = fopen("copy_source.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -93,13 +93,13 @@ FOSSIL_TEST_CASE(c_test_copy_simple_file) {
     remove("copy_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_copy_nonexistent_source) {
+FOSSIL_TEST(c_test_copy_nonexistent_source) {
     // Try to copy non-existent file
     int result = fossil_shark_copy("nonexistent_copy.txt", "dest.txt", false, false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_copy_file_with_preserve) {
+FOSSIL_TEST(c_test_copy_file_with_preserve) {
     // Create source file
     FILE *src_file = fopen("preserve_src.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -119,7 +119,7 @@ FOSSIL_TEST_CASE(c_test_copy_file_with_preserve) {
     remove("preserve_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_copy_file_with_update_newer) {
+FOSSIL_TEST(c_test_copy_file_with_update_newer) {
     // Create source file
     FILE *src_file = fopen("update_src.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -154,7 +154,7 @@ FOSSIL_TEST_CASE(c_test_copy_file_with_update_newer) {
     remove("update_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_copy_file_with_update_skip) {
+FOSSIL_TEST(c_test_copy_file_with_update_skip) {
     // Create destination file first
     FILE *dest_file = fopen("skip_dest.txt", "w");
     ASSUME_NOT_CNULL(dest_file);
@@ -183,7 +183,7 @@ FOSSIL_TEST_CASE(c_test_copy_file_with_update_skip) {
     remove("skip_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_copy_directory_without_recursive) {
+FOSSIL_TEST(c_test_copy_directory_without_recursive) {
     // Create a directory
     #ifdef _WIN32
     CreateDirectoryA("copy_dir_test", NULL);
@@ -203,7 +203,7 @@ FOSSIL_TEST_CASE(c_test_copy_directory_without_recursive) {
     #endif
 }
 
-FOSSIL_TEST_CASE(c_test_copy_directory_recursive) {
+FOSSIL_TEST(c_test_copy_directory_recursive) {
     // Create source directory structure
     #ifdef _WIN32
     CreateDirectoryA("copy_recursive_src", NULL);
@@ -250,7 +250,7 @@ FOSSIL_TEST_CASE(c_test_copy_directory_recursive) {
     #endif
 }
 
-FOSSIL_TEST_CASE(c_test_copy_empty_file) {
+FOSSIL_TEST(c_test_copy_empty_file) {
     // Create empty source file
     FILE *src_file = fopen("empty_copy_src.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -269,7 +269,7 @@ FOSSIL_TEST_CASE(c_test_copy_empty_file) {
     remove("empty_copy_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_copy_large_file) {
+FOSSIL_TEST(c_test_copy_large_file) {
     // Create source file with large content
     FILE *src_file = fopen("large_copy_src.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -291,7 +291,7 @@ FOSSIL_TEST_CASE(c_test_copy_large_file) {
     remove("large_copy_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_copy_overwrite_existing) {
+FOSSIL_TEST(c_test_copy_overwrite_existing) {
     // Create source file
     FILE *src_file = fopen("overwrite_copy_src.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -313,7 +313,7 @@ FOSSIL_TEST_CASE(c_test_copy_overwrite_existing) {
     remove("overwrite_copy_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_copy_all_flags) {
+FOSSIL_TEST(c_test_copy_all_flags) {
     // Create source directory structure
     #ifdef _WIN32
     CreateDirectoryA("all_flags_src", NULL);
@@ -346,7 +346,7 @@ FOSSIL_TEST_CASE(c_test_copy_all_flags) {
     #endif
 }
 
-FOSSIL_TEST_CASE(c_test_copy_unsupported_file_type) {
+FOSSIL_TEST(c_test_copy_unsupported_file_type) {
     // This test is platform-specific and might not be applicable on all systems
     // For now, we'll test with a regular file to ensure the function handles file types correctly
     FILE *src_file = fopen("regular_file.txt", "w");

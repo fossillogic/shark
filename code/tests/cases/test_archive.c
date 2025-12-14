@@ -35,7 +35,7 @@
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 // Define the test suite and add test cases
-FOSSIL_TEST_SUITE(c_archive_command_suite);
+FOSSIL_SUITE(c_archive_command_suite);
 
 // Setup function for the test suite
 FOSSIL_SETUP(c_archive_command_suite) {
@@ -57,13 +57,13 @@ FOSSIL_TEARDOWN(c_archive_command_suite) {
 
 // Test cases for fossil_shark_archive function
 
-FOSSIL_TEST_CASE(c_test_archive_null_path) {
+FOSSIL_TEST(c_test_archive_null_path) {
     // Test with null path
     int result = fossil_shark_archive(cnull, true, false, false, "zip", cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_archive_multiple_operations) {
+FOSSIL_TEST(c_test_archive_multiple_operations) {
     // Test with multiple operations specified (invalid)
     int result = fossil_shark_archive("test.zip", true, true, false, "zip", cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
@@ -81,25 +81,25 @@ FOSSIL_TEST_CASE(c_test_archive_multiple_operations) {
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_archive_no_operations) {
+FOSSIL_TEST(c_test_archive_no_operations) {
     // Test with no operations specified
     int result = fossil_shark_archive("test.zip", false, false, false, "zip", cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_archive_extract_nonexistent_file) {
+FOSSIL_TEST(c_test_archive_extract_nonexistent_file) {
     // Test extract operation on non-existent file
     int result = fossil_shark_archive("nonexistent.zip", false, true, false, "zip", cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_archive_list_nonexistent_file) {
+FOSSIL_TEST(c_test_archive_list_nonexistent_file) {
     // Test list operation on non-existent file
     int result = fossil_shark_archive("nonexistent.tar", false, false, true, "tar", cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_archive_create_tar_format) {
+FOSSIL_TEST(c_test_archive_create_tar_format) {
     // Create test files
     FILE *file = fopen("tar_test.txt", "w");
     ASSUME_NOT_CNULL(file);
@@ -110,7 +110,7 @@ FOSSIL_TEST_CASE(c_test_archive_create_tar_format) {
     remove("tar_test.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_archive_create_targz_format) {
+FOSSIL_TEST(c_test_archive_create_targz_format) {
     // Create test file
     FILE *file = fopen("targz_test.txt", "w");
     ASSUME_NOT_CNULL(file);
@@ -121,13 +121,13 @@ FOSSIL_TEST_CASE(c_test_archive_create_targz_format) {
     remove("targz_test.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_archive_unsupported_format) {
+FOSSIL_TEST(c_test_archive_unsupported_format) {
     // Test with unsupported format for create operation
     int result = fossil_shark_archive("test.unknown", true, false, false, "unknown_format", cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_archive_path_sanitization) {
+FOSSIL_TEST(c_test_archive_path_sanitization) {
     // Test with suspicious path characters
     int result = fossil_shark_archive("../../../etc/passwd", true, false, false, "zip", cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
@@ -141,7 +141,7 @@ FOSSIL_TEST_CASE(c_test_archive_path_sanitization) {
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_archive_format_sanitization) {
+FOSSIL_TEST(c_test_archive_format_sanitization) {
     // Test with malicious format strings
     int result = fossil_shark_archive("test.zip", true, false, false, "zip; rm -rf /", cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
@@ -151,7 +151,7 @@ FOSSIL_TEST_CASE(c_test_archive_format_sanitization) {
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_archive_password_validation) {
+FOSSIL_TEST(c_test_archive_password_validation) {
     // Test with weak password (should show warning but not fail)
     // This would show a warning but continue processing
     
@@ -160,7 +160,7 @@ FOSSIL_TEST_CASE(c_test_archive_password_validation) {
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_archive_default_format) {
+FOSSIL_TEST(c_test_archive_default_format) {
     // Test with null format (should default to tar)
     // Create a test file first
     FILE *file = fopen("default_format_test.txt", "w");
@@ -174,7 +174,7 @@ FOSSIL_TEST_CASE(c_test_archive_default_format) {
     remove("default_format_test.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_archive_extract_existing_archive) {
+FOSSIL_TEST(c_test_archive_extract_existing_archive) {
     // First create a simple test archive file (mock)
     FILE *archive_file = fopen("test_extract.tar", "wb");
     ASSUME_NOT_CNULL(archive_file);
@@ -191,7 +191,7 @@ FOSSIL_TEST_CASE(c_test_archive_extract_existing_archive) {
     remove("test_extract.tar");
 }
 
-FOSSIL_TEST_CASE(c_test_archive_list_existing_archive) {
+FOSSIL_TEST(c_test_archive_list_existing_archive) {
     // Create a mock archive file
     FILE *archive_file = fopen("test_list.zip", "wb");
     ASSUME_NOT_CNULL(archive_file);
@@ -207,7 +207,7 @@ FOSSIL_TEST_CASE(c_test_archive_list_existing_archive) {
     remove("test_list.zip");
 }
 
-FOSSIL_TEST_CASE(c_test_archive_auto_detect_type) {
+FOSSIL_TEST(c_test_archive_auto_detect_type) {
     // Create files with different extensions for auto-detection testing
     FILE *zip_file = fopen("autodetect.zip", "wb");
     ASSUME_NOT_CNULL(zip_file);
@@ -225,7 +225,7 @@ FOSSIL_TEST_CASE(c_test_archive_auto_detect_type) {
     remove("autodetect.tar");
 }
 
-FOSSIL_TEST_CASE(c_test_archive_large_file_handling) {
+FOSSIL_TEST(c_test_archive_large_file_handling) {
     // Create a large test file
     FILE *large_file = fopen("large_test.txt", "w");
     ASSUME_NOT_CNULL(large_file);
@@ -240,7 +240,7 @@ FOSSIL_TEST_CASE(c_test_archive_large_file_handling) {
     remove("large_test.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_archive_special_characters_in_filenames) {
+FOSSIL_TEST(c_test_archive_special_characters_in_filenames) {
     // Create files with special characters
     FILE *special_file = fopen("test_file_with_spaces.txt", "w");
     ASSUME_NOT_CNULL(special_file);

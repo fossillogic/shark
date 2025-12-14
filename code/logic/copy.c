@@ -40,8 +40,62 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
     bool dest_exists = (stat(dest, &st_dest) == 0);
 
     if (update && dest_exists) {
-        if (st_dest.st_mtime >= st_src.st_mtime) {
-            fossil_io_printf("{cyan}Skipping '%s' - destination is up to date{normal}\n", src);
+        // Compute hash of source and destination files to check for content changes
+        char src_hash[128], dest_hash[128];
+        int src_hash_res = 0, dest_hash_res = 0;
+        {
+            fossil_io_file_t src_stream;
+            if (fossil_io_file_open(&src_stream, src, "rb") == 0) {
+                size_t total = 0;
+                // Read file into buffer (for demonstration, read up to 1MB)
+                char* file_data = malloc(st_src.st_size);
+                if (file_data) {
+                    size_t n;
+                    while ((n = fossil_io_file_read(&src_stream, file_data + total, 1, (size_t)st_src.st_size - total)) > 0) {
+                        total += n;
+                        if (total >= (size_t)st_src.st_size) break;
+                    }
+                    src_hash_res = fossil_cryptic_hash_compute(
+                        "xxhash64", "auto", "hex",
+                        src_hash, sizeof(src_hash),
+                        file_data, total
+                    );
+                    free(file_data);
+                } else {
+                    src_hash_res = 1;
+                }
+                fossil_io_file_close(&src_stream);
+            } else {
+                src_hash_res = 1;
+            }
+        }
+        {
+            fossil_io_file_t dest_stream;
+            if (fossil_io_file_open(&dest_stream, dest, "rb") == 0) {
+                char* file_data = malloc(st_dest.st_size);
+                size_t total = 0;
+                if (file_data) {
+                    size_t n;
+                    while ((n = fossil_io_file_read(&dest_stream, file_data + total, 1, (size_t)st_dest.st_size - total)) > 0) {
+                        total += n;
+                        if (total >= (size_t)st_dest.st_size) break;
+                    }
+                    dest_hash_res = fossil_cryptic_hash_compute(
+                        "xxhash64", "auto", "hex",
+                        dest_hash, sizeof(dest_hash),
+                        file_data, total
+                    );
+                    free(file_data);
+                } else {
+                    dest_hash_res = 1;
+                }
+                fossil_io_file_close(&dest_stream);
+            } else {
+                dest_hash_res = 1;
+            }
+        }
+        if (src_hash_res == 0 && dest_hash_res == 0 && strcmp(src_hash, dest_hash) == 0) {
+            fossil_io_printf("{cyan}Skipping '%s' - destination is up to date (hash match){normal}\n", src);
             return 0;
         }
     }

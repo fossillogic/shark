@@ -240,40 +240,6 @@ int fossil_shark_grammar(ccstring file_path, bool check, bool fix,
                          bool sanitize, bool suggest, bool tone,
                          ccstring detect_type);
 
-/**
- * @brief Generate structured summaries of text/code/log/document files.
- *
- * @param paths Array of file paths.
- * @param count Number of paths.
- * @param limit_lines Limit number of lines to analyze (0 = no limit).
- * @param auto_detect Enable automatic file-type inference.
- * @param extract_keywords Extract keyword list.
- * @param extract_topics Perform simple topic clustering.
- * @param stats Include file statistics.
- * @param output_fson Output structured FSON format.
- * @return int Status code.
- */
-int fossil_shark_summary(ccstring *paths, int count,
-                         int limit_lines,
-                         bool auto_detect,
-                         bool extract_keywords,
-                         bool extract_topics,
-                         bool stats,
-                         bool output_fson);
-
-/**
- * Perform storage management: deduplicate, catalog, index, snapshot, organize, and prune files.
- * @param path Path to file or directory to manage
- * @param dedupe Deduplicate files
- * @param catalog Catalog files
- * @param index Index files for fast lookup
- * @param snapshot Create storage snapshot
- * @param prune Prune obsolete or redundant files
- * @return 0 on success, non-zero on error
- */
-int fossil_shark_storage(ccstring path, bool dedupe, bool catalog,
-                         bool index, bool snapshot, bool prune);
-
 #ifdef __cplusplus
 }
 #endif

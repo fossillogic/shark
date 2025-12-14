@@ -19,9 +19,7 @@ app_lib = static_library('app-code',
         'watch.c',
         'grammar.c',
         'rewrite.c',
-        'storage.c',
-        'introspect.c',
-        'summary.c'
+        'introspect.c'
     ),
     install: true,
     dependencies: [code_deps],

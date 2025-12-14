@@ -202,6 +202,16 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     fossil_sys_memory_zero(log_filename, 1024);
     fossil_fpath_create_path_safe(log_filename, 1024, sanitized_path, ".archive.log");
     
+    // Compute a hash of the archive path for logging (for traceability)
+    char hash_buf[128];
+    fossil_sys_memory_zero(hash_buf, sizeof(hash_buf));
+    if (fossil_cryptic_hash_compute(
+            "xxhash64", "u64", "hex",
+            hash_buf, sizeof(hash_buf),
+            sanitized_path, fossil_io_cstring_length(sanitized_path)) == 0) {
+        fossil_io_printf("{magenta}Archive path hash: %s{normal}\n", hash_buf);
+    }
+
     fossil_io_file_t log_stream;
     COption log_option = cnone();
     if (fossil_io_file_open(&log_stream, log_filename, "w") == 0) {
@@ -221,6 +231,15 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             log_msg[len] = '\n';
             log_msg[len + 1] = '\0';
             fossil_io_file_write(&log_stream, log_msg, fossil_io_cstring_length(log_msg), 1);
+
+            // Log the hash of the archive path
+            size_t hash_len = fossil_io_cstring_length(hash_buf);
+            if (hash_len > 0) {
+                fossil_io_file_write(&log_stream, "Archive path hash: ", 20, 1);
+                fossil_io_file_write(&log_stream, hash_buf, hash_len, 1);
+                fossil_io_file_write(&log_stream, "\n", 1, 1);
+            }
+
             fossil_sys_memory_free(log_msg);
         }
     }
