@@ -35,7 +35,7 @@
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 // Define the test suite and add test cases
-FOSSIL_TEST_SUITE(c_move_command_suite);
+FOSSIL_SUITE(c_move_command_suite);
 
 // Setup function for the test suite
 FOSSIL_SETUP(c_move_command_suite) {
@@ -57,7 +57,7 @@ FOSSIL_TEARDOWN(c_move_command_suite) {
 
 // Test cases for fossil_shark_move function
 
-FOSSIL_TEST_CASE(c_test_move_null_parameters) {
+FOSSIL_TEST(c_test_move_null_parameters) {
     // Test with null source
     int result = fossil_shark_move(cnull, "dest.txt", false, false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
@@ -71,7 +71,7 @@ FOSSIL_TEST_CASE(c_test_move_null_parameters) {
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_move_simple_file) {
+FOSSIL_TEST(c_test_move_simple_file) {
     // Create source file
     FILE *src_file = fopen("move_source.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -92,13 +92,13 @@ FOSSIL_TEST_CASE(c_test_move_simple_file) {
     remove("move_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_move_nonexistent_source) {
+FOSSIL_TEST(c_test_move_nonexistent_source) {
     // Try to move non-existent file
     int result = fossil_shark_move("nonexistent_file.txt", "dest.txt", false, false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_move_overwrite_without_force) {
+FOSSIL_TEST(c_test_move_overwrite_without_force) {
     // Create source and destination files
     FILE *src_file = fopen("overwrite_src.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -119,7 +119,7 @@ FOSSIL_TEST_CASE(c_test_move_overwrite_without_force) {
     remove("overwrite_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_move_overwrite_with_force) {
+FOSSIL_TEST(c_test_move_overwrite_with_force) {
     // Create source and destination files
     FILE *src_file = fopen("force_src.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -142,7 +142,7 @@ FOSSIL_TEST_CASE(c_test_move_overwrite_with_force) {
     remove("force_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_move_with_backup) {
+FOSSIL_TEST(c_test_move_with_backup) {
     // Create source and destination files
     FILE *src_file = fopen("backup_src.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -166,7 +166,7 @@ FOSSIL_TEST_CASE(c_test_move_with_backup) {
     remove("backup_dest.txt.bak");
 }
 
-FOSSIL_TEST_CASE(c_test_move_rename_same_directory) {
+FOSSIL_TEST(c_test_move_rename_same_directory) {
     // Create source file
     FILE *src_file = fopen("rename_original.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -187,7 +187,7 @@ FOSSIL_TEST_CASE(c_test_move_rename_same_directory) {
     remove("rename_new.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_move_empty_file) {
+FOSSIL_TEST(c_test_move_empty_file) {
     // Create empty source file
     FILE *src_file = fopen("empty_src.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -205,7 +205,7 @@ FOSSIL_TEST_CASE(c_test_move_empty_file) {
     remove("empty_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_move_large_file) {
+FOSSIL_TEST(c_test_move_large_file) {
     // Create source file with some content
     FILE *src_file = fopen("large_src.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -226,7 +226,7 @@ FOSSIL_TEST_CASE(c_test_move_large_file) {
     remove("large_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_move_special_characters) {
+FOSSIL_TEST(c_test_move_special_characters) {
     // Create source file with special characters in name
     FILE *src_file = fopen("special_chars_src.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -245,7 +245,7 @@ FOSSIL_TEST_CASE(c_test_move_special_characters) {
     remove("special_chars_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_move_to_existing_directory) {
+FOSSIL_TEST(c_test_move_to_existing_directory) {
     // Create source file
     FILE *src_file = fopen("dir_move_src.txt", "w");
     ASSUME_NOT_CNULL(src_file);
@@ -260,7 +260,7 @@ FOSSIL_TEST_CASE(c_test_move_to_existing_directory) {
     remove("dir_move_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_move_same_source_and_dest) {
+FOSSIL_TEST(c_test_move_same_source_and_dest) {
     // Create source file
     FILE *src_file = fopen("same_path.txt", "w");
     ASSUME_NOT_CNULL(src_file);

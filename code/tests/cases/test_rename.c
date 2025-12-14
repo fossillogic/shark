@@ -35,7 +35,7 @@
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 // Define the test suite and add test cases
-FOSSIL_TEST_SUITE(c_rename_command_suite);
+FOSSIL_SUITE(c_rename_command_suite);
 
 // Setup function for the test suite
 FOSSIL_SETUP(c_rename_command_suite) {
@@ -57,7 +57,7 @@ FOSSIL_TEARDOWN(c_rename_command_suite) {
 
 // Test cases for fossil_shark_rename function
 
-FOSSIL_TEST_CASE(c_test_rename_null_parameters) {
+FOSSIL_TEST(c_test_rename_null_parameters) {
     // Test with null old_name
     int result = fossil_shark_rename(cnull, "new_file.txt", false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
@@ -71,7 +71,7 @@ FOSSIL_TEST_CASE(c_test_rename_null_parameters) {
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_rename_empty_strings) {
+FOSSIL_TEST(c_test_rename_empty_strings) {
     // Test with empty old_name
     int result = fossil_shark_rename("", "new_file.txt", false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
@@ -81,7 +81,7 @@ FOSSIL_TEST_CASE(c_test_rename_empty_strings) {
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_rename_basic_file) {
+FOSSIL_TEST(c_test_rename_basic_file) {
     // Create test file
     FILE *temp = fopen("rename_test_old.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -104,13 +104,13 @@ FOSSIL_TEST_CASE(c_test_rename_basic_file) {
     remove("rename_test_new.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_rename_nonexistent_file) {
+FOSSIL_TEST(c_test_rename_nonexistent_file) {
     // Try to rename a file that doesn't exist
     int result = fossil_shark_rename("nonexistent_file.txt", "new_name.txt", false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_rename_overwrite_without_force) {
+FOSSIL_TEST(c_test_rename_overwrite_without_force) {
     // Create source file
     FILE *source = fopen("rename_source.txt", "w");
     ASSUME_NOT_CNULL(source);
@@ -132,7 +132,7 @@ FOSSIL_TEST_CASE(c_test_rename_overwrite_without_force) {
     remove("rename_dest.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_rename_overwrite_with_force) {
+FOSSIL_TEST(c_test_rename_overwrite_with_force) {
     // Create source file
     FILE *source = fopen("rename_force_src.txt", "w");
     ASSUME_NOT_CNULL(source);
@@ -161,7 +161,7 @@ FOSSIL_TEST_CASE(c_test_rename_overwrite_with_force) {
     remove("rename_force_dst.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_rename_with_path) {
+FOSSIL_TEST(c_test_rename_with_path) {
     // Create test file
     FILE *temp = fopen("path_test.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -181,7 +181,7 @@ FOSSIL_TEST_CASE(c_test_rename_with_path) {
     remove("renamed_path.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_rename_special_characters) {
+FOSSIL_TEST(c_test_rename_special_characters) {
     // Create test file
     FILE *temp = fopen("normal_file.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -201,7 +201,7 @@ FOSSIL_TEST_CASE(c_test_rename_special_characters) {
     remove("file_with-underscore.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_rename_preserve_content) {
+FOSSIL_TEST(c_test_rename_preserve_content) {
     // Create test file with content
     FILE *temp = fopen("content_test.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -226,7 +226,7 @@ FOSSIL_TEST_CASE(c_test_rename_preserve_content) {
     remove("renamed_content.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_rename_large_filename) {
+FOSSIL_TEST(c_test_rename_large_filename) {
     // Create file with normal name
     FILE *temp = fopen("short.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -252,7 +252,7 @@ FOSSIL_TEST_CASE(c_test_rename_large_filename) {
     ASSUME_ITS_TRUE(true);
 }
 
-FOSSIL_TEST_CASE(c_test_rename_file_to_existing_directory_name) {
+FOSSIL_TEST(c_test_rename_file_to_existing_directory_name) {
     // Create test file
     FILE *temp = fopen("file_to_dir.txt", "w");
     ASSUME_NOT_CNULL(temp);

@@ -35,7 +35,7 @@
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 // Define the test suite and add test cases
-FOSSIL_TEST_SUITE(c_search_command_suite);
+FOSSIL_SUITE(c_search_command_suite);
 
 // Setup function for the test suite
 FOSSIL_SETUP(c_search_command_suite) {
@@ -57,19 +57,19 @@ FOSSIL_TEARDOWN(c_search_command_suite) {
 
 // Test cases for fossil_shark_search function
 
-FOSSIL_TEST_CASE(c_test_search_null_path) {
+FOSSIL_TEST(c_test_search_null_path) {
     // Should default to current directory when path is null
     int result = fossil_shark_search(cnull, false, cnull, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_search_invalid_path) {
+FOSSIL_TEST(c_test_search_invalid_path) {
     // Should handle invalid path gracefully
     int result = fossil_shark_search("/nonexistent/path", false, cnull, cnull, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_search_by_name_pattern) {
+FOSSIL_TEST(c_test_search_by_name_pattern) {
     // Create test files
     FILE *temp1 = fopen("test_file.txt", "w");
     ASSUME_NOT_CNULL(temp1);
@@ -90,7 +90,7 @@ FOSSIL_TEST_CASE(c_test_search_by_name_pattern) {
     remove("test_file.c");
 }
 
-FOSSIL_TEST_CASE(c_test_search_by_content_pattern) {
+FOSSIL_TEST(c_test_search_by_content_pattern) {
     // Create test file with specific content
     FILE *temp = fopen("search_content.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -105,7 +105,7 @@ FOSSIL_TEST_CASE(c_test_search_by_content_pattern) {
     remove("search_content.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_search_case_insensitive_name) {
+FOSSIL_TEST(c_test_search_case_insensitive_name) {
     // Create test file
     FILE *temp = fopen("TestFile.TXT", "w");
     ASSUME_NOT_CNULL(temp);
@@ -120,7 +120,7 @@ FOSSIL_TEST_CASE(c_test_search_case_insensitive_name) {
     remove("TestFile.TXT");
 }
 
-FOSSIL_TEST_CASE(c_test_search_case_insensitive_content) {
+FOSSIL_TEST(c_test_search_case_insensitive_content) {
     // Create test file
     FILE *temp = fopen("case_test.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -135,7 +135,7 @@ FOSSIL_TEST_CASE(c_test_search_case_insensitive_content) {
     remove("case_test.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_search_combined_patterns) {
+FOSSIL_TEST(c_test_search_combined_patterns) {
     // Create test files
     FILE *temp1 = fopen("match_both.txt", "w");
     ASSUME_NOT_CNULL(temp1);
@@ -156,7 +156,7 @@ FOSSIL_TEST_CASE(c_test_search_combined_patterns) {
     remove("match_name.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_search_no_matches) {
+FOSSIL_TEST(c_test_search_no_matches) {
     // Create test file
     FILE *temp = fopen("no_match.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -171,7 +171,7 @@ FOSSIL_TEST_CASE(c_test_search_no_matches) {
     remove("no_match.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_search_empty_file) {
+FOSSIL_TEST(c_test_search_empty_file) {
     // Create empty test file
     FILE *temp = fopen("empty_search.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -185,7 +185,7 @@ FOSSIL_TEST_CASE(c_test_search_empty_file) {
     remove("empty_search.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_search_no_patterns) {
+FOSSIL_TEST(c_test_search_no_patterns) {
     // Create test file
     FILE *temp = fopen("any_file.txt", "w");
     ASSUME_NOT_CNULL(temp);
@@ -200,20 +200,20 @@ FOSSIL_TEST_CASE(c_test_search_no_patterns) {
     remove("any_file.txt");
 }
 
-FOSSIL_TEST_CASE(c_test_search_recursive_basic) {
+FOSSIL_TEST(c_test_search_recursive_basic) {
     // This test assumes the current directory structure
     // In a real test environment, you might create a temporary directory structure
     int result = fossil_shark_search(".", true, cnull, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_search_non_recursive) {
+FOSSIL_TEST(c_test_search_non_recursive) {
     // Search only in current directory
     int result = fossil_shark_search(".", false, cnull, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 }
 
-FOSSIL_TEST_CASE(c_test_search_unreadable_file) {
+FOSSIL_TEST(c_test_search_unreadable_file) {
     // Create test file
     FILE *temp = fopen("readable_file.txt", "w");
     ASSUME_NOT_CNULL(temp);
