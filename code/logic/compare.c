@@ -24,7 +24,6 @@
  */
 #include "fossil/code/commands.h"
 
-
 // Helper: read line from file, return dynamically allocated string
 static cstring read_line(fossil_io_file_t *stream) {
     size_t size = 128;
@@ -83,6 +82,42 @@ static bool is_regular_file(ccstring path) {
 #endif
 }
 
+// Helper: compute hash of file contents using fossil_cryptic_hash_compute
+static int file_hash(ccstring path, char* hash_out, size_t hash_out_len,
+                     const char* algorithm, const char* bits, const char* base) {
+    fossil_io_file_t file;
+    if (fossil_io_file_open(&file, path, "rb") != 0)
+        return 1;
+
+    // Read file into buffer
+    fossil_io_file_seek(&file, 0, SEEK_END);
+    size_t file_size = fossil_io_file_tell(&file);
+    fossil_io_file_seek(&file, 0, SEEK_SET);
+
+    void* buffer = fossil_sys_memory_alloc(file_size);
+    if (!buffer) {
+        fossil_io_file_close(&file);
+        return 1;
+    }
+
+    size_t read_bytes = fossil_io_file_read(buffer, 1, file_size, &file);
+    fossil_io_file_close(&file);
+
+    if (read_bytes != file_size) {
+        fossil_sys_memory_free(buffer);
+        return 1;
+    }
+
+    int rc = fossil_cryptic_hash_compute(
+        algorithm, bits, base,
+        hash_out, hash_out_len,
+        buffer, file_size
+    );
+
+    fossil_sys_memory_free(buffer);
+    return rc;
+}
+
 int fossil_shark_compare(ccstring path1, ccstring path2,
                          bool text_diff, bool binary_diff,
                          int context_lines, bool ignore_case) {
@@ -94,6 +129,24 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
     if (cunlikely(!is_regular_file(path1) || !is_regular_file(path2))) {
         fossil_io_printf("{red}Error: Failed to access files or not regular files.{normal}\n");
         return 1;
+    }
+
+    // If both text_diff and binary_diff are false, do hash comparison as fallback
+    if (!text_diff && !binary_diff) {
+        char hash1[128], hash2[128];
+        int rc1 = file_hash(path1, hash1, sizeof(hash1), "xxhash64", "auto", "hex");
+        int rc2 = file_hash(path2, hash2, sizeof(hash2), "xxhash64", "auto", "hex");
+        if (rc1 != 0 || rc2 != 0) {
+            fossil_io_printf("{red}Error: Failed to compute file hash.{normal}\n");
+            return 1;
+        }
+        if (strcmp(hash1, hash2) == 0) {
+            fossil_io_printf("{green}Files are identical (hash: %s).{normal}\n", hash1);
+            return 0;
+        } else {
+            fossil_io_printf("{blue}Files differ (hash1: %s, hash2: %s).{normal}\n", hash1, hash2);
+            return 1;
+        }
     }
 
     if (binary_diff) {

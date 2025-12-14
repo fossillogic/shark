@@ -50,6 +50,53 @@ static int get_mod_time(ccstring path, time_t *mod_time) {
     return 0;
 }
 
+static int compute_file_hash(ccstring path, char *hash_out, size_t hash_out_len) {
+    FILE *fp = fopen(path, "rb");
+    if (!fp) return errno;
+
+    unsigned char buf[4096];
+    size_t total = 0;
+    int rc = 0;
+
+    // For simplicity, always use crc32/u32/hex here
+    // You can parameterize as needed
+    char algorithm[] = "crc32";
+    char bits[] = "u32";
+    char base[] = "hex";
+
+    // Read file into memory (could be improved for large files)
+    unsigned char *file_data = NULL;
+    size_t file_size = 0;
+    while (!feof(fp)) {
+        size_t n = fread(buf, 1, sizeof(buf), fp);
+        if (n > 0) {
+            unsigned char *tmp = realloc(file_data, file_size + n);
+            if (!tmp) {
+                free(file_data);
+                fclose(fp);
+                return ENOMEM;
+            }
+            file_data = tmp;
+            memcpy(file_data + file_size, buf, n);
+            file_size += n;
+        }
+        if (ferror(fp)) {
+            free(file_data);
+            fclose(fp);
+            return errno;
+        }
+    }
+    fclose(fp);
+
+    rc = fossil_cryptic_hash_compute(
+        algorithm, bits, base,
+        hash_out, hash_out_len,
+        file_data, file_size
+    );
+    free(file_data);
+    return rc;
+}
+
 static int sync_file(ccstring src, ccstring dest, bool update) {
     time_t src_mtime, dest_mtime;
     if (get_mod_time(src, &src_mtime) != 0) { perror("stat src"); return errno; }
@@ -60,7 +107,17 @@ static int sync_file(ccstring src, ccstring dest, bool update) {
             return 0;
         }
     }
-    
+
+    // Compare hashes, skip copy if identical
+    char src_hash[65], dest_hash[65];
+    if (compute_file_hash(src, src_hash, sizeof(src_hash)) == 0 &&
+        compute_file_hash(dest, dest_hash, sizeof(dest_hash)) == 0) {
+        if (strcmp(src_hash, dest_hash) == 0) {
+            // Files are identical, skip copy
+            return 0;
+        }
+    }
+
     return copy_file(src, dest);
 }
 
