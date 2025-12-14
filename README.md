@@ -81,8 +81,6 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 | `shark rewrite -i --append log.txt "New entry"` | Append a new entry to a log file in-place. |
 | `shark introspect --mime report.pdf` | Show the MIME type of a file. |
 | `shark grammar --check --tone notes.txt` | Run a grammar check and detect tone in a text file. |
-| `shark summary --auto --keywords --stats article.md` | Generate an automatic structured summary with keywords and statistics for a document. |
-| `shark storage --dedupe --catalog ~/Documents/` | Deduplicate files and create a catalog of your Documents directory. |
 
 ## **Prerequisites**
 
