@@ -204,6 +204,115 @@ static int fossil_shark_watch_windows_recursive(
     return 0;
 }
 
+static int fossil_shark_watch_windows(
+    const char *path,
+    const char *events
+)
+{
+    wchar_t *wpath = fossil_utf8_to_wide(path);
+    if (!wpath)
+        return ERROR_NOT_ENOUGH_MEMORY;
+
+    HANDLE dir = CreateFileW(
+        wpath,
+        FILE_LIST_DIRECTORY,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        NULL
+    );
+
+    free(wpath);
+
+    if (dir == INVALID_HANDLE_VALUE)
+        return GetLastError();
+
+    BYTE buffer[64 * 1024];
+    DWORD bytes;
+
+    while (1) {
+        if (!ReadDirectoryChangesW(
+                dir,
+                buffer,
+                sizeof(buffer),
+                FALSE, /* non-recursive */
+                FILE_NOTIFY_CHANGE_FILE_NAME |
+                FILE_NOTIFY_CHANGE_DIR_NAME  |
+                FILE_NOTIFY_CHANGE_SIZE      |
+                FILE_NOTIFY_CHANGE_LAST_WRITE,
+                &bytes,
+                NULL,
+                NULL))
+            break;
+
+        FILE_NOTIFY_INFORMATION *fni =
+            (FILE_NOTIFY_INFORMATION *)buffer;
+
+        do {
+            char filename[1024];
+            int flen = WideCharToMultiByte(
+                CP_UTF8, 0,
+                fni->FileName,
+                fni->FileNameLength / sizeof(WCHAR),
+                filename,
+                sizeof(filename) - 1,
+                NULL,
+                NULL
+            );
+            filename[flen] = '\0';
+
+            bool emit = false;
+            const char *etype = NULL;
+
+            switch (fni->Action) {
+            case FILE_ACTION_ADDED:
+                emit = fossil_io_cstring_icontains(events, "create");
+                etype = "created";
+                break;
+            case FILE_ACTION_REMOVED:
+                emit = fossil_io_cstring_icontains(events, "delete");
+                etype = "deleted";
+                break;
+            case FILE_ACTION_MODIFIED:
+                emit = fossil_io_cstring_icontains(events, "modify");
+                etype = "modified";
+                break;
+            case FILE_ACTION_RENAMED_OLD_NAME:
+            case FILE_ACTION_RENAMED_NEW_NAME:
+                emit = fossil_io_cstring_icontains(events, "rename");
+                etype = "renamed";
+                break;
+            }
+
+            if (emit) {
+                cstring msg = fossil_io_cstring_format(
+                    "{yellow}%s:{normal} %s\n",
+                    etype,
+                    filename
+                );
+                fossil_io_file_write(
+                    FOSSIL_STDOUT,
+                    msg,
+                    fossil_io_cstring_length(msg),
+                    1
+                );
+                fossil_io_cstring_free(msg);
+            }
+
+            if (!fni->NextEntryOffset)
+                break;
+
+            fni = (FILE_NOTIFY_INFORMATION *)(
+                (BYTE *)fni + fni->NextEntryOffset
+            );
+        } while (1);
+    }
+
+    CloseHandle(dir);
+    return 0;
+}
+
 #endif
 
 int fossil_shark_watch(const char *path, bool recursive,
