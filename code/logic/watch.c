@@ -209,37 +209,66 @@ static int fossil_shark_watch_windows_recursive(
 int fossil_shark_watch(const char *path, bool recursive,
                        const char *events, int interval)
 {
+    if (interval <= 0) {
+        interval = 1; /* safety default */
+    }
+
 #if defined(_WIN32) || defined(_WIN64)
 
     cstring msg = fossil_io_cstring_format(
-        "{green,bold}Watching %s...{reset}%s\n",
+        "{green,bold}Watching %s every %d seconds...{reset}%s\n",
         path,
+        interval,
         recursive ? " (recursive enabled)" : ""
     );
     fossil_io_file_write(
         FOSSIL_STDOUT,
         msg,
         fossil_io_cstring_length(msg),
-        1);
+        1
+    );
     fossil_io_cstring_free(msg);
 
-    if (recursive) {
-        return fossil_shark_watch_windows_recursive(path, events);
-    } else {
-        return fossil_shark_watch_windows_recursive(path, events);
+    while (1) {
+        if (recursive) {
+            fossil_shark_watch_windows_recursive(path, events);
+        } else {
+            fossil_shark_watch_windows(path, events);
+        }
+
+        /* Windows sleep uses milliseconds */
+        Sleep((DWORD)(interval * 1000));
     }
 
-#else
+#else /* POSIX */
+
     struct stat st;
     if (stat(path, &st) != 0) {
-        cstring err_msg = fossil_io_cstring_format("{red,bold}Failed to stat path:{reset} %s\n", path);
-        fossil_io_file_write(FOSSIL_STDERR, err_msg, fossil_io_cstring_length(err_msg), 1);
+        cstring err_msg = fossil_io_cstring_format(
+            "{red,bold}Failed to stat path:{reset} %s\n", path
+        );
+        fossil_io_file_write(
+            FOSSIL_STDERR,
+            err_msg,
+            fossil_io_cstring_length(err_msg),
+            1
+        );
         fossil_io_cstring_free(err_msg);
         return errno;
     }
 
-    cstring msg = fossil_io_cstring_format("{green,bold}Watching %s every %d seconds...{reset}%s\n", path, interval, recursive ? " (recursive enabled)" : "");
-    fossil_io_file_write(FOSSIL_STDOUT, msg, fossil_io_cstring_length(msg), 1);
+    cstring msg = fossil_io_cstring_format(
+        "{green,bold}Watching %s every %d seconds...{reset}%s\n",
+        path,
+        interval,
+        recursive ? " (recursive enabled)" : ""
+    );
+    fossil_io_file_write(
+        FOSSIL_STDOUT,
+        msg,
+        fossil_io_cstring_length(msg),
+        1
+    );
     fossil_io_cstring_free(msg);
 
     if (recursive && S_ISDIR(st.st_mode)) {
@@ -251,6 +280,7 @@ int fossil_shark_watch(const char *path, bool recursive,
             fossil_shark_watch_file(path, events, &prev_stat);
         }
     }
+
 #endif
 
     return 0;
