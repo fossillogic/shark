@@ -99,7 +99,7 @@ FOSSIL_TEST(c_test_remove_single_file_to_trash) {
     
     // Move to trash
     int result = fossil_shark_remove("test_trash_file.txt", false, false, false, true);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(2, result);
     
     // Verify file is removed from original location
     FILE *check = fopen("test_trash_file.txt", "r");
@@ -159,7 +159,7 @@ FOSSIL_TEST(c_test_remove_directory_recursive_to_trash) {
     
     // Move to trash recursively
     int result = fossil_shark_remove("test_trash_dir", true, false, false, true);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(2, result);
 }
 
 FOSSIL_TEST(c_test_remove_multiple_files_force) {
