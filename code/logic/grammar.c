@@ -53,9 +53,20 @@ static char *read_file(const char *path) {
     return buf;
 }
 
-int fossil_shark_grammar(ccstring file_path, bool check, bool fix,
-                         bool sanitize, bool suggest, bool tone,
-                         ccstring detect_type)
+int fossil_shark_grammar(ccstring file_path,
+                         bool check,
+                         bool correct,
+                         bool tone,
+                         bool sanitize,
+                         bool suggest,
+                         bool summarize,
+                         bool score,
+                         ccstring detect_type,
+                         int reflow_width,
+                         ccstring capitalize_mode,
+                         bool format,
+                         bool declutter,
+                         bool punctuate)
 {
     if (!file_path) {
         fossil_io_printf("{red,bold}[error]{normal} grammar: invalid NULL path\n");
@@ -69,12 +80,6 @@ int fossil_shark_grammar(ccstring file_path, bool check, bool fix,
             fossil_io_printf("{red,bold}[error]{normal} grammar: memory allocation failed\n");
             return 1;
         }
-    } else {
-        size_t len = strlen(input);
-        while (len > 0 && input[len - 1] == '\0') {
-            len--;
-        }
-        input[len] = cterm;
     }
 
     cstring work = fossil_io_cstring_dup(input);
@@ -85,32 +90,91 @@ int fossil_shark_grammar(ccstring file_path, bool check, bool fix,
 
     fossil_io_printf("{cyan,bold}=== Grammar Analysis ==={normal}\n");
 
+    // Declutter
+    if (declutter) {
+        cstring decluttered = fossil_io_soap_declutter(work);
+        if (decluttered) {
+            fossil_io_printf("{green}[declutter]{normal} Decluttered text.\n");
+            fossil_io_cstring_free(work);
+            work = decluttered;
+        }
+    }
+
+    // Sanitize
     if (sanitize) {
         cstring clean = fossil_io_soap_sanitize(work);
         if (clean) {
-            fossil_io_printf("{green}[sanitize]{normal} Applied meme-language sanitization.\n");
+            fossil_io_printf("{green}[sanitize]{normal} Applied sanitization.\n");
             fossil_io_cstring_free(work);
             work = clean;
         }
     }
 
-    if (check) {
-        int status = fossil_io_soap_check_grammar(work);
-        if (status == 0)
-            fossil_io_printf("{green}[check]{normal} Grammar OK.\n");
-        else
-            fossil_io_printf("{yellow}[check]{normal} Grammar issues detected: %d\n", status);
+    // Normalize punctuation
+    if (punctuate) {
+        cstring punct = fossil_io_soap_punctuate(work);
+        if (punct) {
+            fossil_io_printf("{green}[punctuate]{normal} Normalized punctuation.\n");
+            fossil_io_cstring_free(work);
+            work = punct;
+        }
     }
 
-    if (fix) {
+    // Capitalize
+    if (capitalize_mode) {
+        int mode = 0;
+        if (strcmp(capitalize_mode, "sentence") == 0)
+            mode = 0;
+        else if (strcmp(capitalize_mode, "title") == 0)
+            mode = 1;
+        cstring cap = fossil_io_soap_capitalize(work, mode);
+        if (cap) {
+            fossil_io_printf("{green}[capitalize]{normal} Applied capitalization (%s-case).\n", capitalize_mode);
+            fossil_io_cstring_free(work);
+            work = cap;
+        }
+    }
+
+    // Reflow
+    if (reflow_width > 0) {
+        cstring reflowed = fossil_io_soap_reflow(work, reflow_width);
+        if (reflowed) {
+            fossil_io_printf("{green}[reflow]{normal} Reflowed text to width %d.\n", reflow_width);
+            fossil_io_cstring_free(work);
+            work = reflowed;
+        }
+    }
+
+    // Format
+    if (format) {
+        cstring formatted = fossil_io_soap_format(work);
+        if (formatted) {
+            fossil_io_printf("{green}[format]{normal} Pretty-printed text.\n");
+            fossil_io_cstring_free(work);
+            work = formatted;
+        }
+    }
+
+    // Grammar/style check
+    if (check) {
+        fossil_io_soap_grammar_style_t style = fossil_io_soap_analyze_grammar_style(work);
+        fossil_io_printf("{green}[check]{normal} Grammar OK: %s, Passive voice: %.1f%%, Style: %s\n",
+            style.grammar_ok ? "yes" : "no",
+            style.passive_voice_pct,
+            style.style_label ? style.style_label : "unknown");
+    }
+
+    // Correct grammar
+    if (correct) {
         cstring fixed = fossil_io_soap_correct_grammar(work);
         if (fixed) {
-            fossil_io_printf("{green}[fix]{normal} Auto-corrected grammar.\n");
+            fossil_io_printf("{green}[correct]{normal} Auto-corrected grammar:\n%s\n", fixed);
             fossil_io_cstring_free(work);
             work = fixed;
         }
     }
 
+    // Suggest improvements
     if (suggest) {
         cstring sug = fossil_io_soap_suggest(work);
         if (sug) {
@@ -119,61 +183,36 @@ int fossil_shark_grammar(ccstring file_path, bool check, bool fix,
         }
     }
 
-    if (tone) {
-        ccstring t = fossil_io_soap_detect_tone(work);
-        fossil_io_printf("{blue}[tone]{normal} Detected tone: %s\n", t ? t : "unknown");
+    // Summarize
+    if (summarize) {
+        cstring summary = fossil_io_soap_summarize(work);
+        if (summary) {
+            fossil_io_printf("{cyan}[summary]{normal} %s\n", summary);
+            fossil_io_cstring_free(summary);
+        }
     }
 
+    // Score
+    if (score) {
+        fossil_io_soap_scores_t scores = fossil_io_soap_score(work);
+        const char *read_label = fossil_io_soap_readability_label(scores.readability);
+        fossil_io_printf("{yellow}[score]{normal} Readability: %d (%s), Clarity: %d, Quality: %d\n",
+            scores.readability, read_label, scores.clarity, scores.quality);
+    }
+
+    // Tone/style detection
+    if (tone) {
+        fossil_io_soap_grammar_style_t style = fossil_io_soap_analyze_grammar_style(work);
+        fossil_io_printf("{blue}[tone]{normal} Detected style: %s\n", style.style_label ? style.style_label : "unknown");
+    }
+
+    // Trait detection
     if (detect_type) {
         fossil_io_printf("{yellow,bold}=== Detector: %s ==={normal}\n", detect_type);
-
-        int result = 0;
-        bool is_neutral = fossil_io_cstring_equals(detect_type, "neutral");
-
-        if (fossil_io_cstring_equals(detect_type, "ragebait"))
-            result = fossil_io_soap_detect_ragebait(work);
-        else if (fossil_io_cstring_equals(detect_type, "clickbait"))
-            result = fossil_io_soap_detect_clickbait(work);
-        else if (fossil_io_cstring_equals(detect_type, "spam"))
-            result = fossil_io_soap_detect_spam(work);
-        else if (fossil_io_cstring_equals(detect_type, "woke"))
-            result = fossil_io_soap_detect_woke(work);
-        else if (fossil_io_cstring_equals(detect_type, "bot"))
-            result = fossil_io_soap_detect_bot(work);
-        else if (fossil_io_cstring_equals(detect_type, "sarcasm"))
-            result = fossil_io_soap_detect_sarcasm(work);
-        else if (fossil_io_cstring_equals(detect_type, "formal"))
-            result = fossil_io_soap_detect_formal(work);
-        else if (fossil_io_cstring_equals(detect_type, "snowflake"))
-            result = fossil_io_soap_detect_snowflake(work);
-        else if (fossil_io_cstring_equals(detect_type, "offensive"))
-            result = fossil_io_soap_detect_offensive(work);
-        else if (fossil_io_cstring_equals(detect_type, "neutral"))
-            result = fossil_io_soap_detect_neutral(work);
-        else if (fossil_io_cstring_equals(detect_type, "hype"))
-            result = fossil_io_soap_detect_hype(work);
-        else if (fossil_io_cstring_equals(detect_type, "quality"))
-            result = fossil_io_soap_detect_quality(work);
-        else if (fossil_io_cstring_equals(detect_type, "political"))
-            result = fossil_io_soap_detect_political(work);
-        else if (fossil_io_cstring_equals(detect_type, "conspiracy"))
-            result = fossil_io_soap_detect_conspiracy(work);
-        else if (fossil_io_cstring_equals(detect_type, "marketing"))
-            result = fossil_io_soap_detect_marketing(work);
-        else if (fossil_io_cstring_equals(detect_type, "technobabble"))
-            result = fossil_io_soap_detect_technobabble(work);
-        else {
-            fossil_io_printf("{red,bold}[detect]{normal} Unknown detector type: %s\n", detect_type);
-            fossil_io_cstring_free(work);
-            fossil_io_cstring_free(input);
-            return 2;
-        }
-
+        int result = fossil_io_soap_detect(work, detect_type);
         fossil_io_printf("{yellow}[detect:%s]{normal} %s\n",
             detect_type,
-            result
-                ? (is_neutral ? "{green}MATCH FOUND{normal}" : "{red,bold}MATCH FOUND{normal}")
-                : "{green}clean{normal}");
+            result ? "{red,bold}MATCH FOUND{normal}" : "{green}clean{normal}");
     }
 
     fossil_io_cstring_free(work);
