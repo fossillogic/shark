@@ -174,7 +174,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}--suggest{normal}           Suggest improvements\n");
             fossil_io_printf("  {cyan,bold}--summarize{normal}         Summarize content\n");
             fossil_io_printf("  {cyan,bold}--score{normal}             Show readability/clarity/quality scores\n");
-            fossil_io_printf("  {cyan,bold}--detect <type>{normal}     Detect traits: spam, clickbait, passive, etc.\n");
+            fossil_io_printf("  {cyan,bold}--detect <type>{normal}     Detect traits: conspiracy, spam, ragebait, clickbait, bot, marketing, technobabble, hype, political, offensive, misinfo, brain_rot, formal, casual, sarcasm, neutral, aggressive, emotional, passive, snowflake, redundant, poor_cohesion, repeated_words\n");
             fossil_io_printf("  {cyan,bold}--reflow <n>{normal}        Reflow text to width n\n");
             fossil_io_printf("  {cyan,bold}--capitalize <mode>{normal} Capitalize sentences or titles\n");
             fossil_io_printf("  {cyan,bold}--format{normal}            Pretty-print text\n");
