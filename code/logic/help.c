@@ -167,12 +167,20 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         } else if (fossil_io_cstring_equals(command, "grammar")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}grammar [options] <file>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
-            fossil_io_printf("  {cyan,bold}--check{normal}           Run grammar check\n");
-            fossil_io_printf("  {cyan,bold}--fix{normal}             Auto-correct grammar\n");
-            fossil_io_printf("  {cyan,bold}--sanitize{normal}        Remove rot-brain/meme language\n");
-            fossil_io_printf("  {cyan,bold}--suggest{normal}         Suggest alternatives\n");
-            fossil_io_printf("  {cyan,bold}--tone{normal}            Detect tone\n");
-            fossil_io_printf("  {cyan,bold}--detect <type>{normal}   Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble\n");
+            fossil_io_printf("  {cyan,bold}--check{normal}             Analyze grammar and style\n");
+            fossil_io_printf("  {cyan,bold}--correct{normal}           Output corrected text\n");
+            fossil_io_printf("  {cyan,bold}--tone{normal}              Detect tone and style\n");
+            fossil_io_printf("  {cyan,bold}--sanitize{normal}          Remove unsafe or low-quality language\n");
+            fossil_io_printf("  {cyan,bold}--suggest{normal}           Suggest improvements\n");
+            fossil_io_printf("  {cyan,bold}--summarize{normal}         Summarize content\n");
+            fossil_io_printf("  {cyan,bold}--score{normal}             Show readability/clarity/quality scores\n");
+            fossil_io_printf("  {cyan,bold}--detect <type>{normal}     Detect traits: spam, clickbait, passive, etc.\n");
+            fossil_io_printf("  {cyan,bold}--reflow <n>{normal}        Reflow text to width n\n");
+            fossil_io_printf("  {cyan,bold}--capitalize <mode>{normal} Capitalize sentences or titles\n");
+            fossil_io_printf("  {cyan,bold}--format{normal}            Pretty-print text\n");
+            fossil_io_printf("  {cyan,bold}--declutter{normal}         Repair word boundaries and whitespace\n");
+            fossil_io_printf("  {cyan,bold}--punctuate{normal}         Normalize punctuation\n");
+        }
         } else if (fossil_io_cstring_equals(command, "--help")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}--help{normal}\n");
             fossil_io_printf("{blue,bold,underline}Description:{normal} Show command help\n");

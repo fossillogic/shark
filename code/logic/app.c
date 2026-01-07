@@ -131,13 +131,20 @@ void show_commands(char* app_name) {
     fossil_io_printf("{cyan}                   --fson            {reset}{bright_black}FSON output{reset}\n");
     fossil_io_printf("{cyan}                   --mime            {reset}{bright_black}Show MIME type{reset}\n");
 
-    fossil_io_printf("{cyan}  grammar          {reset}Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning through the SOAP API\n");
-    fossil_io_printf("{cyan}                   --check           {reset}{bright_black}Run grammar check{reset}\n");
-    fossil_io_printf("{cyan}                   --fix             {reset}{bright_black}Auto-correct grammar{reset}\n");
-    fossil_io_printf("{cyan}                   --sanitize        {reset}{bright_black}Remove rot-brain/meme language{reset}\n");
-    fossil_io_printf("{cyan}                   --suggest         {reset}{bright_black}Suggest alternatives{reset}\n");
-    fossil_io_printf("{cyan}                   --tone            {reset}{bright_black}Detect tone{reset}\n");
-    fossil_io_printf("{cyan}                   --detect <type>   {reset}{bright_black}Run detectors: ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble{reset}\n");
+    fossil_io_printf("{cyan}  grammar          {reset}Analyze, correct, and assess grammar, style, and readability of text files\n");
+    fossil_io_printf("{cyan}                   --check           {reset}{bright_black}Analyze grammar and style{reset}\n");
+    fossil_io_printf("{cyan}                   --correct         {reset}{bright_black}Output corrected text{reset}\n");
+    fossil_io_printf("{cyan}                   --sanitize        {reset}{bright_black}Remove unsafe or low-quality language{reset}\n");
+    fossil_io_printf("{cyan}                   --suggest         {reset}{bright_black}Suggest improvements{reset}\n");
+    fossil_io_printf("{cyan}                   --tone            {reset}{bright_black}Detect tone and style{reset}\n");
+    fossil_io_printf("{cyan}                   --summarize       {reset}{bright_black}Summarize content{reset}\n");
+    fossil_io_printf("{cyan}                   --score           {reset}{bright_black}Show readability/clarity/quality scores{reset}\n");
+    fossil_io_printf("{cyan}                   --detect <type>   {reset}{bright_black}Detect traits: spam, clickbait, passive, etc.{reset}\n");
+    fossil_io_printf("{cyan}                   --reflow <n>      {reset}{bright_black}Reflow text to width n{reset}\n");
+    fossil_io_printf("{cyan}                   --capitalize <mode> {reset}{bright_black}Capitalize sentences or titles{reset}\n");
+    fossil_io_printf("{cyan}                   --format          {reset}{bright_black}Pretty-print text{reset}\n");
+    fossil_io_printf("{cyan}                   --declutter       {reset}{bright_black}Repair word boundaries and whitespace{reset}\n");
+    fossil_io_printf("{cyan}                   --punctuate       {reset}{bright_black}Normalize punctuation{reset}\n");
 
     fossil_io_printf("\n{blue}Global Flags (Available to All Commands):{reset}\n");
     fossil_io_printf("{cyan}  --help           {reset}{bright_black}Show command help{reset}\n");
@@ -623,20 +630,37 @@ bool app_entry(int argc, char** argv) {
 
         } else if (fossil_io_cstring_compare(argv[i], "grammar") == 0) {
             ccstring file_path = cnull;
-            bool check = false, fix = false, sanitize = false, suggest = false, tone = false;
+            bool check = false, correct = false, sanitize = false, suggest = false, tone = false;
+            bool summarize = false, score = false, format = false, declutter = false, punctuate = false;
+            int reflow_width = 0;
             ccstring detect_type = cnull;
+            ccstring capitalize_mode = cnull;
 
             for (int j = i + 1; j < argc; j++) {
                 if (fossil_io_cstring_compare(argv[j], "--check") == 0) {
                     check = true;
-                } else if (fossil_io_cstring_compare(argv[j], "--fix") == 0) {
-                    fix = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--fix") == 0 || fossil_io_cstring_compare(argv[j], "--correct") == 0) {
+                    correct = true;
                 } else if (fossil_io_cstring_compare(argv[j], "--sanitize") == 0) {
                     sanitize = true;
                 } else if (fossil_io_cstring_compare(argv[j], "--suggest") == 0) {
                     suggest = true;
                 } else if (fossil_io_cstring_compare(argv[j], "--tone") == 0) {
                     tone = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--summarize") == 0) {
+                    summarize = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--score") == 0) {
+                    score = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--format") == 0) {
+                    format = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--declutter") == 0) {
+                    declutter = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--punctuate") == 0) {
+                    punctuate = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--reflow-width") == 0 && j + 1 < argc) {
+                    reflow_width = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--capitalize") == 0 && j + 1 < argc) {
+                    capitalize_mode = argv[++j];
                 } else if (fossil_io_cstring_compare(argv[j], "--detect") == 0 && j + 1 < argc) {
                     detect_type = argv[++j];
                 } else if (!cnotnull(file_path)) {
@@ -646,7 +670,22 @@ bool app_entry(int argc, char** argv) {
             }
 
             if (cnotnull(file_path)) {
-                int rc = fossil_shark_grammar(file_path, check, fix, sanitize, suggest, tone, detect_type);
+                int rc = fossil_shark_grammar(
+                    file_path,
+                    check,
+                    correct,
+                    tone,
+                    sanitize,
+                    suggest,
+                    summarize,
+                    score,
+                    detect_type,
+                    reflow_width,
+                    capitalize_mode,
+                    format,
+                    declutter,
+                    punctuate
+                );
                 if (rc != 0) {
                     fossil_io_printf("{red}Grammar analysis failed: %s{reset}\n", file_path);
                 }
