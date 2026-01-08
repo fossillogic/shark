@@ -506,7 +506,7 @@ static void format_structured_line(ccstring line, ccstring ext) {
 
     // CSV support
     if (fossil_io_cstring_iequals(ext, "csv")) {
-        int col = 0;
+        // int col = 0;
         while (i < len) {
             if (line[i] == '"') {
                 fossil_io_printf("{yellow}\"");
