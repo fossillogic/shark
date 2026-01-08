@@ -58,16 +58,20 @@ static void print_permissions_advanced(const char *filename) {
 }
 
 static int show_list(ccstring path, bool show_all, bool long_format,
-                     bool human_readable, bool show_time) {
+                     bool human_readable, bool show_time, int depth, int current_depth, ccstring prefix) {
     fossil_io_dir_iter_t it;
     int32_t open_result = fossil_io_dir_iter_open(&it, path);
     if (open_result < 0) return open_result;
 
-    fossil_io_printf("{pos:top}{bold,underline,blue}Directory Listing: %s{normal}\n", path);
+    if (current_depth == 0) {
+        fossil_io_printf("{bold,underline,blue}Directory Listing: %s{normal}\n", path);
+    }
 
     while (fossil_io_dir_iter_next(&it) > 0 && it.active) {
         fossil_io_dir_entry_t *entry = &it.current;
         if (!show_all && entry->name[0] == '.') continue;
+
+        fossil_io_printf("%s", prefix ? prefix : "");
 
         if (long_format) {
             print_permissions_advanced(entry->path);
@@ -77,6 +81,17 @@ static int show_list(ccstring path, bool show_all, bool long_format,
             }
         }
         fossil_io_printf("{green}%s{normal}\n", entry->name);
+
+        // If entry is a directory and depth > 0, recurse into it
+        if (entry->type == 1 &&
+            strcmp(entry->name, ".") != 0 &&
+            strcmp(entry->name, "..") != 0 &&
+            (depth == 0 || current_depth < depth)) {
+            cstring new_prefix = fossil_io_cstring_format("%s%s", prefix ? prefix : "", "    ");
+            show_list(entry->path, show_all, long_format, human_readable, show_time, depth, current_depth + 1, new_prefix);
+            fossil_io_cstring_free(new_prefix);
+            cnullify(new_prefix);
+        }
     }
 
     fossil_io_dir_iter_close(&it);
@@ -93,7 +108,7 @@ static int show_tree(ccstring path, bool show_all, bool long_format,
     if (open_result < 0) return open_result;
 
     if (current_depth == 0) {
-        fossil_io_printf("{pos:top}{bold,underline,blue}Directory Tree: %s{normal}\n", path);
+        fossil_io_printf("{bold,underline,blue}Directory Tree: %s{normal}\n", path);
     }
 
     while (fossil_io_dir_iter_next(&it) > 0 && it.active) {
@@ -138,7 +153,7 @@ static int show_graph(ccstring path, bool show_all, bool long_format,
     if (open_result < 0) return open_result;
 
     if (current_depth == 0) {
-        fossil_io_printf("{pos:top}{bold,underline,blue}Directory Graph: %s{normal}\n", path);
+        fossil_io_printf("{bold,underline,blue}Directory Graph: %s{normal}\n", path);
     }
 
     while (fossil_io_dir_iter_next(&it) > 0 && it.active) {
@@ -195,7 +210,7 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
 
     int result = 0;
     if (cunlikely(!format) || fossil_io_cstring_equals(format, "list")) {
-        result = show_list(path, show_all, long_format, human_readable, show_time);
+        result = show_list(path, show_all, long_format, human_readable, show_time, effective_depth, 0, cempty);
     } else if (fossil_io_cstring_equals(format, "tree")) {
         result = show_tree(path, show_all, long_format, human_readable, show_time, effective_depth, 0, cempty);
     } else if (fossil_io_cstring_equals(format, "graph")) {
