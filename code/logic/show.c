@@ -188,19 +188,21 @@ static int show_graph(ccstring path, bool show_all, bool long_format,
 
 int fossil_shark_show(ccstring path, bool show_all, bool long_format,
                       bool human_readable, bool recursive,
-                      ccstring format, bool show_time, int depth) {
-    if (cunlikely(!path)) path = ".";
+                      ccstring format, bool show_time, int depth)
+{
+    if (cunlikely(!path) || !*path) path = ".";
 
     char *sanitized_path = fossil_sys_memory_alloc(1024);
     if (cunlikely(!sanitized_path)) {
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Memory allocation failed{normal}\n");
         return ENOMEM;
     }
-    
-    int sanitize_result = fossil_io_validate_sanitize_string(path, sanitized_path, 
-                                                            1024, 
+
+    int sanitize_result = fossil_io_validate_sanitize_string(path, sanitized_path,
+                                                            1024,
                                                             FOSSIL_CTX_FILENAME);
     if (sanitize_result & (FOSSIL_SAN_PATH | FOSSIL_SAN_SCRIPT | FOSSIL_SAN_SHELL)) {
-        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Suspicious path detected, using sanitized version{normal}\n");
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Suspicious path detected, using sanitized version: %s{normal}\n", sanitized_path);
         path = sanitized_path;
     }
 
@@ -216,8 +218,8 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
     } else if (fossil_io_cstring_equals(format, "graph")) {
         result = show_graph(path, show_all, long_format, human_readable, show_time, effective_depth, 0, 0);
     } else {
-        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Unknown format: %s{normal}\n", format);
-        result = 1;
+        fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Unknown format: %s{normal}\n", format ? format : "(null)");
+        result = EINVAL;
     }
 
     fossil_sys_memory_free(sanitized_path);
