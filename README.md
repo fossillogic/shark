@@ -27,24 +27,24 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 
 ### Core File Operations
 
-| **Command** | **Description** | **Common Flags** |
-|-------------|-----------------|-----------------|
-| `show` | Display files and directories. | `-a, --all` Show hidden files<br>`-l, --long` Detailed info<br>`-h, --human` Human-readable sizes<br>`-r, --recursive` Include subdirs<br>`-d, --depth <n>` Limit recursion depth<br>`--as` Format options **"list"**, **tree**, **graph**.<br>`--time` Show timestamps |
-| `move` | Move or rename files/directories. | `-f, --force` Overwrite without prompt<br>`-i, --interactive` Ask before overwrite<br>`-b, --backup` Backup before move |
-| `copy` | Copy files or directories. | `-r, --recursive` Copy subdirectories<br>`-u, --update` Only copy newer<br>`-p, --preserve` Keep permissions/timestamps |
-| `remove` / `delete` | Delete files or directories. | `-r, --recursive` Delete contents<br>`-f, --force` No confirmation<br>`-i, --interactive` Confirm per file<br>`--trash` Move to system trash |
-| `rename` | Rename files or directories. | `-f, --force` Overwrite target<br>`-i, --interactive` Confirm before overwrite |
-| `create` | Create new directories or files. | `-p, --parents` Create parent dirs<br>`-t, --type` Create file or dir |
-| `search` | Find files by name or content. | `-r, --recursive` Include subdirs<br>`-n, --name` Match filename<br>`-c, --content` Search in file contents<br>`-i, --ignore-case` Case-insensitive |
-| `archive` | Create, extract, or list archives. | `-c, --create` New archive<br>`-x, --extract` Extract contents<br>`-l, --list` List archive<br>`-f <format>` Format: zip/tar/gz<br>`-p, --password` Encrypt archive |
-| `view` | Output file contents to terminal. | `-n, --number` Number all lines<br>`-b, --non-blank` Number non-empty lines<br>`-s, --squeeze` Remove blank lines<br>`-h, --head <n>` First *n* lines<br>`-t, --tail <n>` Last *n* lines<br>`--time` Show timestamps |
-| `compare` | Compare two files/directories (text or binary). | `-t, --text` Line diff<br>`-b, --binary` Binary diff<br>`--context <n>` Show context lines<br>`--ignore-case` Ignore case differences |
-| `help` | Display help for supported commands. | `--examples` Show usage examples<br>`--man` Full manual |
-| `sync` | Synchronize files/directories. | `-r, --recursive` Include subdirs<br>`-u, --update` Copy only newer<br>`--delete` Remove extraneous files from target |
-| `watch` | Continuously monitor files or directories. | `-r, --recursive` Include subdirs<br>`-e, --events <list>` Filter events: create/modify/delete<br>`-t, --interval <n>` Poll interval in seconds |
-| `rewrite` | Modify or update file contents, timestamps, or size. | `-i` In-place edit<br>`--append` Append instead of overwrite<br>`-n` No newline<br>`--size <n>` Set exact file size |
-| `introspect` | Examine file contents, type, or metadata. | `-n <lines>` Number of lines<br>`-c` Count lines, words, bytes<br>`--fson` FSON output<br>`--mime` Show MIME type |
-| `grammar` | Analyze, correct, and assess grammar, style, and readability of text files. | `--check` Analyze grammar and style<br>`--correct` Output corrected text<br>`--tone` Detect tone and style<br>`--sanitize` Remove unsafe or low-quality language<br>`--suggest` Suggest improvements<br>`--summarize` Summarize content<br>`--score` Show readability/clarity/quality scores<br>`--detect <type>` Detect specific traits (e.g., spam, clickbait, passive)<br>`--reflow <n>` Reflow text to width *n*<br>`--capitalize <mode>` Capitalize sentences or titles<br>`--format` Pretty-print text<br>`--declutter` Repair word boundaries and whitespace<br>`--punctuate` Normalize punctuation |
+| **Command** | **Description** | **Flags** |
+|-------------|-----------------|-----------|
+| `show` | Display files and directories. | `-a`, `--all` (show hidden)<br>`-l`, `--long` (detailed info)<br>`-h`, `--human` (human-readable sizes)<br>`-r`, `--recursive` (include subdirs)<br>`-d`, `--depth <n>` (limit recursion)<br>`--as <mode>` (format: list/tree/graph)<br>`--time` (show timestamps) |
+| `move` | Move or rename files/directories. | `-f`, `--force` (overwrite)<br>`-i`, `--interactive` (confirm overwrite)<br>`-b`, `--backup` (backup before move) |
+| `copy` | Copy files or directories. | `-r`, `--recursive` (copy subdirs)<br>`-u`, `--update` (only newer)<br>`-p`, `--preserve` (keep permissions/timestamps) |
+| `remove` / `delete` | Delete files or directories. | `-r`, `--recursive` (delete contents)<br>`-f`, `--force` (no confirmation)<br>`-i`, `--interactive` (confirm per file)<br>`--trash` (move to trash) |
+| `rename` | Rename files or directories. | `-f`, `--force` (overwrite target)<br>`-i`, `--interactive` (confirm overwrite) |
+| `create` | Create new directories or files. | `-p`, `--parents` (create parent dirs)<br>`-t`, `--type <type>` (file or dir) |
+| `search` | Find files by name or content. | `-r`, `--recursive` (include subdirs)<br>`-n`, `--name <pattern>` (filename match)<br>`-c`, `--content <pattern>` (search contents)<br>`-i`, `--ignore-case` (case-insensitive) |
+| `archive` | Create, extract, or list archives. | `-c`, `--create` (new archive)<br>`-x`, `--extract` (extract)<br>`-l`, `--list` (list archive)<br>`-f <format>` (zip/tar/gz)<br>`-p`, `--password <pw>` (encrypt) |
+| `view` | Output file contents to terminal. | `-n`, `--number` (number lines)<br>`-b`, `--non-blank` (number non-blank)<br>`-s`, `--squeeze` (remove blank lines)<br>`-h`, `--head <n>` (first n lines)<br>`-t`, `--tail <n>` (last n lines)<br>`--time` (show timestamps) |
+| `compare` | Compare two files/directories. | `-t`, `--text` (line diff)<br>`-b`, `--binary` (binary diff)<br>`--context <n>` (context lines)<br>`--ignore-case` (ignore case) |
+| `help` | Display help for commands. | `--examples` (usage examples)<br>`--man` (full manual) |
+| `sync` | Synchronize files/directories. | `-r`, `--recursive` (include subdirs)<br>`-u`, `--update` (only newer)<br>`--delete` (remove extraneous files) |
+| `watch` | Monitor files or directories. | `-r`, `--recursive` (include subdirs)<br>`-e`, `--events <list>` (event filter)<br>`-t`, `--interval <n>` (poll interval) |
+| `rewrite` | Modify file contents or metadata. | `-a`, `--append` (append)<br>`--in-place` (edit in place)<br>`--access-time` (update atime)<br>`--mod-time` (update mtime)<br>`--size <n>` (set file size) |
+| `introspect` | Examine file contents/type/meta. | `--head <n>` (first n lines)<br>`--tail <n>` (last n lines)<br>`--count` (count lines/words/bytes)<br>`--type` (show type)<br>`--fson` (FSON output) |
+| `grammar` | Analyze/correct grammar/style. | `--check` (analyze)<br>`--fix`, `--correct` (correct)<br>`--sanitize` (sanitize text)<br>`--suggest` (suggest improvements)<br>`--tone` (detect tone)<br>`--summarize` (summarize)<br>`--score` (show scores)<br>`--detect <type>` (detect traits)<br>`--reflow-width <n>` (reflow text)<br>`--capitalize <mode>` (capitalize)<br>`--format` (pretty-print)<br>`--declutter` (repair whitespace)<br>`--punctuate` (normalize punctuation) |
 
 ---
 
