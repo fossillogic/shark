@@ -168,13 +168,36 @@ static void format_code_line(ccstring line) {
         fossil_io_printf("{magenta,bold}");
         for (; i < len; i++) fossil_io_putchar(line[i]);
         fossil_io_printf("{normal}");
+        if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+            fossil_io_putchar('\n');
         return;
     }
 
     while (i < len) {
         // Single-line comment
         if (!in_string && !in_char && line[i] == '/' && i + 1 < len && line[i+1] == '/') {
-            fossil_io_printf("{green}//%s{normal}", &line[i+2]);
+            fossil_io_printf("{green}//");
+            i += 2;
+            // Highlight TODO/FIXME/NOTE in comments
+            size_t comment_start = i;
+            while (i < len) {
+                if ((i == comment_start || line[i-1] == ' ' || line[i-1] == '\t') &&
+                    (fossil_io_cstring_starts_with(&line[i], "TODO") ||
+                     fossil_io_cstring_starts_with(&line[i], "FIXME") ||
+                     fossil_io_cstring_starts_with(&line[i], "NOTE"))) {
+                    size_t mark_len = 0;
+                    if (fossil_io_cstring_starts_with(&line[i], "TODO")) mark_len = 4;
+                    else if (fossil_io_cstring_starts_with(&line[i], "FIXME")) mark_len = 5;
+                    else if (fossil_io_cstring_starts_with(&line[i], "NOTE")) mark_len = 4;
+                    if (mark_len) {
+                        fossil_io_printf("{red,bold}%.*s{green}", (int)mark_len, &line[i]);
+                        i += mark_len;
+                        continue;
+                    }
+                }
+                fossil_io_putchar(line[i++]);
+            }
+            fossil_io_printf("{normal}");
             break;
         }
         // Multi-line comment start
@@ -191,6 +214,21 @@ static void format_code_line(ccstring line) {
                 i += 2;
                 in_multi_comment = false;
             } else {
+                // Highlight TODO/FIXME/NOTE in block comments
+                if ((i == 0 || line[i-1] == ' ' || line[i-1] == '\t' || line[i-1] == '*') &&
+                    (fossil_io_cstring_starts_with(&line[i], "TODO") ||
+                     fossil_io_cstring_starts_with(&line[i], "FIXME") ||
+                     fossil_io_cstring_starts_with(&line[i], "NOTE"))) {
+                    size_t mark_len = 0;
+                    if (fossil_io_cstring_starts_with(&line[i], "TODO")) mark_len = 4;
+                    else if (fossil_io_cstring_starts_with(&line[i], "FIXME")) mark_len = 5;
+                    else if (fossil_io_cstring_starts_with(&line[i], "NOTE")) mark_len = 4;
+                    if (mark_len) {
+                        fossil_io_printf("{red,bold}%.*s{green}", (int)mark_len, &line[i]);
+                        i += mark_len;
+                        continue;
+                    }
+                }
                 fossil_io_putchar(line[i++]);
             }
             continue;
@@ -207,7 +245,7 @@ static void format_code_line(ccstring line) {
                     continue;
                 }
                 fossil_io_putchar(line[i]);
-                if (line[i] == '"' && line[i-1] != '\\') {
+                if (line[i] == '"' && (i == 0 || line[i-1] != '\\')) {
                     fossil_io_printf("{normal}");
                     i++;
                     in_string = false;
@@ -229,7 +267,7 @@ static void format_code_line(ccstring line) {
                     continue;
                 }
                 fossil_io_putchar(line[i]);
-                if (line[i] == '\'' && line[i-1] != '\\') {
+                if (line[i] == '\'' && (i == 0 || line[i-1] != '\\')) {
                     fossil_io_printf("{normal}");
                     i++;
                     in_char = false;
@@ -239,14 +277,24 @@ static void format_code_line(ccstring line) {
             }
             continue;
         }
-        // Numbers (hex, float, int)
+        // Numbers (hex, float, int, binary, octal)
         if (isdigit((unsigned char)line[i]) ||
             (line[i] == '-' && i + 1 < len && isdigit((unsigned char)line[i+1]))) {
             size_t start = i;
             if (line[i] == '-') i++;
-            if (line[i] == '0' && i + 1 < len && (line[i+1] == 'x' || line[i+1] == 'X')) {
-                i += 2;
-                while (i < len && isxdigit((unsigned char)line[i])) i++;
+            if (line[i] == '0' && i + 1 < len) {
+                if (line[i+1] == 'x' || line[i+1] == 'X') {
+                    i += 2;
+                    while (i < len && isxdigit((unsigned char)line[i])) i++;
+                } else if (line[i+1] == 'b' || line[i+1] == 'B') {
+                    i += 2;
+                    while (i < len && (line[i] == '0' || line[i] == '1')) i++;
+                } else if (line[i+1] == 'o' || line[i+1] == 'O') {
+                    i += 2;
+                    while (i < len && (line[i] >= '0' && line[i] <= '7')) i++;
+                } else {
+                    while (i < len && isdigit((unsigned char)line[i])) i++;
+                }
             } else {
                 while (i < len && (isdigit((unsigned char)line[i]) || line[i] == '.' || line[i] == 'e' || line[i] == 'E' || line[i] == '+' || line[i] == '-')) i++;
             }
@@ -260,7 +308,13 @@ static void format_code_line(ccstring line) {
             size_t start = i;
             while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '_')) i++;
             cstring word = fossil_io_cstring_substring(line, start, i - start);
-            if (is_code_preproc(word))
+            // Function call highlight: identifier followed by '('
+            size_t j = i;
+            while (j < len && (line[j] == ' ' || line[j] == '\t')) j++;
+            if (j < len && line[j] == '(' &&
+                !is_code_keyword(word) && !is_code_type(word) && !is_code_literal(word) && !is_code_preproc(word)) {
+                fossil_io_printf("{white,bold}%s{normal}", word);
+            } else if (is_code_preproc(word))
                 fossil_io_printf("{magenta,bold}%s{normal}", word);
             else if (is_code_keyword(word))
                 fossil_io_printf("{cyan,bold}%s{normal}", word);
@@ -273,9 +327,17 @@ static void format_code_line(ccstring line) {
             fossil_io_cstring_free(word);
             continue;
         }
-        // Operators and punctuation
+        // Operators and punctuation, highlight brackets and separators
         if (strchr("=+-*/%&|^~!<>?:;,()[]{}.", line[i])) {
-            fossil_io_printf("{blue}%c{normal}", line[i++]);
+            char c = line[i++];
+            if (c == ';' || c == ',' || c == '(' || c == ')' || c == '[' || c == ']' || c == '{' || c == '}')
+                fossil_io_printf("{blue,bold}%c{normal}", c);
+            else if (c == '=' || c == '+' || c == '-' || c == '*' || c == '/' || c == '%' ||
+                     c == '&' || c == '|' || c == '^' || c == '~' || c == '!' || c == '<' || c == '>' || c == '?'
+                     || c == ':')
+                fossil_io_printf("{blue}%c{normal}", c);
+            else
+                fossil_io_putchar(c);
             continue;
         }
         // Whitespace
@@ -286,6 +348,9 @@ static void format_code_line(ccstring line) {
         // Default
         fossil_io_putchar(line[i++]);
     }
+    // Preserve newline if missing
+    if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+        fossil_io_putchar('\n');
 }
 
 /* -----------------------------------------------------------------------
@@ -321,6 +386,8 @@ static void format_structured_line(ccstring line, ccstring ext) {
     // If extension is empty, treat as plain text
     if (!ext || ext[0] == '\0') {
         fossil_io_puts(line);
+        if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+            fossil_io_putchar('\n');
         return;
     }
 
@@ -333,7 +400,8 @@ static void format_structured_line(ccstring line, ccstring ext) {
             while (i < len && (line[i] == ' ' || line[i] == '\t')) i++;
             fossil_io_printf("{cyan,bold}%.*s{normal} ", h, line);
             fossil_io_printf("{white,bold}%s{normal}", &line[i]);
-            if (line[len-1] != '\n') fossil_io_putchar('\n');
+            if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+                fossil_io_putchar('\n');
             return;
         }
         // Lists
@@ -344,17 +412,19 @@ static void format_structured_line(ccstring line, ccstring ext) {
         // Blockquote
         if (line[i] == '>') {
             fossil_io_printf("{magenta,bold}>%s{normal}", &line[i+1]);
-            if (line[len-1] != '\n') fossil_io_putchar('\n');
+            if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+                fossil_io_putchar('\n');
             return;
         }
         // Code block
         if (fossil_io_cstring_starts_with(line, "```")) {
             fossil_io_printf("{blue,bold}%s{normal}", line);
-            if (line[len-1] != '\n') fossil_io_putchar('\n');
+            if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+                fossil_io_putchar('\n');
             return;
         }
-        // Inline code
-        for (; i < len; i++) {
+        // Inline code, bold, italic, links, images
+        while (i < len) {
             if (line[i] == '`') {
                 fossil_io_printf("{blue}`");
                 i++;
@@ -365,31 +435,78 @@ static void format_structured_line(ccstring line, ccstring ext) {
                 fossil_io_cstring_free(code);
                 if (i < len && line[i] == '`') {
                     fossil_io_printf("`{normal}");
+                    i++;
                 }
+            } else if ((line[i] == '*' && i + 1 < len && line[i+1] == '*') ||
+                       (line[i] == '_' && i + 1 < len && line[i+1] == '_')) {
+                // Bold
+                char mark = line[i];
+                i += 2;
+                size_t start = i;
+                while (i + 1 < len && !(line[i] == mark && line[i+1] == mark)) i++;
+                cstring txt = fossil_io_cstring_substring(line, start, i - start);
+                fossil_io_printf("{bold}%s{normal}", txt);
+                fossil_io_cstring_free(txt);
+                if (i + 1 < len && line[i] == mark && line[i+1] == mark) i += 2;
             } else if (line[i] == '*' || line[i] == '_') {
-                // Bold/italic
-                int mark = line[i];
-                int cnt = 0;
-                while (i < len && line[i] == mark) { cnt++; i++; }
+                // Italic
+                char mark = line[i];
+                i++;
                 size_t start = i;
                 while (i < len && line[i] != mark) i++;
                 cstring txt = fossil_io_cstring_substring(line, start, i - start);
-                if (cnt == 2)
-                    fossil_io_printf("{bold}%s{normal}", txt);
-                else
-                    fossil_io_printf("{italic}%s{normal}", txt);
+                fossil_io_printf("{italic}%s{normal}", txt);
                 fossil_io_cstring_free(txt);
-                while (i < len && line[i] == mark) i++;
+                if (i < len && line[i] == mark) i++;
+            } else if (line[i] == '[') {
+                // Link or image
+                size_t start = i + 1;
+                size_t close = start;
+                while (close < len && line[close] != ']') close++;
+                if (close < len && close + 1 < len && line[close+1] == '(') {
+                    cstring txt = fossil_io_cstring_substring(line, start, close - start);
+                    fossil_io_printf("{cyan}%s{normal}", txt);
+                    fossil_io_cstring_free(txt);
+                    i = close + 2;
+                    size_t url_start = i;
+                    while (i < len && line[i] != ')') i++;
+                    cstring url = fossil_io_cstring_substring(line, url_start, i - url_start);
+                    fossil_io_printf("({blue}%s{normal})", url);
+                    fossil_io_cstring_free(url);
+                    if (i < len && line[i] == ')') i++;
+                } else {
+                    fossil_io_putchar(line[i++]);
+                }
+            } else if (line[i] == '!' && i + 1 < len && line[i+1] == '[') {
+                // Image
+                i += 2;
+                size_t start = i;
+                while (i < len && line[i] != ']') i++;
+                cstring alt = fossil_io_cstring_substring(line, start, i - start);
+                fossil_io_printf("{magenta}!%s{normal}", alt);
+                fossil_io_cstring_free(alt);
+                if (i < len && line[i] == ']') i++;
+                if (i < len && line[i] == '(') {
+                    i++;
+                    size_t url_start = i;
+                    while (i < len && line[i] != ')') i++;
+                    cstring url = fossil_io_cstring_substring(line, url_start, i - url_start);
+                    fossil_io_printf("({blue}%s{normal})", url);
+                    fossil_io_cstring_free(url);
+                    if (i < len && line[i] == ')') i++;
+                }
             } else {
-                fossil_io_putchar(line[i]);
+                fossil_io_putchar(line[i++]);
             }
         }
-        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+            fossil_io_putchar('\n');
         return;
     }
 
     // CSV support
     if (fossil_io_cstring_iequals(ext, "csv")) {
+        int col = 0;
         while (i < len) {
             if (line[i] == '"') {
                 fossil_io_printf("{yellow}\"");
@@ -406,11 +523,13 @@ static void format_structured_line(ccstring line, ccstring ext) {
             } else if (line[i] == ',') {
                 fossil_io_printf("{blue},");
                 i++;
+                col++;
             } else {
                 fossil_io_putchar(line[i++]);
             }
         }
-        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+            fossil_io_putchar('\n');
         return;
     }
 
@@ -454,7 +573,8 @@ static void format_structured_line(ccstring line, ccstring ext) {
             }
             fossil_io_putchar(line[i++]);
         }
-        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+            fossil_io_putchar('\n');
         return;
     }
 
@@ -463,26 +583,26 @@ static void format_structured_line(ccstring line, ccstring ext) {
         while (i < len) {
             // Comments (support // and #)
             if ((line[i] == '/' && i + 1 < len && line[i+1] == '/') ||
-            line[i] == '#') {
-            fossil_io_printf("{green}%s{normal}", &line[i]);
-            break;
+                line[i] == '#') {
+                fossil_io_printf("{green}%s{normal}", &line[i]);
+                break;
             }
             // Strings (quoted values)
             if (!in_string && (line[i] == '"' || line[i] == '\'')) {
-            in_string = true;
-            string_quote = line[i];
-            fossil_io_printf("{yellow}%c", line[i++]);
-            size_t start = i;
-            while (i < len && (line[i] != string_quote || (i > start && line[i-1] == '\\'))) i++;
-            cstring str = fossil_io_cstring_substring(line, start, i - start);
-            fossil_io_printf("%s", str);
-            fossil_io_cstring_free(str);
-            if (i < len && line[i] == string_quote) {
-                fossil_io_printf("%c{normal}", line[i]);
-                i++;
-            }
-            in_string = false;
-            continue;
+                in_string = true;
+                string_quote = line[i];
+                fossil_io_printf("{yellow}%c", line[i++]);
+                size_t start = i;
+                while (i < len && (line[i] != string_quote || (i > start && line[i-1] == '\\'))) i++;
+                cstring str = fossil_io_cstring_substring(line, start, i - start);
+                fossil_io_printf("%s", str);
+                fossil_io_cstring_free(str);
+                if (i < len && line[i] == string_quote) {
+                    fossil_io_printf("%c{normal}", line[i]);
+                    i++;
+                }
+                in_string = false;
+                continue;
             }
             // Keys (before colon)
             if ((isalpha((unsigned char)line[i]) || line[i] == '_')) {
@@ -493,18 +613,18 @@ static void format_structured_line(ccstring line, ccstring ext) {
                     cstring key = fossil_io_cstring_substring(line, key_start, i - key_start);
                     // Highlight types (i32, cstr, bool, object, array, null, oct, hex, bin)
                     if (fossil_io_cstring_iequals(key, "i32") ||
-                    fossil_io_cstring_iequals(key, "i64") ||
-                    fossil_io_cstring_iequals(key, "cstr") ||
-                    fossil_io_cstring_iequals(key, "bool") ||
-                    fossil_io_cstring_iequals(key, "object") ||
-                    fossil_io_cstring_iequals(key, "array") ||
-                    fossil_io_cstring_iequals(key, "null") ||
-                    fossil_io_cstring_iequals(key, "oct") ||
-                    fossil_io_cstring_iequals(key, "hex") ||
-                    fossil_io_cstring_iequals(key, "bin")) {
-                    fossil_io_printf("{magenta,bold}%s{normal}", key);
+                        fossil_io_cstring_iequals(key, "i64") ||
+                        fossil_io_cstring_iequals(key, "cstr") ||
+                        fossil_io_cstring_iequals(key, "bool") ||
+                        fossil_io_cstring_iequals(key, "object") ||
+                        fossil_io_cstring_iequals(key, "array") ||
+                        fossil_io_cstring_iequals(key, "null") ||
+                        fossil_io_cstring_iequals(key, "oct") ||
+                        fossil_io_cstring_iequals(key, "hex") ||
+                        fossil_io_cstring_iequals(key, "bin")) {
+                        fossil_io_printf("{magenta,bold}%s{normal}", key);
                     } else {
-                    fossil_io_printf("{cyan,bold}%s{normal}", key);
+                        fossil_io_printf("{cyan,bold}%s{normal}", key);
                     }
                     fossil_io_cstring_free(key);
                     fossil_io_printf("{yellow}:%{normal}", line[i]);
@@ -514,54 +634,55 @@ static void format_structured_line(ccstring line, ccstring ext) {
             }
             // Numbers (support for decimal, hex, octal, binary)
             if (isdigit((unsigned char)line[i]) ||
-            (line[i] == '-' && i + 1 < len && isdigit((unsigned char)line[i+1])) ||
-            (line[i] == '0' && i + 1 < len &&
-                (line[i+1] == 'x' || line[i+1] == 'X' ||
-                 line[i+1] == 'o' || line[i+1] == 'O' ||
-                 line[i+1] == 'b' || line[i+1] == 'B'))) {
-            size_t start = i;
-            if (line[i] == '-') i++;
-            if (line[i] == '0' && i + 1 < len) {
-                if (line[i+1] == 'x' || line[i+1] == 'X') {
-                i += 2;
-                while (i < len && isxdigit((unsigned char)line[i])) i++;
-                } else if (line[i+1] == 'o' || line[i+1] == 'O') {
-                i += 2;
-                while (i < len && (line[i] >= '0' && line[i] <= '7')) i++;
-                } else if (line[i+1] == 'b' || line[i+1] == 'B') {
-                i += 2;
-                while (i < len && (line[i] == '0' || line[i] == '1')) i++;
+                (line[i] == '-' && i + 1 < len && isdigit((unsigned char)line[i+1])) ||
+                (line[i] == '0' && i + 1 < len &&
+                 (line[i+1] == 'x' || line[i+1] == 'X' ||
+                  line[i+1] == 'o' || line[i+1] == 'O' ||
+                  line[i+1] == 'b' || line[i+1] == 'B'))) {
+                size_t start = i;
+                if (line[i] == '-') i++;
+                if (line[i] == '0' && i + 1 < len) {
+                    if (line[i+1] == 'x' || line[i+1] == 'X') {
+                        i += 2;
+                        while (i < len && isxdigit((unsigned char)line[i])) i++;
+                    } else if (line[i+1] == 'o' || line[i+1] == 'O') {
+                        i += 2;
+                        while (i < len && (line[i] >= '0' && line[i] <= '7')) i++;
+                    } else if (line[i+1] == 'b' || line[i+1] == 'B') {
+                        i += 2;
+                        while (i < len && (line[i] == '0' || line[i] == '1')) i++;
+                    } else {
+                        while (i < len && isdigit((unsigned char)line[i])) i++;
+                    }
                 } else {
-                while (i < len && isdigit((unsigned char)line[i])) i++;
+                    while (i < len && (isdigit((unsigned char)line[i]) || line[i] == '.')) i++;
                 }
-            } else {
-                while (i < len && (isdigit((unsigned char)line[i]) || line[i] == '.')) i++;
-            }
-            cstring num = fossil_io_cstring_substring(line, start, i - start);
-            fossil_io_printf("{blue}%s{normal}", num);
-            fossil_io_cstring_free(num);
-            continue;
+                cstring num = fossil_io_cstring_substring(line, start, i - start);
+                fossil_io_printf("{blue}%s{normal}", num);
+                fossil_io_cstring_free(num);
+                continue;
             }
             // Punctuation
             if (strchr("{}[]:,=", line[i])) {
-            fossil_io_printf("{yellow}%c{normal}", line[i++]);
-            continue;
+                fossil_io_printf("{yellow}%c{normal}", line[i++]);
+                continue;
             }
             // Structured keywords (true, false, null, yes, no, on, off, none)
             if (isalpha((unsigned char)line[i])) {
-            size_t start = i;
-            while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '_')) i++;
-            cstring word = fossil_io_cstring_substring(line, start, i - start);
-            if (is_structured_keyword(word))
-                fossil_io_printf("{magenta,bold}%s{normal}", word);
-            else
-                fossil_io_printf("%s", word);
-            fossil_io_cstring_free(word);
-            continue;
+                size_t start = i;
+                while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '_')) i++;
+                cstring word = fossil_io_cstring_substring(line, start, i - start);
+                if (is_structured_keyword(word))
+                    fossil_io_printf("{magenta,bold}%s{normal}", word);
+                else
+                    fossil_io_printf("%s", word);
+                fossil_io_cstring_free(word);
+                continue;
             }
             fossil_io_putchar(line[i++]);
         }
-        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+            fossil_io_putchar('\n');
         return;
     }
 
@@ -634,7 +755,8 @@ static void format_structured_line(ccstring line, ccstring ext) {
             }
             fossil_io_putchar(line[i++]);
         }
-        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+            fossil_io_putchar('\n');
         return;
     }
 
@@ -678,7 +800,8 @@ static void format_structured_line(ccstring line, ccstring ext) {
             }
             fossil_io_putchar(line[i++]);
         }
-        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+            fossil_io_putchar('\n');
         return;
     }
 
@@ -756,12 +879,15 @@ static void format_structured_line(ccstring line, ccstring ext) {
             }
             fossil_io_putchar(line[i++]);
         }
-        if (line[len-1] != '\n') fossil_io_putchar('\n');
+        if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+            fossil_io_putchar('\n');
         return;
     }
 
     // Plain text fallback
     fossil_io_puts(line);
+    if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+        fossil_io_putchar('\n');
 }
 
 /* -----------------------------------------------------------------------
@@ -803,7 +929,7 @@ static void format_meson_line(ccstring line) {
     size_t len = fossil_io_cstring_length(line);
     size_t i = 0;
 
-    // Count leading spaces/tabs for indent
+    // Indentation
     size_t indent_len = 0;
     while (i < len && (line[i] == ' ' || line[i] == '\t')) {
         indent_len++;
@@ -813,13 +939,13 @@ static void format_meson_line(ccstring line) {
         fossil_io_printf("%.*s", (int)indent_len, line);
 
     while (i < len) {
-        // Comments
+        // Comments (Meson: # to end of line)
         if (line[i] == '#') {
             fossil_io_printf("{green}%s{normal}", &line[i]);
             break;
         }
 
-        // Strings (support for triple quotes)
+        // Triple-quoted strings (""" or ''')
         if ((line[i] == '"' && i + 2 < len && line[i+1] == '"' && line[i+2] == '"') ||
             (line[i] == '\'' && i + 2 < len && line[i+1] == '\'' && line[i+2] == '\'')) {
             char quote = line[i];
@@ -836,6 +962,7 @@ static void format_meson_line(ccstring line) {
             }
             continue;
         }
+
         // Single/double quoted string
         if (line[i] == '"' || line[i] == '\'') {
             char quote = line[i++];
@@ -843,7 +970,7 @@ static void format_meson_line(ccstring line) {
             size_t start = i;
             while (i < len && line[i] != quote) {
                 // Handle escaped quotes
-                if (line[i] == '\\' && i + 1 < len && line[i+1] == quote) i++;
+                if (line[i] == '\\' && i + 1 < len) i++;
                 i++;
             }
             cstring str = fossil_io_cstring_substring(line, start, i - start);
@@ -856,31 +983,52 @@ static void format_meson_line(ccstring line) {
             continue;
         }
 
-        // Keywords, builtins, and identifiers
+        // Function calls: highlight function name before '('
         if (isalpha((unsigned char)line[i]) || line[i] == '_') {
             size_t start = i;
             while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '_')) i++;
             cstring word = fossil_io_cstring_substring(line, start, i - start);
-            if (is_meson_keyword(word))
+
+            // Look ahead for '(' with only whitespace in between
+            size_t j = i;
+            while (j < len && (line[j] == ' ' || line[j] == '\t')) j++;
+            if (j < len && line[j] == '(') {
+                // Function call
+                if (is_meson_builtin_func(word))
+                    fossil_io_printf("{magenta,bold}%s{normal}", word);
+                else
+                    fossil_io_printf("{white,bold}%s{normal}", word);
+            } else if (is_meson_keyword(word)) {
                 fossil_io_printf("{cyan,bold}%s{normal}", word);
-            else if (is_meson_builtin_func(word))
+            } else if (is_meson_builtin_func(word)) {
                 fossil_io_printf("{magenta,bold}%s{normal}", word);
-            else
+            } else {
                 fossil_io_printf("%s", word);
+            }
             fossil_io_cstring_free(word);
             continue;
         }
 
-        // Numbers (support for hex, float, negative)
+        // Numbers (hex, float, negative, binary, octal)
         if (isdigit((unsigned char)line[i]) ||
             (line[i] == '-' && i + 1 < len && isdigit((unsigned char)line[i + 1]))) {
             size_t start = i;
             if (line[i] == '-') i++;
-            if (line[i] == '0' && i + 1 < len && (line[i+1] == 'x' || line[i+1] == 'X')) {
-                i += 2;
-                while (i < len && isxdigit((unsigned char)line[i])) i++;
+            if (line[i] == '0' && i + 1 < len) {
+                if (line[i+1] == 'x' || line[i+1] == 'X') {
+                    i += 2;
+                    while (i < len && isxdigit((unsigned char)line[i])) i++;
+                } else if (line[i+1] == 'b' || line[i+1] == 'B') {
+                    i += 2;
+                    while (i < len && (line[i] == '0' || line[i] == '1')) i++;
+                } else if (line[i+1] == 'o' || line[i+1] == 'O') {
+                    i += 2;
+                    while (i < len && (line[i] >= '0' && line[i] <= '7')) i++;
+                } else {
+                    while (i < len && isdigit((unsigned char)line[i])) i++;
+                }
             } else {
-                while (i < len && (isdigit((unsigned char)line[i]) || line[i] == '.')) i++;
+                while (i < len && (isdigit((unsigned char)line[i]) || line[i] == '.' || line[i] == 'e' || line[i] == 'E' || line[i] == '+' || line[i] == '-')) i++;
             }
             cstring num = fossil_io_cstring_substring(line, start, i - start);
             fossil_io_printf("{blue}%s{normal}", num);
@@ -888,15 +1036,49 @@ static void format_meson_line(ccstring line) {
             continue;
         }
 
-        // Punctuation and operators
+        // Key-value: highlight key before '=' or ':'
+        if ((isalpha((unsigned char)line[i]) || line[i] == '_')) {
+            size_t key_start = i;
+            while (i < len && (isalnum((unsigned char)line[i]) || line[i] == '_' || line[i] == '-')) i++;
+            if (i < len && (line[i] == '=' || line[i] == ':')) {
+                cstring key = fossil_io_cstring_substring(line, key_start, i - key_start);
+                fossil_io_printf("{cyan,bold}%s{normal}", key);
+                fossil_io_cstring_free(key);
+                fossil_io_printf("{yellow}%c{normal}", line[i]);
+                i++;
+                continue;
+            }
+        }
+
+        // Punctuation and operators (pretty color for important ones)
         if (strchr("=(),[]{}:+-*/%", line[i])) {
-            fossil_io_printf("{blue}%c{normal}", line[i++]);
+            if (line[i] == '=' || line[i] == ':')
+                fossil_io_printf("{yellow,bold}%c{normal}", line[i++]);
+            else if (line[i] == ',' || line[i] == '(' || line[i] == ')' || line[i] == '[' || line[i] == ']' || line[i] == '{' || line[i] == '}')
+                fossil_io_printf("{blue,bold}%c{normal}", line[i++]);
+            else
+                fossil_io_printf("{blue}%c{normal}", line[i++]);
+            continue;
+        }
+
+        // Whitespace
+        if (line[i] == ' ' || line[i] == '\t') {
+            fossil_io_putchar(line[i++]);
+            continue;
+        }
+
+        // Newline (preserve)
+        if (line[i] == '\n' || line[i] == '\r') {
+            fossil_io_putchar(line[i++]);
             continue;
         }
 
         // Default: print character
         fossil_io_putchar(line[i++]);
     }
+    // Ensure newline at end if not present
+    if (len == 0 || (line[len-1] != '\n' && line[len-1] != '\r'))
+        fossil_io_putchar('\n');
 }
 
 /* -----------------------------------------------------------------------
@@ -1048,7 +1230,11 @@ int fossil_shark_view(const char *path, bool number_lines,
         /* Use all three formatters if all match */
         if (is_structured_ext(ext) && is_code_ext(ext) && is_meson_file) {
             format_structured_line(line, ext);
+            if (line[fossil_io_cstring_length(line)-1] != '\n')
+                fossil_io_putchar('\n');
             format_code_line(line);
+            if (line[fossil_io_cstring_length(line)-1] != '\n')
+                fossil_io_putchar('\n');
             format_meson_line(line);
             if (line[fossil_io_cstring_length(line)-1] != '\n')
                 fossil_io_putchar('\n');
@@ -1058,6 +1244,8 @@ int fossil_shark_view(const char *path, bool number_lines,
         /* Use both structured and code formatting if both match */
         if (is_structured_ext(ext) && is_code_ext(ext)) {
             format_structured_line(line, ext);
+            if (line[fossil_io_cstring_length(line)-1] != '\n')
+                fossil_io_putchar('\n');
             format_code_line(line);
             if (line[fossil_io_cstring_length(line)-1] != '\n')
                 fossil_io_putchar('\n');
@@ -1067,6 +1255,8 @@ int fossil_shark_view(const char *path, bool number_lines,
         /* Use both structured and meson formatting if both match */
         if (is_structured_ext(ext) && is_meson_file) {
             format_structured_line(line, ext);
+            if (line[fossil_io_cstring_length(line)-1] != '\n')
+                fossil_io_putchar('\n');
             format_meson_line(line);
             if (line[fossil_io_cstring_length(line)-1] != '\n')
                 fossil_io_putchar('\n');
