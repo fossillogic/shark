@@ -58,20 +58,19 @@ static void print_permissions_advanced(const char *filename) {
 }
 
 static int show_list(ccstring path, bool show_all, bool long_format,
-                     bool human_readable, bool show_time, int depth, int current_depth, ccstring prefix) {
+                      bool human_readable, bool recursive,
+                      ccstring format, bool show_time, int depth) {
     fossil_io_dir_iter_t it;
     int32_t open_result = fossil_io_dir_iter_open(&it, path);
     if (open_result < 0) return open_result;
 
-    if (current_depth == 0) {
+    if (depth == 0) {
         fossil_io_printf("{bold,underline,blue}Directory Listing: %s{normal}\n", path);
     }
 
     while (fossil_io_dir_iter_next(&it) > 0 && it.active) {
         fossil_io_dir_entry_t *entry = &it.current;
         if (!show_all && entry->name[0] == '.') continue;
-
-        fossil_io_printf("%s", prefix ? prefix : "");
 
         if (long_format) {
             print_permissions_advanced(entry->path);
@@ -82,15 +81,13 @@ static int show_list(ccstring path, bool show_all, bool long_format,
         }
         fossil_io_printf("{green}%s{normal}\n", entry->name);
 
-        // If entry is a directory and depth > 0, recurse into it
-        if (entry->type == 1 &&
+        // If entry is a directory and recursive is true, recurse into it
+        if (recursive &&
+            entry->type == 1 &&
             strcmp(entry->name, ".") != 0 &&
             strcmp(entry->name, "..") != 0 &&
-            (depth == 0 || current_depth < depth)) {
-            cstring new_prefix = fossil_io_cstring_format("%s%s", prefix ? prefix : "", "    ");
-            show_list(entry->path, show_all, long_format, human_readable, show_time, depth, current_depth + 1, new_prefix);
-            fossil_io_cstring_free(new_prefix);
-            cnullify(new_prefix);
+            (depth == 0 || depth > 1)) {
+            show_list(entry->path, show_all, long_format, human_readable, recursive, format, show_time, depth == 0 ? 0 : depth - 1);
         }
     }
 
@@ -100,14 +97,14 @@ static int show_list(ccstring path, bool show_all, bool long_format,
 }
 
 static int show_tree(ccstring path, bool show_all, bool long_format,
-                     bool human_readable, bool show_time,
-                     int depth, int current_depth, ccstring prefix)
+                      bool human_readable, bool recursive,
+                      ccstring format, bool show_time, int depth)
 {
     fossil_io_dir_iter_t it;
     int32_t open_result = fossil_io_dir_iter_open(&it, path);
     if (open_result < 0) return open_result;
 
-    if (current_depth == 0) {
+    if (depth == 0) {
         fossil_io_printf("{bold,underline,blue}Directory Tree: %s{normal}\n", path);
     }
 
@@ -115,7 +112,10 @@ static int show_tree(ccstring path, bool show_all, bool long_format,
         fossil_io_dir_entry_t *entry = &it.current;
         if (!show_all && entry->name[0] == '.') continue;
 
-        fossil_io_printf("%s", prefix ? prefix : "");
+        // Print indentation for tree structure
+        for (int i = 0; i < (depth == 0 ? 0 : depth); ++i) {
+            fossil_io_printf("    ");
+        }
         fossil_io_printf("{bright_yellow}|--{normal} ");
 
         if (long_format) {
@@ -127,15 +127,13 @@ static int show_tree(ccstring path, bool show_all, bool long_format,
         }
         fossil_io_printf("{cyan}%s{normal}\n", entry->name);
 
-        if (entry->type == 1 &&
+        if (recursive &&
+            entry->type == 1 &&
             strcmp(entry->name, ".") != 0 &&
             strcmp(entry->name, "..") != 0 &&
-            (depth == 0 || current_depth < depth)) {
-            cstring new_prefix = fossil_io_cstring_format("%s%s", prefix ? prefix : "", "    ");
-            show_tree(entry->path, show_all, long_format, human_readable, show_time,
-                      depth, current_depth + 1, new_prefix);
-            fossil_io_cstring_free(new_prefix);
-            cnullify(new_prefix);
+            (depth == 0 || depth > 1)) {
+            show_tree(entry->path, show_all, long_format, human_readable, recursive,
+                      format, show_time, depth == 0 ? 0 : depth - 1);
         }
     }
 
@@ -145,14 +143,14 @@ static int show_tree(ccstring path, bool show_all, bool long_format,
 }
 
 static int show_graph(ccstring path, bool show_all, bool long_format,
-                      bool human_readable, bool show_time,
-                      int depth, int current_depth, int indent)
+                      bool human_readable, bool recursive,
+                      ccstring format, bool show_time, int depth)
 {
     fossil_io_dir_iter_t it;
     int32_t open_result = fossil_io_dir_iter_open(&it, path);
     if (open_result < 0) return open_result;
 
-    if (current_depth == 0) {
+    if (depth == 0) {
         fossil_io_printf("{bold,underline,blue}Directory Graph: %s{normal}\n", path);
     }
 
@@ -160,7 +158,10 @@ static int show_graph(ccstring path, bool show_all, bool long_format,
         fossil_io_dir_entry_t *entry = &it.current;
         if (!show_all && entry->name[0] == '.') continue;
 
-        fossil_io_move_cursor(current_depth + 2, indent * INDENT_SIZE + 1);
+        // Print indentation for graph structure
+        for (int i = 0; i < (depth == 0 ? 0 : depth); ++i) {
+            fossil_io_printf("    ");
+        }
         fossil_io_printf("{bright_yellow}|--{normal} ");
 
         if (long_format) {
@@ -172,12 +173,13 @@ static int show_graph(ccstring path, bool show_all, bool long_format,
         }
         fossil_io_printf("{magenta}%s{normal}\n", entry->name);
 
-        if (entry->type == 1 &&
+        if (recursive &&
+            entry->type == 1 &&
             strcmp(entry->name, ".") != 0 &&
             strcmp(entry->name, "..") != 0 &&
-            (depth == 0 || current_depth < depth)) {
-            show_graph(entry->path, show_all, long_format, human_readable, show_time,
-                       depth, current_depth + 1, indent + 1);
+            (depth == 0 || depth > 1)) {
+            show_graph(entry->path, show_all, long_format, human_readable, recursive,
+                       format, show_time, depth == 0 ? 0 : depth - 1);
         }
     }
 
@@ -206,17 +208,15 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
         path = sanitized_path;
     }
 
-    int effective_depth = recursive ? depth : 1;
-
     fossil_io_clear_screen();
 
     int result = 0;
     if (cunlikely(!format) || fossil_io_cstring_equals(format, "list")) {
-        result = show_list(path, show_all, long_format, human_readable, show_time, effective_depth, 0, cempty);
+        result = show_list(path, show_all, long_format, human_readable, recursive, format, show_time, depth);
     } else if (fossil_io_cstring_equals(format, "tree")) {
-        result = show_tree(path, show_all, long_format, human_readable, show_time, effective_depth, 0, cempty);
+        result = show_tree(path, show_all, long_format, human_readable, recursive, format, show_time, depth);
     } else if (fossil_io_cstring_equals(format, "graph")) {
-        result = show_graph(path, show_all, long_format, human_readable, show_time, effective_depth, 0, 0);
+        result = show_graph(path, show_all, long_format, human_readable, recursive, format, show_time, depth);
     } else {
         fossil_io_fprintf(FOSSIL_STDERR, "{red,bold}Unknown format: %s{normal}\n", format ? format : "(null)");
         result = EINVAL;
