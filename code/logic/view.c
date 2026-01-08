@@ -935,80 +935,80 @@ int fossil_shark_view(const char *path, bool number_lines,
                              bool number_non_blank, bool squeeze_blank,
                              int head_lines, int tail_lines, bool show_time)
 {
-     ccstring ext = get_extension(path);
+    ccstring ext = get_extension(path);
 
-     // If no extension (no dot), treat as plain text
-     bool has_extension = strrchr(path, '.') != NULL && ext[0] != '\0';
+    // If no extension (no dot), treat as plain text
+    bool has_extension = strrchr(path, '.') != NULL && ext[0] != '\0';
 
-     /* MEDIA FILE HANDLING */
-     if (has_extension && is_media_ext(ext)) {
-          show_media_info(path);
-          return 0;
-     }
+    /* MEDIA FILE HANDLING */
+    if (has_extension && is_media_ext(ext)) {
+        show_media_info(path);
+        return 0;
+    }
 
-     bool binary = is_binary_file(path);
+    bool binary = is_binary_file(path);
 
-     fossil_io_file_t stream;
-     if (fossil_io_file_open(&stream, path, binary ? "rb" : "r") != 0) {
-          perror(path);
-          return 1;
-     }
+    fossil_io_file_t stream;
+    if (fossil_io_file_open(&stream, path, binary ? "rb" : "r") != 0) {
+        perror(path);
+        return 1;
+    }
 
-     if (show_time)
-          show_file_timestamps(path);
+    if (show_time)
+        show_file_timestamps(path);
 
-     /* First: read all lines (needed for head/tail) */
-     cstring *lines = NULL;
-     size_t count = 0, capacity = 0;
+    /* First: read all lines (needed for head/tail) */
+    cstring *lines = NULL;
+    size_t count = 0, capacity = 0;
 
-     char buf[2048];
-     while (fossil_io_gets_from_stream(buf, sizeof(buf), &stream)) {
-         if (count == capacity) {
-             size_t new_capacity = capacity ? capacity * 2 : 64;
-             if (lines == NULL) {
-                 lines = (cstring *)fossil_sys_memory_alloc(new_capacity * sizeof(cstring));
-                 if (!lines) {
-                     fossil_io_file_close(&stream);
-                     fprintf(stderr, "Memory allocation failed\n");
-                     return 1;
-                 }
-             } else {
-                 cstring *tmp = (cstring *)fossil_sys_memory_realloc(lines, new_capacity * sizeof(cstring));
-                 if (!tmp) {
-                     for (size_t j = 0; j < count; j++)
-                         fossil_io_cstring_free(lines[j]);
-                     fossil_sys_memory_free(lines);
-                     fossil_io_file_close(&stream);
-                     fprintf(stderr, "Memory allocation failed\n");
-                     return 1;
-                 }
-                 lines = tmp;
-             }
-             capacity = new_capacity;
-         }
-         lines[count] = fossil_io_cstring_create(buf);
-         if (!lines[count]) {
-             for (size_t j = 0; j < count; j++)
-                 fossil_io_cstring_free(lines[j]);
-             fossil_sys_memory_free(lines);
-             fossil_io_file_close(&stream);
-             fprintf(stderr, "Memory allocation failed\n");
-             return 1;
-         }
-         count++;
-     }
-     fossil_io_file_close(&stream);
+    char buf[2048];
+    while (fossil_io_gets_from_stream(buf, sizeof(buf), &stream)) {
+        if (count == capacity) {
+            size_t new_capacity = capacity ? capacity * 2 : 64;
+            if (lines == NULL) {
+                lines = (cstring *)fossil_sys_memory_alloc(new_capacity * sizeof(cstring));
+                if (!lines) {
+                    fossil_io_file_close(&stream);
+                    fprintf(stderr, "Memory allocation failed\n");
+                    return 1;
+                }
+            } else {
+                cstring *tmp = (cstring *)fossil_sys_memory_realloc(lines, new_capacity * sizeof(cstring));
+                if (!tmp) {
+                    for (size_t j = 0; j < count; j++)
+                        fossil_io_cstring_free(lines[j]);
+                    fossil_sys_memory_free(lines);
+                    fossil_io_file_close(&stream);
+                    fprintf(stderr, "Memory allocation failed\n");
+                    return 1;
+                }
+                lines = tmp;
+            }
+            capacity = new_capacity;
+        }
+        lines[count] = fossil_io_cstring_create(buf);
+        if (!lines[count]) {
+            for (size_t j = 0; j < count; j++)
+                fossil_io_cstring_free(lines[j]);
+            fossil_sys_memory_free(lines);
+            fossil_io_file_close(&stream);
+            fprintf(stderr, "Memory allocation failed\n");
+            return 1;
+        }
+        count++;
+    }
+    fossil_io_file_close(&stream);
 
-     int start = 0, end = (int)count;
+    int start = 0, end = (int)count;
 
-     if (head_lines > 0 && head_lines < (int)count)
-          end = head_lines;
+    if (head_lines > 0 && head_lines < (int)count)
+        end = head_lines;
 
-     if (tail_lines > 0 && tail_lines < (int)count)
-          start = (int)count - tail_lines;
+    if (tail_lines > 0 && tail_lines < (int)count)
+        start = (int)count - tail_lines;
 
-     bool last_blank = false;
-     int printed_ln = 0;
+    bool last_blank = false;
+    int printed_ln = 0;
 
     // Meson file detection (match any file with .meson extension or meson.* in filename)
     bool is_meson_file =
@@ -1029,15 +1029,15 @@ int fossil_shark_view(const char *path, bool number_lines,
         bool blank = (line[0] == '\n' || line[0] == '\r' || line[0] == '\0');
 
         if (squeeze_blank && blank) {
-             if (last_blank)
-                 continue;
-             last_blank = true;
+            if (last_blank)
+                continue;
+            last_blank = true;
         } else {
-             last_blank = blank;
+            last_blank = blank;
         }
 
         if (number_lines && !(number_non_blank && blank))
-             fossil_io_printf("{white,bold}%6d{normal}  ", ++printed_ln);
+            fossil_io_printf("{white,bold}%6d{normal}  ", ++printed_ln);
 
         // If no extension, treat as plain text (preserve whitespace/newlines)
         if (!has_extension) {
@@ -1047,65 +1047,65 @@ int fossil_shark_view(const char *path, bool number_lines,
 
         /* Use all three formatters if all match */
         if (is_structured_ext(ext) && is_code_ext(ext) && is_meson_file) {
-             format_structured_line(line, ext);
-             format_code_line(line);
-             format_meson_line(line);
-             if (line[fossil_io_cstring_length(line)-1] != '\n')
-                 fossil_io_putchar('\n');
-             continue;
+            format_structured_line(line, ext);
+            format_code_line(line);
+            format_meson_line(line);
+            if (line[fossil_io_cstring_length(line)-1] != '\n')
+                fossil_io_putchar('\n');
+            continue;
         }
 
         /* Use both structured and code formatting if both match */
         if (is_structured_ext(ext) && is_code_ext(ext)) {
-             format_structured_line(line, ext);
-             format_code_line(line);
-             if (line[fossil_io_cstring_length(line)-1] != '\n')
-                 fossil_io_putchar('\n');
-             continue;
+            format_structured_line(line, ext);
+            format_code_line(line);
+            if (line[fossil_io_cstring_length(line)-1] != '\n')
+                fossil_io_putchar('\n');
+            continue;
         }
 
         /* Use both structured and meson formatting if both match */
         if (is_structured_ext(ext) && is_meson_file) {
-             format_structured_line(line, ext);
-             format_meson_line(line);
-             if (line[fossil_io_cstring_length(line)-1] != '\n')
-                 fossil_io_putchar('\n');
-             continue;
+            format_structured_line(line, ext);
+            format_meson_line(line);
+            if (line[fossil_io_cstring_length(line)-1] != '\n')
+                fossil_io_putchar('\n');
+            continue;
         }
 
         /* Meson formatting */
         if (is_meson_file) {
-             format_meson_line(line);
-             if (line[fossil_io_cstring_length(line)-1] != '\n')
-                 fossil_io_putchar('\n');
-             continue;
+            format_meson_line(line);
+            if (line[fossil_io_cstring_length(line)-1] != '\n')
+                fossil_io_putchar('\n');
+            continue;
         }
 
         /* Structured data pretty-print */
         if (is_structured_ext(ext)) {
-             format_structured_line(line, ext);
-             if (line[fossil_io_cstring_length(line)-1] != '\n')
-                 fossil_io_putchar('\n');
-             continue;
+            format_structured_line(line, ext);
+            if (line[fossil_io_cstring_length(line)-1] != '\n')
+                fossil_io_putchar('\n');
+            continue;
         }
 
         /* Code formatting */
         if (is_code_ext(ext)) {
-             format_code_line(line);
-             if (line[fossil_io_cstring_length(line)-1] != '\n')
-                 fossil_io_putchar('\n');
-             continue;
+            format_code_line(line);
+            if (line[fossil_io_cstring_length(line)-1] != '\n')
+                fossil_io_putchar('\n');
+            continue;
         }
 
         /* Default: just print the line (preserve whitespace/newlines) */
         fossil_io_puts(line);
     }
 
-     if (lines) {
-         for (size_t i = 0; i < count; i++)
-             fossil_io_cstring_free(lines[i]);
-         fossil_sys_memory_free(lines);
-     }
+    if (lines) {
+        for (size_t i = 0; i < count; i++)
+            fossil_io_cstring_free(lines[i]);
+        fossil_sys_memory_free(lines);
+    }
 
-     return 0;
+    return 0;
 }
