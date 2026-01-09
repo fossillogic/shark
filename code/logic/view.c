@@ -523,7 +523,6 @@ static void format_structured_line(ccstring line, ccstring ext) {
             } else if (line[i] == ',') {
                 fossil_io_printf("{blue},");
                 i++;
-                col++;
             } else {
                 fossil_io_putchar(line[i++]);
             }
