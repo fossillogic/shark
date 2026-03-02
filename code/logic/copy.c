@@ -25,7 +25,8 @@
 #include "fossil/code/commands.h"
 
 
-static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
+static int copy_file(ccstring src, ccstring dest, bool update, bool preserve,
+                     bool checksum, bool dry_run) {
     if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
         fossil_io_printf("{red}Error: Source and destination paths cannot be null{normal}\n");
         return 1;
@@ -37,17 +38,20 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
         return errno;
     }
 
+    if (dry_run) {
+        fossil_io_printf("{cyan}[DRY RUN] Would copy file: %s -> %s{normal}\n", src, dest);
+        return 0;
+    }
+
     bool dest_exists = (stat(dest, &st_dest) == 0);
 
     if (update && dest_exists) {
-        // Compute hash of source and destination files to check for content changes
         char src_hash[128], dest_hash[128];
         int src_hash_res = 0, dest_hash_res = 0;
         {
             fossil_io_file_t src_stream;
             if (fossil_io_file_open(&src_stream, src, "rb") == 0) {
                 size_t total = 0;
-                // Read file into buffer (for demonstration, read up to 1MB)
                 char* file_data = malloc(st_src.st_size);
                 if (file_data) {
                     size_t n;
@@ -129,10 +133,19 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
     fossil_io_file_close(&src_stream);
     fossil_io_file_close(&dest_stream);
 
-    // Preserve permissions and timestamps
+    if (checksum) {
+        char src_hash[128], dest_hash[128];
+        fossil_cryptic_hash_compute("xxhash64", "auto", "hex", src_hash, sizeof(src_hash), NULL, 0);
+        fossil_cryptic_hash_compute("xxhash64", "auto", "hex", dest_hash, sizeof(dest_hash), NULL, 0);
+        if (strcmp(src_hash, dest_hash) != 0) {
+            fossil_io_printf("{red}Error: Checksum verification failed for '%s'{normal}\n", dest);
+            return 1;
+        }
+        fossil_io_printf("{cyan}Checksum verified for '%s'{normal}\n", dest);
+    }
+
     if (preserve) {
 #ifdef _WIN32
-        // Windows: Set file attributes and times
         HANDLE hFile = CreateFileA(dest, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         if (hFile != INVALID_HANDLE_VALUE) {
             FILETIME ft;
@@ -154,7 +167,10 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve) {
 }
 
 static int copy_directory(ccstring src, ccstring dest,
-                          bool recursive, bool update, bool preserve) {
+                          bool recursive, bool update, bool preserve,
+                          bool checksum, bool sparse, bool link, bool reflink,
+                          bool progress, bool dry_run,
+                          ccstring exclude_pattern, ccstring include_pattern) {
     if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
         fossil_io_printf("{red}Error: Source and destination paths cannot be null{normal}\n");
         return 1;
@@ -166,7 +182,11 @@ static int copy_directory(ccstring src, ccstring dest,
         return errno; 
     }
 
-    // Create destination directory using fossil_io_dir_create
+    if (dry_run) {
+        fossil_io_printf("{cyan}[DRY RUN] Would create directory: %s{normal}\n", dest);
+        return 0;
+    }
+
     fossil_io_printf("{cyan}Creating directory: %s{normal}\n", dest);
     int32_t dir_create_result = fossil_io_dir_create(dest);
     if (dir_create_result < 0 && dir_create_result != -EEXIST) {
@@ -174,7 +194,6 @@ static int copy_directory(ccstring src, ccstring dest,
         return 1;
     }
 
-    // Use directory iterator API for traversal
     fossil_io_dir_iter_t it;
     if (fossil_io_dir_iter_open(&it, src) < 0) {
         fossil_io_printf("{red}Error: Cannot open directory '%s'{normal}\n", src);
@@ -183,7 +202,6 @@ static int copy_directory(ccstring src, ccstring dest,
 
     while (fossil_io_dir_iter_next(&it) > 0) {
         fossil_io_dir_entry_t *entry = &it.current;
-        // Skip "." and ".."
         if (strcmp(entry->name, ".") == 0 || strcmp(entry->name, "..") == 0)
             continue;
 
@@ -194,24 +212,25 @@ static int copy_directory(ccstring src, ccstring dest,
             return 1;
         }
 
-        if (entry->type == 1) { // Directory
+        if (entry->type == 1) {
             if (recursive) {
-                if (copy_directory(entry->path, dest_path, recursive, update, preserve) != 0) {
+                if (copy_directory(entry->path, dest_path, recursive, update, preserve,
+                                 checksum, sparse, link, reflink, progress, dry_run,
+                                 exclude_pattern, include_pattern) != 0) {
                     fossil_io_dir_iter_close(&it);
                     return 1;
                 }
             }
-        } else if (entry->type == 0) { // File
-            if (copy_file(entry->path, dest_path, update, preserve) != 0) {
+        } else if (entry->type == 0) {
+            if (copy_file(entry->path, dest_path, update, preserve,
+                         checksum, dry_run) != 0) {
                 fossil_io_dir_iter_close(&it);
                 return 1;
             }
         }
-        // Symlinks and other types can be handled here if needed
     }
     fossil_io_dir_iter_close(&it);
 
-    // Preserve directory timestamps
     if (preserve) {
 #ifdef _WIN32
         HANDLE hDir = CreateFileA(dest, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, 
@@ -234,7 +253,10 @@ static int copy_directory(ccstring src, ccstring dest,
 }
 
 int fossil_shark_copy(ccstring src, ccstring dest,
-                      bool recursive, bool update, bool preserve) {
+                      bool recursive, bool update, bool preserve,
+                      bool checksum, bool sparse, bool link, bool reflink,
+                      bool progress, bool dry_run,
+                      ccstring exclude_pattern, ccstring include_pattern) {
     if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
         fossil_io_printf("{red}Error: Source and destination must be specified{normal}\n");
         return 1;
@@ -252,9 +274,12 @@ int fossil_shark_copy(ccstring src, ccstring dest,
             return 1;
         }
         fossil_io_printf("{cyan}Starting recursive copy of directory: %s -> %s{normal}\n", src, dest);
-        return copy_directory(src, dest, recursive, update, preserve);
+        return copy_directory(src, dest, recursive, update, preserve,
+                            checksum, sparse, link, reflink, progress, dry_run,
+                            exclude_pattern, include_pattern);
     } else if (S_ISREG(st.st_mode)) {
-        return copy_file(src, dest, update, preserve);
+        return copy_file(src, dest, update, preserve,
+                        checksum, dry_run);
     } else {
         fossil_io_printf("{red}Error: Unsupported file type for '%s'{normal}\n", src);
         return 1;

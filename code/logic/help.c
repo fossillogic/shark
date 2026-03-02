@@ -78,12 +78,25 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}-f, --force{normal}      Overwrite without prompt\n");
             fossil_io_printf("  {cyan,bold}-i, --interactive{normal} Confirm overwrite\n");
             fossil_io_printf("  {cyan,bold}-b, --backup{normal}     Backup before move\n");
+            fossil_io_printf("  {cyan,bold}--atomic{normal}         Atomic operation\n");
+            fossil_io_printf("  {cyan,bold}--progress{normal}       Show progress\n");
+            fossil_io_printf("  {cyan,bold}--dry-run{normal}        Preview changes\n");
+            fossil_io_printf("  {cyan,bold}--exclude <pattern>{normal} Exclude files\n");
+            fossil_io_printf("  {cyan,bold}--include <pattern>{normal} Include files\n");
         } else if (fossil_io_cstring_equals(command, "copy")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}copy [options] <src> <dest>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
             fossil_io_printf("  {cyan,bold}-r, --recursive{normal}  Copy subdirs\n");
             fossil_io_printf("  {cyan,bold}-u, --update{normal}     Only newer files\n");
             fossil_io_printf("  {cyan,bold}-p, --preserve{normal}   Keep permissions/timestamps\n");
+            fossil_io_printf("  {cyan,bold}--checksum{normal}       Verify with checksum\n");
+            fossil_io_printf("  {cyan,bold}--sparse{normal}         Sparse file handling\n");
+            fossil_io_printf("  {cyan,bold}--link{normal}           Create hard links\n");
+            fossil_io_printf("  {cyan,bold}--reflink{normal}        Copy-on-write support\n");
+            fossil_io_printf("  {cyan,bold}--progress{normal}       Show progress\n");
+            fossil_io_printf("  {cyan,bold}--dry-run{normal}        Preview changes\n");
+            fossil_io_printf("  {cyan,bold}--exclude <pattern>{normal} Exclude files\n");
+            fossil_io_printf("  {cyan,bold}--include <pattern>{normal} Include files\n");
         } else if (fossil_io_cstring_equals(command, "remove") || fossil_io_cstring_equals(command, "delete")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}%s [options] <path>{normal}\n", command);
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");

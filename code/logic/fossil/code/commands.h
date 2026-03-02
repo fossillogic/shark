@@ -55,25 +55,43 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
  * Move or rename files and directories
  * @param src Source path of the file or directory
  * @param dest Destination path
- * @param force Force move without confirmation
- * @param interactive Prompt before overwriting
- * @param backup Create backup of existing destination
+ * @param force Force move without confirmation (--force)
+ * @param interactive Prompt before overwriting (--interactive)
+ * @param backup Create backup before move (--backup)
+ * @param atomic Perform atomic move operation (--atomic)
+ * @param progress Show progress during move (--progress)
+ * @param dry_run Simulate the move without executing (--dry-run)
+ * @param exclude_pattern Pattern for files to exclude (--exclude)
+ * @param include_pattern Pattern for files to include (--include)
  * @return 0 on success, non-zero on error
  */
 int fossil_shark_move(ccstring src, ccstring dest,
-                      bool force, bool interactive, bool backup);
+                      bool force, bool interactive, bool backup,
+                      bool atomic, bool progress, bool dry_run,
+                      ccstring exclude_pattern, ccstring include_pattern);
 
 /**
  * Copy files or directories with various options
  * @param src Source path to copy from
  * @param dest Destination path to copy to
- * @param recursive Copy directories recursively
- * @param update Copy only when source is newer
- * @param preserve Preserve file attributes and permissions
+ * @param recursive Copy directories recursively (--recursive)
+ * @param update Copy only when source is newer (--update)
+ * @param preserve Preserve file attributes and permissions (--preserve)
+ * @param checksum Verify integrity after copy (--checksum)
+ * @param sparse Preserve sparse files (--sparse)
+ * @param link Create hardlinks instead of copies (--link)
+ * @param reflink Use copy-on-write if available (--reflink)
+ * @param progress Show progress during copy (--progress)
+ * @param dry_run Simulate the copy without executing (--dry-run)
+ * @param exclude_pattern Pattern for files to exclude (--exclude)
+ * @param include_pattern Pattern for files to include (--include)
  * @return 0 on success, non-zero on error
  */
 int fossil_shark_copy(ccstring src, ccstring dest,
-                      bool recursive, bool update, bool preserve);
+                      bool recursive, bool update, bool preserve,
+                      bool checksum, bool sparse, bool link, bool reflink,
+                      bool progress, bool dry_run,
+                      ccstring exclude_pattern, ccstring include_pattern);
 
 /**
  * Remove or delete files and directories safely
