@@ -58,12 +58,12 @@ FOSSIL_TEARDOWN(c_show_command_suite) {
 
 FOSSIL_TEST(c_test_show_null_path) {
     int result = fossil_shark_show(cnull, false, false, false, false, cnull, false, 0);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_show_nonexistent_path) {
     int result = fossil_shark_show("nonexistent_path", false, false, false, false, cnull, false, 0);
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_show_basic_file) {
@@ -73,15 +73,14 @@ FOSSIL_TEST(c_test_show_basic_file) {
     fclose(temp);
 
     int result = fossil_shark_show("test_show_file.txt", false, false, false, false, cnull, false, 0);
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 
     remove("test_show_file.txt");
 }
 
 FOSSIL_TEST(c_test_show_with_all_flag) {
-    // Test with current directory and all flag
     int result = fossil_shark_show(".", true, false, false, false, cnull, false, 0);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_show_long_format) {
@@ -91,7 +90,7 @@ FOSSIL_TEST(c_test_show_long_format) {
     fclose(temp);
 
     int result = fossil_shark_show("test_long.txt", false, true, false, false, cnull, false, 0);
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 
     remove("test_long.txt");
 }
@@ -103,7 +102,7 @@ FOSSIL_TEST(c_test_show_human_readable) {
     fclose(temp);
 
     int result = fossil_shark_show("test_human.txt", false, true, true, false, cnull, false, 0);
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 
     remove("test_human.txt");
 }
@@ -115,45 +114,39 @@ FOSSIL_TEST(c_test_show_with_timestamps) {
     fclose(temp);
 
     int result = fossil_shark_show("test_timestamp.txt", false, true, false, false, cnull, true, 0);
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 
     remove("test_timestamp.txt");
 }
 
 FOSSIL_TEST(c_test_show_with_format_tree) {
-    // Test tree format
     int result = fossil_shark_show(".", false, false, false, false, "tree", false, 0);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_show_with_format_graph) {
-    // Test graph format
     int result = fossil_shark_show(".", false, false, false, false, "graph", false, 0);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_show_with_format_list) {
-    // Test list format (default)
     int result = fossil_shark_show(".", false, false, false, false, "list", false, 0);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_show_with_invalid_format) {
-    // Test with invalid format
     int result = fossil_shark_show(".", false, false, false, false, "invalid_format", false, 0);
-    ASSUME_ITS_EQUAL_I32(1, result); // Should return error
+    ASSUME_ITS_EQUAL_I32(result, 1);
 }
 
 FOSSIL_TEST(c_test_show_recursive) {
-    // Test recursive directory traversal
     int result = fossil_shark_show(".", false, false, false, true, cnull, false, 2);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_show_with_depth) {
-    // Test with specific depth limit
     int result = fossil_shark_show(".", false, false, false, true, cnull, false, 1);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_show_combined_options) {
@@ -162,9 +155,8 @@ FOSSIL_TEST(c_test_show_combined_options) {
     fprintf(temp, "Combined options test\n");
     fclose(temp);
     
-    // Test combined options: all files, long format, human readable, with timestamps
     int result = fossil_shark_show(".", true, true, true, false, "tree", true, 1);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
     
     remove("test_combined_show.txt");
 }
@@ -176,7 +168,7 @@ FOSSIL_TEST(c_test_show_permissions_display) {
     fclose(temp);
 
     int result = fossil_shark_show("test_perms.txt", false, true, false, false, cnull, false, 0);
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 
     remove("test_perms.txt");
 }
@@ -190,7 +182,7 @@ FOSSIL_TEST(c_test_show_size_formatting) {
     fclose(temp);
 
     int result = fossil_shark_show("test_size.txt", false, true, true, false, cnull, false, 0);
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 
     remove("test_size.txt");
 }
