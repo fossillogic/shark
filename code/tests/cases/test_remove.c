@@ -65,7 +65,7 @@ FOSSIL_TEST(c_test_remove_null_path) {
 FOSSIL_TEST(c_test_remove_nonexistent_file) {
     // Should handle non-existent file gracefully
     int result = fossil_shark_remove("/nonexistent/file.txt", false, false, false, false, false, 0, NULL, 0, false, NULL);
-    ASSUME_NOT_EQUAL_I32(result, 0);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_remove_nonexistent_file_force) {

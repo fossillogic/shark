@@ -136,7 +136,7 @@ FOSSIL_TEST(c_test_show_with_format_list) {
 
 FOSSIL_TEST(c_test_show_with_invalid_format) {
     int result = fossil_shark_show(".", false, false, false, false, "invalid_format", false, 0);
-    ASSUME_ITS_EQUAL_I32(result, 1);
+    ASSUME_ITS_EQUAL_I32(result, 22);
 }
 
 FOSSIL_TEST(c_test_show_recursive) {

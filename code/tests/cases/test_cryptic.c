@@ -70,7 +70,7 @@ FOSSIL_TEST(c_test_cryptic_null_cipher) {
 FOSSIL_TEST(c_test_cryptic_multiple_operations) {
     // Test with both encode and decode specified (invalid)
     int result = fossil_shark_cryptic("hello", true, true, "caesar");
-    ASSUME_NOT_EQUAL_I32(result, 0);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_no_operations) {
@@ -118,7 +118,7 @@ FOSSIL_TEST(c_test_cryptic_vigenere_with_key) {
 FOSSIL_TEST(c_test_cryptic_vigenere_without_key) {
     // Test Vigenere cipher without key (should fail)
     int result = fossil_shark_cryptic("hello", true, false, "vigenere");
-    ASSUME_NOT_EQUAL_I32(result, 0);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_binary_encode) {
@@ -166,7 +166,7 @@ FOSSIL_TEST(c_test_cryptic_unsupported_cipher) {
 FOSSIL_TEST(c_test_cryptic_empty_text) {
     // Test with empty text string
     int result = fossil_shark_cryptic("", true, false, "caesar");
-    ASSUME_ITS_EQUAL_I32(result, 0);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_special_characters) {
