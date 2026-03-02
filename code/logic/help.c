@@ -98,12 +98,18 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}--exclude <pattern>{normal} Exclude files\n");
             fossil_io_printf("  {cyan,bold}--include <pattern>{normal} Include files\n");
         } else if (fossil_io_cstring_equals(command, "remove") || fossil_io_cstring_equals(command, "delete")) {
-            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}%s [options] <path>{normal}\n", command);
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}remove|delete [options] <path>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
-            fossil_io_printf("  {cyan,bold}-r, --recursive{normal}  Delete contents\n");
-            fossil_io_printf("  {cyan,bold}-f, --force{normal}      No confirmation\n");
-            fossil_io_printf("  {cyan,bold}-i, --interactive{normal} Confirm per file\n");
-            fossil_io_printf("  {cyan,bold}--trash{normal}          Move to trash\n");
+            fossil_io_printf("  {cyan,bold}-r, --recursive{normal}      Delete contents\n");
+            fossil_io_printf("  {cyan,bold}-f, --force{normal}          No confirmation\n");
+            fossil_io_printf("  {cyan,bold}-i, --interactive{normal}    Confirm per file\n");
+            fossil_io_printf("  {cyan,bold}--trash{normal}              Move to trash\n");
+            fossil_io_printf("  {cyan,bold}--wipe{normal}               Securely overwrite\n");
+            fossil_io_printf("  {cyan,bold}--shred <n>{normal}          Multi-pass secure delete\n");
+            fossil_io_printf("  {cyan,bold}--older-than <t>{normal}     Delete files older than time\n");
+            fossil_io_printf("  {cyan,bold}--larger-than <s>{normal}    Delete files larger than size\n");
+            fossil_io_printf("  {cyan,bold}--empty-only{normal}         Delete empty dirs only\n");
+            fossil_io_printf("  {cyan,bold}--log-file <path>{normal}    Write deletion log\n");
         } else if (fossil_io_cstring_equals(command, "rename")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}rename [options] <old_name> <new_name>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");

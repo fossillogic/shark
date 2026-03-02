@@ -82,6 +82,12 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    -f, --force         No confirmation\n");
     fossil_io_printf("{bright_black}    -i, --interactive   Confirm per file\n");
     fossil_io_printf("{bright_black}    --trash             Move to trash\n");
+    fossil_io_printf("{bright_black}    --wipe              Securely overwrite\n");
+    fossil_io_printf("{bright_black}    --shred <n>         Multi-pass secure delete\n");
+    fossil_io_printf("{bright_black}    --older-than <t>    Delete files older than time\n");
+    fossil_io_printf("{bright_black}    --larger-than <s>   Delete files larger than size\n");
+    fossil_io_printf("{bright_black}    --empty-only        Delete empty dirs only\n");
+    fossil_io_printf("{bright_black}    --log-file <path>   Write deletion log\n");
 
     fossil_io_printf("{cyan}  rename           {reset}Rename files or directories\n");
     fossil_io_printf("{bright_black}    -f, --force         Overwrite target\n");
@@ -263,7 +269,8 @@ bool app_entry(int argc, char** argv) {
             fossil_io_cstring_compare(argv[i], "watch") == 0 ||
             fossil_io_cstring_compare(argv[i], "rewrite") == 0 ||
             fossil_io_cstring_compare(argv[i], "introspect") == 0 ||
-            fossil_io_cstring_compare(argv[i], "grammar") == 0
+            fossil_io_cstring_compare(argv[i], "grammar") == 0 ||
+            fossil_io_cstring_compare(argv[i], "cryptic") == 0
         ) {
             // Look ahead for path-like arguments and suggest corrections
             for (int j = i + 1; j < argc; ++j) {
@@ -422,6 +429,10 @@ bool app_entry(int argc, char** argv) {
                fossil_io_cstring_compare(argv[i], "delete") == 0) {
             ccstring path = cnull;
             bool recursive = false, force = false, interactive = false, use_trash = false;
+            bool wipe = false, empty_only = false;
+            int shred_passes = 0;
+            ccstring older_than = cnull, log_file = cnull;
+            size_t larger_than = 0;
             
             for (int j = i + 1; j < argc; j++) {
                 if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
@@ -432,12 +443,24 @@ bool app_entry(int argc, char** argv) {
                     interactive = true;
                 } else if (fossil_io_cstring_compare(argv[j], "--trash") == 0) {
                     use_trash = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--wipe") == 0) {
+                    wipe = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--shred") == 0 && j + 1 < argc) {
+                    shred_passes = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--older-than") == 0 && j + 1 < argc) {
+                    older_than = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--larger-than") == 0 && j + 1 < argc) {
+                    larger_than = (size_t)atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--empty-only") == 0) {
+                    empty_only = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--log-file") == 0 && j + 1 < argc) {
+                    log_file = argv[++j];
                 } else if (!cnotnull(path)) {
                     path = argv[j];
                 }
                 i = j;
             }
-            if (cnotnull(path)) fossil_shark_remove(path, recursive, force, interactive, use_trash);
+            if (cnotnull(path)) fossil_shark_remove(path, recursive, force, interactive, use_trash, wipe, shred_passes, older_than, larger_than, empty_only, log_file);
             
         } else if (fossil_io_cstring_compare(argv[i], "rename") == 0) {
             ccstring old_name = cnull, new_name = cnull;
