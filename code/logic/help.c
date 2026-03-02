@@ -48,6 +48,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         fossil_io_printf("  {cyan,bold}rewrite{normal}     - Modify or update file contents\n");
         fossil_io_printf("  {cyan,bold}introspect{normal}  - Examine file contents, type, or metadata\n");
         fossil_io_printf("  {cyan,bold}grammar{normal}     - Grammar analysis and correction\n");
+        fossil_io_printf("  {cyan,bold}cryptic{normal}     - Encode or decode text using various ciphers\n");
         fossil_io_printf("\n{blue,bold,underline}Global Flags & Special Commands:{normal}\n");
         fossil_io_printf("  {cyan,bold}--help{normal}      - Show command help\n");
         fossil_io_printf("  {cyan,bold}--version{normal}   - Display Shark Tool version\n");
@@ -198,6 +199,9 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         } else if (fossil_io_cstring_equals(command, "--clear")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}--clear{normal}\n");
             fossil_io_printf("{blue,bold,underline}Description:{normal} Clear the terminal screen\n");
+        } else if (fossil_io_cstring_equals(command, "cryptic")) {
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}--cryptic{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Description:{normal} Encode or decode text using various ciphers\n");
         } else {
             fossil_io_fprintf(FOSSIL_STDERR, "{red,bold,blink}Unknown command: %s{normal}\n", command);
             return 1;
@@ -237,6 +241,8 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}shark introspect --type --fson report.pdf{normal}\n");
             else if (fossil_io_cstring_equals(command, "grammar"))
             fossil_io_printf("  {cyan,bold}shark grammar --check --tone notes.txt{normal}\n");
+            else if (fossil_io_cstring_equals(command, "cryptic"))
+            fossil_io_printf("  {cyan,bold}shark cryptic --encode --cipher caesar --key 3 \"Hello, World!\"{normal}\n");
         }
 
         // Manual page output omitted for brevity, but should be updated similarly.
