@@ -154,7 +154,6 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    -c, --cipher <type> Cipher type: caesar, vigenere, base64, base32,\n");
     fossil_io_printf("{bright_black}                        binary, morse, baconian, railfence, haxor,\n");
     fossil_io_printf("{bright_black}                        leet, rot13, atbash\n");
-    fossil_io_printf("{bright_black}    -k, --key <key>     Encryption key\n");
 
     fossil_io_printf("\n{blue}Global Flags:{reset}\n");
     fossil_io_printf("{bright_black}  --help                Show command help\n");
@@ -710,8 +709,6 @@ bool app_entry(int argc, char** argv) {
                 decode = true;
             } else if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--cipher") == 0) {
                 if (j + 1 < argc) cipher = argv[++j];
-            } else if (fossil_io_cstring_compare(argv[j], "-k") == 0 || fossil_io_cstring_compare(argv[j], "--key") == 0) {
-                if (j + 1 < argc) key = argv[++j];
             } else if (!cnotnull(text)) {
                 text = argv[j];
             }
