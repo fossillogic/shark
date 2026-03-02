@@ -26,8 +26,7 @@
 
 
 static int copy_file(ccstring src, ccstring dest, bool update, bool preserve,
-                     bool checksum, bool sparse, bool link, bool reflink,
-                     bool progress, bool dry_run) {
+                     bool checksum, bool dry_run) {
     if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
         fossil_io_printf("{red}Error: Source and destination paths cannot be null{normal}\n");
         return 1;
@@ -224,7 +223,7 @@ static int copy_directory(ccstring src, ccstring dest,
             }
         } else if (entry->type == 0) {
             if (copy_file(entry->path, dest_path, update, preserve,
-                         checksum, sparse, link, reflink, progress, dry_run) != 0) {
+                         checksum, dry_run) != 0) {
                 fossil_io_dir_iter_close(&it);
                 return 1;
             }
@@ -280,7 +279,7 @@ int fossil_shark_copy(ccstring src, ccstring dest,
                             exclude_pattern, include_pattern);
     } else if (S_ISREG(st.st_mode)) {
         return copy_file(src, dest, update, preserve,
-                        checksum, sparse, link, reflink, progress, dry_run);
+                        checksum, dry_run);
     } else {
         fossil_io_printf("{red}Error: Unsupported file type for '%s'{normal}\n", src);
         return 1;
