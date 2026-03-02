@@ -45,6 +45,7 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 | `rewrite` | Modify file contents or metadata. | `-a`, `--append` (append)<br>`--in-place` (edit in place)<br>`--access-time` (update atime)<br>`--mod-time` (update mtime)<br>`--size <n>` (set file size) |
 | `introspect` | Examine file contents/type/meta. | `--head <n>` (first n lines)<br>`--tail <n>` (last n lines)<br>`--count` (count lines/words/bytes)<br>`--type` (show type)<br>`--fson` (FSON output) |
 | `grammar` | Analyze/correct grammar/style. | `--check` (analyze)<br>`--fix`, `--correct` (correct)<br>`--sanitize` (sanitize text)<br>`--suggest` (suggest improvements)<br>`--tone` (detect tone)<br>`--summarize` (summarize)<br>`--score` (show scores)<br>`--detect <type>` (detect traits)<br>`--reflow-width <n>` (reflow text)<br>`--capitalize <mode>` (capitalize)<br>`--format` (pretty-print)<br>`--declutter` (repair whitespace)<br>`--punctuate` (normalize punctuation) |
+| `cryptic` | Encode or decode text using various ciphers. | `-e`, `--encode` (encode text)<br>`-d`, `--decode` (decode text)<br>`-c`, `--cipher <type>` (cipher: `caesar`, `vigenere`, `base64`, `base32`, `binary`, `morse`, `baconian`, `railfence`, `haxor`, `leet`, `rot13`, `atbash`) |
 
 ---
 

@@ -48,6 +48,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         fossil_io_printf("  {cyan,bold}rewrite{normal}     - Modify or update file contents\n");
         fossil_io_printf("  {cyan,bold}introspect{normal}  - Examine file contents, type, or metadata\n");
         fossil_io_printf("  {cyan,bold}grammar{normal}     - Grammar analysis and correction\n");
+        fossil_io_printf("  {cyan,bold}cryptic{normal}     - Encode or decode text using various ciphers\n");
         fossil_io_printf("\n{blue,bold,underline}Global Flags & Special Commands:{normal}\n");
         fossil_io_printf("  {cyan,bold}--help{normal}      - Show command help\n");
         fossil_io_printf("  {cyan,bold}--version{normal}   - Display Shark Tool version\n");
@@ -180,6 +181,14 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}--format{normal}            Pretty-print\n");
             fossil_io_printf("  {cyan,bold}--declutter{normal}         Repair whitespace\n");
             fossil_io_printf("  {cyan,bold}--punctuate{normal}         Normalize punctuation\n");
+        } else if (fossil_io_cstring_equals(command, "cryptic")) {
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}cryptic [options] <text>{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
+            fossil_io_printf("  {cyan,bold}-e, --encode{normal}        Encode text\n");
+            fossil_io_printf("  {cyan,bold}-d, --decode{normal}        Decode text\n");
+            fossil_io_printf("  {cyan,bold}-c, --cipher <type>{normal} Cipher type: caesar, vigenere, base64, base32,\n");
+            fossil_io_printf("                        binary, morse, baconian, railfence, haxor,\n");
+            fossil_io_printf("                        leet, rot13, atbash\n");
         } else if (fossil_io_cstring_equals(command, "--help")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}--help{normal}\n");
             fossil_io_printf("{blue,bold,underline}Description:{normal} Show command help\n");
@@ -237,6 +246,8 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}shark introspect --type --fson report.pdf{normal}\n");
             else if (fossil_io_cstring_equals(command, "grammar"))
             fossil_io_printf("  {cyan,bold}shark grammar --check --tone notes.txt{normal}\n");
+            else if (fossil_io_cstring_equals(command, "cryptic"))
+            fossil_io_printf("  {cyan,bold}shark cryptic --encode --cipher caesar \"Hello, World!\"{normal}\n");
         }
 
         // Manual page output omitted for brevity, but should be updated similarly.

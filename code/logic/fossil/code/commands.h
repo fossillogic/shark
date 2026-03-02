@@ -260,6 +260,17 @@ int fossil_shark_grammar(ccstring file_path,
                          bool declutter,
                          bool punctuate);
 
+/**
+ * Encode or decode text using various ciphers
+ * @param text Text to encode or decode
+ * @param encode Encode the text
+ * @param decode Decode the text
+ * @param cipher Cipher type to use ("caesar", "vigenere", "base64", "base32", "binary", "morse", "baconian", "railfence", "haxor", "leet", "rot13", "atbash")
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_cryptic(ccstring text, bool encode, bool decode,
+                         ccstring cipher);
+
 #ifdef __cplusplus
 }
 #endif

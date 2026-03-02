@@ -148,6 +148,13 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    --declutter         Repair whitespace\n");
     fossil_io_printf("{bright_black}    --punctuate         Normalize punctuation\n");
 
+    fossil_io_printf("{cyan}  cryptic          {reset}Encode or decode text using various ciphers\n");
+    fossil_io_printf("{bright_black}    -e, --encode        Encode text\n");
+    fossil_io_printf("{bright_black}    -d, --decode        Decode text\n");
+    fossil_io_printf("{bright_black}    -c, --cipher <type> Cipher type: caesar, vigenere, base64, base32,\n");
+    fossil_io_printf("{bright_black}                        binary, morse, baconian, railfence, haxor,\n");
+    fossil_io_printf("{bright_black}                        leet, rot13, atbash\n");
+
     fossil_io_printf("\n{blue}Global Flags:{reset}\n");
     fossil_io_printf("{bright_black}  --help                Show command help\n");
     fossil_io_printf("{bright_black}  --version             Display Shark Tool version\n");
@@ -174,7 +181,7 @@ bool app_entry(int argc, char** argv) {
     // List of supported commands for suggestion
     static ccstring supported_commands[] = {
         "show", "move", "copy", "remove", "delete", "rename", "create", "search",
-        "archive", "view", "compare", "help", "sync",
+        "archive", "view", "compare", "help", "sync", "cryptic",
         "watch", "rewrite", "introspect", "grammar",
         "--help", "--version", "--name", "--verbose", "--color", "--clear"
     };
@@ -691,7 +698,30 @@ bool app_entry(int argc, char** argv) {
                     fossil_io_printf("{red}Grammar analysis failed: %s{reset}\n", file_path);
                 }
             }
-        }
+        } else if (fossil_io_cstring_compare(argv[i], "cryptic") == 0) {
+            ccstring text = cnull, cipher = "caesar";
+            bool encode = false, decode = false;
+
+            for (int j = i + 1; j < argc; j++) {
+            if (fossil_io_cstring_compare(argv[j], "-e") == 0 || fossil_io_cstring_compare(argv[j], "--encode") == 0) {
+                encode = true;
+            } else if (fossil_io_cstring_compare(argv[j], "-d") == 0 || fossil_io_cstring_compare(argv[j], "--decode") == 0) {
+                decode = true;
+            } else if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--cipher") == 0) {
+                if (j + 1 < argc) cipher = argv[++j];
+            } else if (!cnotnull(text)) {
+                text = argv[j];
+            }
+            i = j;
+            }
+
+            if (cnotnull(text)) {
+            int rc = fossil_shark_cryptic(text, encode, decode, cipher);
+            if (rc != 0) {
+                fossil_io_printf("{red}Cryptic operation failed{reset}\n");
+            }
+            }
+        } //
     }
     return 0;
 }
