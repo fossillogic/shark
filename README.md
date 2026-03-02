@@ -30,8 +30,8 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 | **Command** | **Description** | **Flags** |
 |-------------|-----------------|-----------|
 | `show` | Display files and directories. | `-a`, `--all` (show hidden)<br>`-l`, `--long` (detailed info)<br>`-h`, `--human` (human-readable sizes)<br>`-r`, `--recursive` (include subdirs)<br>`-d`, `--depth <n>` (limit recursion)<br>`--as <mode>` (format: list/tree/graph)<br>`--time` (show timestamps) |
-| `move` | Move or rename files/directories. | `-f`, `--force` (overwrite)<br>`-i`, `--interactive` (confirm overwrite)<br>`-b`, `--backup` (backup before move) |
-| `copy` | Copy files or directories. | `-r`, `--recursive` (copy subdirs)<br>`-u`, `--update` (only newer)<br>`-p`, `--preserve` (keep permissions/timestamps) |
+| `move` | Move or rename files/directories. | `-f`, `--force` (overwrite)<br>`-i`, `--interactive` (confirm overwrite)<br>`-b`, `--backup` (backup before move)<br>`--atomic` (atomic move)<br>`--progress` (show progress)<br>`--dry-run` (simulate)<br>`--exclude <pat>` (exclude files)<br>`--include <pat>` (include files) |
+| `copy` | Copy files or directories. | `-r`, `--recursive` (copy subdirs)<br>`-u`, `--update` (only newer)<br>`-p`, `--preserve` (keep permissions/timestamps)<br>`--checksum` (verify after copy)<br>`--sparse` (preserve sparse files)<br>`--link` (hardlink instead)<br>`--reflink` (copy-on-write)<br>`--progress` (show progress)<br>`--dry-run` (simulate)<br>`--exclude <pat>` (exclude files)<br>`--include <pat>` (include files) |
 | `remove` / `delete` | Delete files or directories. | `-r`, `--recursive` (delete contents)<br>`-f`, `--force` (no confirmation)<br>`-i`, `--interactive` (confirm per file)<br>`--trash` (move to trash) |
 | `rename` | Rename files or directories. | `-f`, `--force` (overwrite target)<br>`-i`, `--interactive` (confirm overwrite) |
 | `create` | Create new directories or files. | `-p`, `--parents` (create parent dirs)<br>`-t`, `--type <type>` (file or dir) |
