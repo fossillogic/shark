@@ -225,20 +225,40 @@ int fossil_shark_introspect(ccstring path, int show_head_lines,
                              bool show_file_type, bool output_json);
 
 /**
- * Perform grammar analysis, correction, sanitization, tone detection, and content-risk scanning.
- * Uses SOAP API for advanced grammar and content analysis.
+ * Analyze, correct, and assess grammar, style, and readability of text files.
+ * Supports grammar/style analysis, correction, tone/style detection, sanitization,
+ * suggestions, summarization, scoring, trait detection, reflow, capitalization,
+ * formatting, decluttering, and punctuation normalization.
  * @param file_path Path to file or text to analyze
- * @param check Run grammar check
- * @param fix Auto-correct grammar issues
- * @param sanitize Remove meme/rot-brain language
- * @param suggest Suggest alternative phrasing
- * @param tone Detect tone of content
- * @param detect_type Type of detector to run (e.g., ragebait, clickbait, spam, woke, bot, sarcasm, formal, snowflake, offensive, neutral, hype, quality, political, conspiracy, marketing, technobabble)
+ * @param check Analyze grammar and style (--check)
+ * @param correct Output corrected text (--correct)
+ * @param tone Detect tone and style (--tone)
+ * @param sanitize Remove unsafe or low-quality language (--sanitize)
+ * @param suggest Suggest improvements (--suggest)
+ * @param summarize Summarize content (--summarize)
+ * @param score Show readability/clarity/quality scores (--score)
+ * @param detect_type Detect specific traits (e.g., spam, clickbait, passive) (--detect <type>)
+ * @param reflow_width Reflow text to width n (--reflow <n>), 0 for no reflow
+ * @param capitalize_mode Capitalize sentences or titles (--capitalize <mode>), NULL for none
+ * @param format Pretty-print text (--format)
+ * @param declutter Repair word boundaries and whitespace (--declutter)
+ * @param punctuate Normalize punctuation (--punctuate)
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_grammar(ccstring file_path, bool check, bool fix,
-                         bool sanitize, bool suggest, bool tone,
-                         ccstring detect_type);
+int fossil_shark_grammar(ccstring file_path,
+                         bool check,
+                         bool correct,
+                         bool tone,
+                         bool sanitize,
+                         bool suggest,
+                         bool summarize,
+                         bool score,
+                         ccstring detect_type,
+                         int reflow_width,
+                         ccstring capitalize_mode,
+                         bool format,
+                         bool declutter,
+                         bool punctuate);
 
 #ifdef __cplusplus
 }

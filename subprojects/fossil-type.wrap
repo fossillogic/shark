@@ -1,0 +1,6 @@
+[wrap-git]
+url = https://github.com/fossillogic/fossil-type.git
+revision = v0.1.0
+
+[provide]
+dependency_names = fossil-type
