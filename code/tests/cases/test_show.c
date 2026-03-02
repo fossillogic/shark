@@ -26,7 +26,7 @@
 
 #include "fossil/code/app.h"
 
-FOSSIL_IO_VERBOSE = true; // Enable verbose output for testing
+FOSSIL_IO_OUTPUT_ENABLE = false; // Enable verbose output for testing
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Fossil Logic Test Utilites
