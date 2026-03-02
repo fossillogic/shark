@@ -363,6 +363,185 @@ FOSSIL_TEST(c_test_copy_unsupported_file_type) {
     remove("regular_copy.txt");
 }
 
+FOSSIL_TEST(c_test_copy_with_dry_run) {
+    // Create source file
+    FILE *src_file = fopen("dry_run_src.txt", "w");
+    ASSUME_NOT_CNULL(src_file);
+    fprintf(src_file, "Dry run test content\n");
+    fclose(src_file);
+    
+    // Copy with dry_run flag - should not create destination
+    int result = fossil_shark_copy("dry_run_src.txt", "dry_run_dest.txt", false, false, false, false, false, false, false, false, true, cnull, cnull);
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Verify source exists but destination does not
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("dry_run_src.txt"));
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("dry_run_dest.txt"));
+    
+    // Clean up
+    remove("dry_run_src.txt");
+}
+
+FOSSIL_TEST(c_test_copy_directory_dry_run) {
+    // Create source directory
+    #ifdef _WIN32
+    CreateDirectoryA("dry_run_dir_src", NULL);
+    #else
+    mkdir("dry_run_dir_src", 0755);
+    #endif
+    
+    // Create file in directory
+    FILE *file = fopen("dry_run_dir_src/test.txt", "w");
+    ASSUME_NOT_CNULL(file);
+    fprintf(file, "Directory dry run test\n");
+    fclose(file);
+    
+    // Copy with dry_run flag
+    int result = fossil_shark_copy("dry_run_dir_src", "dry_run_dir_dest", true, false, false, false, false, false, false, false, true, cnull, cnull);
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Verify destination directory was not created
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("dry_run_dir_dest"));
+    
+    // Clean up
+    remove("dry_run_dir_src/test.txt");
+    #ifdef _WIN32
+    RemoveDirectoryA("dry_run_dir_src");
+    #else
+    rmdir("dry_run_dir_src");
+    #endif
+}
+
+FOSSIL_TEST(c_test_copy_file_with_checksum) {
+    // Create source file
+    FILE *src_file = fopen("checksum_src.txt", "w");
+    ASSUME_NOT_CNULL(src_file);
+    fprintf(src_file, "Checksum verification content\n");
+    fclose(src_file);
+    
+    // Copy with checksum verification
+    int result = fossil_shark_copy("checksum_src.txt", "checksum_dest.txt", false, false, false, true, false, false, false, false, false, cnull, cnull);
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Verify both files exist
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("checksum_src.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("checksum_dest.txt"));
+    
+    // Clean up
+    remove("checksum_src.txt");
+    remove("checksum_dest.txt");
+}
+
+FOSSIL_TEST(c_test_copy_nested_directory_recursive) {
+    // Create nested directory structure
+    #ifdef _WIN32
+    CreateDirectoryA("nested_src", NULL);
+    CreateDirectoryA("nested_src\\level1", NULL);
+    CreateDirectoryA("nested_src\\level1\\level2", NULL);
+    #else
+    mkdir("nested_src", 0755);
+    mkdir("nested_src/level1", 0755);
+    mkdir("nested_src/level1/level2", 0755);
+    #endif
+    
+    // Create files at different levels
+    FILE *file1 = fopen("nested_src/file1.txt", "w");
+    ASSUME_NOT_CNULL(file1);
+    fprintf(file1, "Level 0 file\n");
+    fclose(file1);
+    
+    FILE *file2 = fopen("nested_src/level1/file2.txt", "w");
+    ASSUME_NOT_CNULL(file2);
+    fprintf(file2, "Level 1 file\n");
+    fclose(file2);
+    
+    FILE *file3 = fopen("nested_src/level1/level2/file3.txt", "w");
+    ASSUME_NOT_CNULL(file3);
+    fprintf(file3, "Level 2 file\n");
+    fclose(file3);
+    
+    // Copy recursively
+    int result = fossil_shark_copy("nested_src", "nested_dest", true, false, false, false, false, false, false, false, false, cnull, cnull);
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Verify nested structure was copied
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("nested_dest/file1.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("nested_dest/level1/file2.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("nested_dest/level1/level2/file3.txt"));
+    
+    // Clean up
+    remove("nested_src/file1.txt");
+    remove("nested_src/level1/file2.txt");
+    remove("nested_src/level1/level2/file3.txt");
+    remove("nested_dest/file1.txt");
+    remove("nested_dest/level1/file2.txt");
+    remove("nested_dest/level1/level2/file3.txt");
+    #ifdef _WIN32
+    RemoveDirectoryA("nested_src\\level1\\level2");
+    RemoveDirectoryA("nested_src\\level1");
+    RemoveDirectoryA("nested_src");
+    RemoveDirectoryA("nested_dest\\level1\\level2");
+    RemoveDirectoryA("nested_dest\\level1");
+    RemoveDirectoryA("nested_dest");
+    #else
+    rmdir("nested_src/level1/level2");
+    rmdir("nested_src/level1");
+    rmdir("nested_src");
+    rmdir("nested_dest/level1/level2");
+    rmdir("nested_dest/level1");
+    rmdir("nested_dest");
+    #endif
+}
+
+FOSSIL_TEST(c_test_copy_multiple_files_in_directory) {
+    // Create source directory
+    #ifdef _WIN32
+    CreateDirectoryA("multi_files_src", NULL);
+    #else
+    mkdir("multi_files_src", 0755);
+    #endif
+    
+    // Create multiple files
+    for (int i = 0; i < 5; i++) {
+        char filename[32];
+        snprintf(filename, sizeof(filename), "multi_files_src/file%d.txt", i);
+        FILE *file = fopen(filename, "w");
+        ASSUME_NOT_CNULL(file);
+        fprintf(file, "Content of file %d\n", i);
+        fclose(file);
+    }
+    
+    // Copy directory
+    int result = fossil_shark_copy("multi_files_src", "multi_files_dest", true, false, false, false, false, false, false, false, false, cnull, cnull);
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Verify all files were copied
+    for (int i = 0; i < 5; i++) {
+        char filename[32];
+        snprintf(filename, sizeof(filename), "multi_files_dest/file%d.txt", i);
+        ASSUME_ITS_TRUE(fossil_io_file_file_exists(filename));
+    }
+    
+    // Clean up
+    for (int i = 0; i < 5; i++) {
+        char filename[32];
+        snprintf(filename, sizeof(filename), "multi_files_src/file%d.txt", i);
+        remove(filename);
+    }
+    for (int i = 0; i < 5; i++) {
+        char filename[32];
+        snprintf(filename, sizeof(filename), "multi_files_dest/file%d.txt", i);
+        remove(filename);
+    }
+    #ifdef _WIN32
+    RemoveDirectoryA("multi_files_src");
+    RemoveDirectoryA("multi_files_dest");
+    #else
+    rmdir("multi_files_src");
+    rmdir("multi_files_dest");
+    #endif
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
@@ -381,6 +560,11 @@ FOSSIL_TEST_GROUP(c_copy_command_tests) {
     FOSSIL_TEST_ADD(c_copy_command_suite, c_test_copy_overwrite_existing);
     FOSSIL_TEST_ADD(c_copy_command_suite, c_test_copy_all_flags);
     FOSSIL_TEST_ADD(c_copy_command_suite, c_test_copy_unsupported_file_type);
+    FOSSIL_TEST_ADD(c_copy_command_suite, c_test_copy_with_dry_run);
+    FOSSIL_TEST_ADD(c_copy_command_suite, c_test_copy_directory_dry_run);
+    FOSSIL_TEST_ADD(c_copy_command_suite, c_test_copy_file_with_checksum);
+    FOSSIL_TEST_ADD(c_copy_command_suite, c_test_copy_nested_directory_recursive);
+    FOSSIL_TEST_ADD(c_copy_command_suite, c_test_copy_multiple_files_in_directory);
 
     FOSSIL_TEST_REGISTER(c_copy_command_suite);
 }

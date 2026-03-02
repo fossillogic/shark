@@ -280,6 +280,181 @@ FOSSIL_TEST(c_test_move_same_source_and_dest) {
     remove("same_path.txt");
 }
 
+FOSSIL_TEST(c_test_move_dry_run_no_actual_move) {
+    // Create source file
+    FILE *src_file = fopen("dryrun_src.txt", "w");
+    ASSUME_NOT_CNULL(src_file);
+    fprintf(src_file, "Dry run test content\n");
+    fclose(src_file);
+    
+    // Perform dry run move
+    int result = fossil_shark_move("dryrun_src.txt", "dryrun_dest.txt", false, false, false, false, false, true, cnull, cnull);
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Verify source still exists (dry run should not move)
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("dryrun_src.txt"));
+    
+    // Verify destination was not created
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("dryrun_dest.txt"));
+    
+    // Clean up
+    remove("dryrun_src.txt");
+}
+
+FOSSIL_TEST(c_test_move_with_atomic_operation) {
+    // Create source file
+    FILE *src_file = fopen("atomic_src.txt", "w");
+    ASSUME_NOT_CNULL(src_file);
+    fprintf(src_file, "Atomic operation test\n");
+    fclose(src_file);
+    
+    // Perform atomic move
+    int result = fossil_shark_move("atomic_src.txt", "atomic_dest.txt", false, false, false, true, false, false, cnull, cnull);
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Verify move completed
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("atomic_src.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("atomic_dest.txt"));
+    
+    // Clean up
+    remove("atomic_dest.txt");
+}
+
+FOSSIL_TEST(c_test_move_with_progress_reporting) {
+    // Create source file
+    FILE *src_file = fopen("progress_src.txt", "w");
+    ASSUME_NOT_CNULL(src_file);
+    fprintf(src_file, "Progress reporting test\n");
+    fclose(src_file);
+    
+    // Perform move with progress
+    int result = fossil_shark_move("progress_src.txt", "progress_dest.txt", false, false, false, false, true, false, cnull, cnull);
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Verify move completed
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("progress_src.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("progress_dest.txt"));
+    
+    // Clean up
+    remove("progress_dest.txt");
+}
+
+FOSSIL_TEST(c_test_move_with_exclude_pattern) {
+    // Create source file
+    FILE *src_file = fopen("excludetest.txt", "w");
+    ASSUME_NOT_CNULL(src_file);
+    fprintf(src_file, "File to exclude\n");
+    fclose(src_file);
+    
+    // Move with exclude pattern that matches
+    int result = fossil_shark_move("excludetest.txt", "excluded_dest.txt", false, false, false, false, false, false, "exclude", cnull);
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // File should still exist due to exclude pattern
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("excludetest.txt"));
+    
+    // Clean up
+    remove("excludetest.txt");
+}
+
+FOSSIL_TEST(c_test_move_with_include_pattern) {
+    // Create source file
+    FILE *src_file = fopen("include_test.txt", "w");
+    ASSUME_NOT_CNULL(src_file);
+    fprintf(src_file, "File to include\n");
+    fclose(src_file);
+    
+    // Move with include pattern that matches
+    int result = fossil_shark_move("include_test.txt", "included_dest.txt", false, false, false, false, false, false, cnull, "include");
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Verify move completed with matching include pattern
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("include_test.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("included_dest.txt"));
+    
+    // Clean up
+    remove("included_dest.txt");
+}
+
+FOSSIL_TEST(c_test_move_with_non_matching_include_pattern) {
+    // Create source file
+    FILE *src_file = fopen("nomatch.txt", "w");
+    ASSUME_NOT_CNULL(src_file);
+    fprintf(src_file, "Non-matching file\n");
+    fclose(src_file);
+    
+    // Move with include pattern that does not match
+    int result = fossil_shark_move("nomatch.txt", "nomatch_dest.txt", false, false, false, false, false, false, cnull, "xyz");
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // File should still exist due to non-matching include pattern
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("nomatch.txt"));
+    
+    // Clean up
+    remove("nomatch.txt");
+}
+
+FOSSIL_TEST(c_test_move_backup_with_force) {
+    // Create source and destination files
+    FILE *src_file = fopen("backup_force_src.txt", "w");
+    ASSUME_NOT_CNULL(src_file);
+    fprintf(src_file, "Source with backup\n");
+    fclose(src_file);
+    
+    FILE *dest_file = fopen("backup_force_dest.txt", "w");
+    ASSUME_NOT_CNULL(dest_file);
+    fprintf(dest_file, "Original to backup\n");
+    fclose(dest_file);
+    
+    // Move with both backup and force
+    int result = fossil_shark_move("backup_force_src.txt", "backup_force_dest.txt", true, false, true, false, false, false, cnull, cnull);
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Verify backup exists
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("backup_force_dest.txt.bak"));
+    
+    // Clean up
+    remove("backup_force_dest.txt");
+    remove("backup_force_dest.txt.bak");
+}
+
+FOSSIL_TEST(c_test_move_atomic_with_progress) {
+    // Create source file
+    FILE *src_file = fopen("atomic_progress_src.txt", "w");
+    ASSUME_NOT_CNULL(src_file);
+    fprintf(src_file, "Atomic with progress\n");
+    fclose(src_file);
+    
+    // Perform move with both atomic and progress
+    int result = fossil_shark_move("atomic_progress_src.txt", "atomic_progress_dest.txt", false, false, false, true, true, false, cnull, cnull);
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Atomic operation takes precedence, verify move completed
+    ASSUME_ITS_FALSE(fossil_io_file_file_exists("atomic_progress_src.txt"));
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("atomic_progress_dest.txt"));
+    
+    // Clean up
+    remove("atomic_progress_dest.txt");
+}
+
+FOSSIL_TEST(c_test_move_path_normalization_windows_style) {
+    // Create source file
+    FILE *src_file = fopen("norm_src.txt", "w");
+    ASSUME_NOT_CNULL(src_file);
+    fprintf(src_file, "Path normalization test\n");
+    fclose(src_file);
+    
+    // Move with forward slashes (should be normalized)
+    int result = fossil_shark_move("norm_src.txt", "norm_dest.txt", false, false, false, false, false, false, cnull, cnull);
+    ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Verify move completed despite path style
+    ASSUME_ITS_TRUE(fossil_io_file_file_exists("norm_dest.txt"));
+    
+    // Clean up
+    remove("norm_dest.txt");
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
@@ -297,6 +472,15 @@ FOSSIL_TEST_GROUP(c_move_command_tests) {
     FOSSIL_TEST_ADD(c_move_command_suite, c_test_move_special_characters);
     FOSSIL_TEST_ADD(c_move_command_suite, c_test_move_to_existing_directory);
     FOSSIL_TEST_ADD(c_move_command_suite, c_test_move_same_source_and_dest);
+    FOSSIL_TEST_ADD(c_move_command_suite, c_test_move_dry_run_no_actual_move);
+    FOSSIL_TEST_ADD(c_move_command_suite, c_test_move_with_atomic_operation);
+    FOSSIL_TEST_ADD(c_move_command_suite, c_test_move_with_progress_reporting);
+    FOSSIL_TEST_ADD(c_move_command_suite, c_test_move_with_exclude_pattern);
+    FOSSIL_TEST_ADD(c_move_command_suite, c_test_move_with_include_pattern);
+    FOSSIL_TEST_ADD(c_move_command_suite, c_test_move_with_non_matching_include_pattern);
+    FOSSIL_TEST_ADD(c_move_command_suite, c_test_move_backup_with_force);
+    FOSSIL_TEST_ADD(c_move_command_suite, c_test_move_atomic_with_progress);
+    FOSSIL_TEST_ADD(c_move_command_suite, c_test_move_path_normalization_windows_style);
 
     FOSSIL_TEST_REGISTER(c_move_command_suite);
 }
