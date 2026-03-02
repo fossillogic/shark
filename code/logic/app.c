@@ -699,7 +699,7 @@ bool app_entry(int argc, char** argv) {
                 }
             }
         } else if (fossil_io_cstring_compare(argv[i], "cryptic") == 0) {
-            ccstring text = cnull, cipher = "caesar", key = cnull;
+            ccstring text = cnull, cipher = "caesar";
             bool encode = false, decode = false;
 
             for (int j = i + 1; j < argc; j++) {
@@ -716,7 +716,7 @@ bool app_entry(int argc, char** argv) {
             }
 
             if (cnotnull(text)) {
-            int rc = fossil_shark_cryptic(text, encode, decode, cipher, key);
+            int rc = fossil_shark_cryptic(text, encode, decode, cipher);
             if (rc != 0) {
                 fossil_io_printf("{red}Cryptic operation failed{reset}\n");
             }
