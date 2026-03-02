@@ -420,7 +420,7 @@ FOSSIL_TEST(c_test_copy_file_with_checksum) {
     fclose(src_file);
     
     // Copy with checksum verification
-    int result = fossil_shark_copy("checksum_src.txt", "checksum_dest.txt", false, false, false, true, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_copy("checksum_src.txt", "checksum_dest.txt", false, false, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify both files exist

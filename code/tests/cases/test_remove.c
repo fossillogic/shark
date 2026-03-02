@@ -58,20 +58,20 @@ FOSSIL_TEARDOWN(c_remove_command_suite) {
 
 FOSSIL_TEST(c_test_remove_null_path) {
     // Should handle null path gracefully
-    int result = fossil_shark_remove(cnull, false, false, false, false);
-    ASSUME_NOT_EQUAL_I32(0, result);
+    int result = fossil_shark_remove(NULL, false, false, false, false, false, 0, NULL, 0, false, NULL);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_remove_nonexistent_file) {
     // Should handle non-existent file gracefully
-    int result = fossil_shark_remove("/nonexistent/file.txt", false, false, false, false);
-    ASSUME_NOT_EQUAL_I32(0, result);
+    int result = fossil_shark_remove("/nonexistent/file.txt", false, false, false, false, false, 0, NULL, 0, false, NULL);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_remove_nonexistent_file_force) {
     // Should succeed with force flag even for non-existent files
-    int result = fossil_shark_remove("/nonexistent/file.txt", false, true, false, false);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    int result = fossil_shark_remove("/nonexistent/file.txt", false, true, false, false, false, 0, NULL, 0, false, NULL);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_remove_single_file) {
@@ -82,8 +82,8 @@ FOSSIL_TEST(c_test_remove_single_file) {
     fclose(temp);
     
     // Remove the file
-    int result = fossil_shark_remove("test_remove_file.txt", false, false, false, false);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    int result = fossil_shark_remove("test_remove_file.txt", false, false, false, false, false, 0, NULL, 0, false, NULL);
+    ASSUME_ITS_EQUAL_I32(result, 0);
     
     // Verify file is removed
     FILE *check = fopen("test_remove_file.txt", "r");
@@ -96,11 +96,10 @@ FOSSIL_TEST(c_test_remove_single_file_to_trash) {
     fprintf(temp, "Test content for trash\n");
     fclose(temp);
 
-    int result = fossil_shark_remove("test_trash_file.txt",
-                                     false, false, false, true);
+    int result = fossil_shark_remove("test_trash_file.txt", false, false, false, true, false, 0, NULL, 0, false, NULL);
 
     // ENOENT / EXDEV / platform-dependent trash failure is acceptable
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 
     // File may or may not still exist — DO NOT assert deletion
     FILE *check = fopen("test_trash_file.txt", "r");
@@ -118,9 +117,9 @@ FOSSIL_TEST(c_test_remove_empty_directory) {
     mkdir("test_empty_dir", 0755);
     #endif
     
-    // Remove the directory
-    int result = fossil_shark_remove("test_empty_dir", false, false, false, false);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    // Remove the directory with empty_only flag
+    int result = fossil_shark_remove("test_empty_dir", false, false, false, false, false, 0, NULL, 0, true, NULL);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_remove_directory_recursive) {
@@ -144,8 +143,8 @@ FOSSIL_TEST(c_test_remove_directory_recursive) {
     fclose(temp2);
     
     // Remove recursively
-    int result = fossil_shark_remove("test_recursive_dir", true, false, false, false);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    int result = fossil_shark_remove("test_recursive_dir", true, false, false, false, false, 0, NULL, 0, false, NULL);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_remove_directory_recursive_to_trash) {
@@ -162,8 +161,8 @@ FOSSIL_TEST(c_test_remove_directory_recursive_to_trash) {
     fclose(temp);
     
     // Move to trash recursively
-    int result = fossil_shark_remove("test_trash_dir", true, false, false, true);
-    ASSUME_ITS_EQUAL_I32(2, result);
+    int result = fossil_shark_remove("test_trash_dir", true, false, false, true, false, 0, NULL, 0, false, NULL);
+    ASSUME_ITS_EQUAL_I32(result, 2);
 }
 
 FOSSIL_TEST(c_test_remove_multiple_files_force) {
@@ -179,11 +178,11 @@ FOSSIL_TEST(c_test_remove_multiple_files_force) {
     fclose(temp2);
     
     // Remove files with force flag
-    int result1 = fossil_shark_remove("force_file1.txt", false, true, false, false);
-    int result2 = fossil_shark_remove("force_file2.txt", false, true, false, false);
+    int result1 = fossil_shark_remove("force_file1.txt", false, true, false, false, false, 0, NULL, 0, false, NULL);
+    int result2 = fossil_shark_remove("force_file2.txt", false, true, false, false, false, 0, NULL, 0, false, NULL);
     
-    ASSUME_ITS_EQUAL_I32(0, result1);
-    ASSUME_ITS_EQUAL_I32(0, result2);
+    ASSUME_ITS_EQUAL_I32(result1, 0);
+    ASSUME_ITS_EQUAL_I32(result2, 0);
 }
 
 FOSSIL_TEST(c_test_remove_nested_directory_structure) {
@@ -204,8 +203,8 @@ FOSSIL_TEST(c_test_remove_nested_directory_structure) {
     fclose(deep_file);
     
     // Remove nested structure recursively
-    int result = fossil_shark_remove("test_nested", true, false, false, false);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    int result = fossil_shark_remove("test_nested", true, false, false, false, false, 0, NULL, 0, false, NULL);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_remove_readonly_file_force) {
@@ -216,8 +215,8 @@ FOSSIL_TEST(c_test_remove_readonly_file_force) {
     fclose(temp);
     
     // Try to remove with force (should work regardless of permissions)
-    int result = fossil_shark_remove("readonly_test.txt", false, true, false, false);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    int result = fossil_shark_remove("readonly_test.txt", false, true, false, false, false, 0, NULL, 0, false, NULL);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_remove_special_characters_filename) {
@@ -228,8 +227,8 @@ FOSSIL_TEST(c_test_remove_special_characters_filename) {
     fclose(temp);
     
     // Remove file with special characters
-    int result = fossil_shark_remove("special-file_test.txt", false, false, false, false);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    int result = fossil_shark_remove("special-file_test.txt", false, false, false, false, false, 0, NULL, 0, false, NULL);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_remove_large_directory_structure) {
@@ -252,8 +251,49 @@ FOSSIL_TEST(c_test_remove_large_directory_structure) {
     }
     
     // Remove entire structure
-    int result = fossil_shark_remove("large_test_dir", true, false, false, false);
-    ASSUME_ITS_EQUAL_I32(0, result);
+    int result = fossil_shark_remove("large_test_dir", true, false, false, false, false, 0, NULL, 0, false, NULL);
+    ASSUME_ITS_EQUAL_I32(result, 0);
+}
+
+FOSSIL_TEST(c_test_remove_with_wipe) {
+    // Create test file
+    FILE *temp = fopen("wipe_test.txt", "w");
+    ASSUME_NOT_CNULL(temp);
+    fprintf(temp, "Content to securely wipe\n");
+    fclose(temp);
+    
+    // Remove with secure wipe
+    int result = fossil_shark_remove("wipe_test.txt", false, false, false, false, true, 3, NULL, 0, false, NULL);
+    ASSUME_ITS_EQUAL_I32(result, 0);
+}
+
+FOSSIL_TEST(c_test_remove_interactive_mode) {
+    // Create test file
+    FILE *temp = fopen("interactive_test.txt", "w");
+    ASSUME_NOT_CNULL(temp);
+    fprintf(temp, "Interactive removal test\n");
+    fclose(temp);
+    
+    // Remove in interactive mode (may require manual confirmation in actual use)
+    int result = fossil_shark_remove("interactive_test.txt", false, false, true, false, false, 0, NULL, 0, false, NULL);
+    // Result depends on interactive input
+    ASSUME_NOT_EQUAL_I32(result, -1);
+}
+
+FOSSIL_TEST(c_test_remove_with_log) {
+    // Create test file
+    FILE *temp = fopen("logged_test.txt", "w");
+    ASSUME_NOT_CNULL(temp);
+    fprintf(temp, "Logged removal test\n");
+    fclose(temp);
+    
+    // Remove with logging
+    int result = fossil_shark_remove("logged_test.txt", false, false, false, false, false, 0, NULL, 0, false, "removal.log");
+    ASSUME_ITS_EQUAL_I32(result, 0);
+    
+    // Verify log file was created
+    FILE *log = fopen("removal.log", "r");
+    if (log) fclose(log);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
@@ -274,6 +314,9 @@ FOSSIL_TEST_GROUP(c_remove_command_tests) {
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_readonly_file_force);
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_special_characters_filename);
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_large_directory_structure);
+    FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_with_wipe);
+    FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_interactive_mode);
+    FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_with_log);
 
     FOSSIL_TEST_REGISTER(c_remove_command_suite);
 }

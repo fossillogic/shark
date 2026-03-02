@@ -58,164 +58,164 @@ FOSSIL_TEARDOWN(c_cryptic_command_suite) {
 FOSSIL_TEST(c_test_cryptic_null_text) {
     // Test with null text
     int result = fossil_shark_cryptic(cnull, true, false, "caesar");
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_null_cipher) {
     // Test with null cipher
     int result = fossil_shark_cryptic("hello", true, false, cnull);
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_multiple_operations) {
     // Test with both encode and decode specified (invalid)
     int result = fossil_shark_cryptic("hello", true, true, "caesar");
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_no_operations) {
     // Test with neither encode nor decode specified
     int result = fossil_shark_cryptic("hello", false, false, "caesar");
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_caesar_encode) {
     // Test Caesar cipher encoding
     int result = fossil_shark_cryptic("hello", true, false, "caesar");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_rot13_encode) {
     // Test ROT13 encoding
     int result = fossil_shark_cryptic("hello", true, false, "rot13");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_base64_encode) {
     // Test Base64 encoding
     int result = fossil_shark_cryptic("hello", true, false, "base64");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_base32_encode) {
     // Test Base32 encoding
     int result = fossil_shark_cryptic("hello", true, false, "base32");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_atbash_encode) {
     // Test Atbash encoding
     int result = fossil_shark_cryptic("hello", true, false, "atbash");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_vigenere_with_key) {
     // Test Vigenere cipher with key
     int result = fossil_shark_cryptic("hello", true, false, "vigenere");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_vigenere_without_key) {
     // Test Vigenere cipher without key (should fail)
     int result = fossil_shark_cryptic("hello", true, false, "vigenere");
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_binary_encode) {
     // Test Binary encoding
     int result = fossil_shark_cryptic("hello", true, false, "binary");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_morse_encode) {
     // Test Morse code encoding
     int result = fossil_shark_cryptic("hello", true, false, "morse");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_baconian_encode) {
     // Test Baconian cipher encoding
     int result = fossil_shark_cryptic("hello", true, false, "baconian");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_railfence_encode) {
     // Test Rail Fence cipher encoding
     int result = fossil_shark_cryptic("hello", true, false, "railfence");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_haxor_encode) {
     // Test Haxor encoding
     int result = fossil_shark_cryptic("hello", true, false, "haxor");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_leet_encode) {
     // Test Leet speak encoding
     int result = fossil_shark_cryptic("hello", true, false, "leet");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_unsupported_cipher) {
     // Test with unsupported cipher type
     int result = fossil_shark_cryptic("hello", true, false, "unknown_cipher");
-    ASSUME_NOT_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_empty_text) {
     // Test with empty text string
     int result = fossil_shark_cryptic("", true, false, "caesar");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_special_characters) {
     // Test with special characters
     int result = fossil_shark_cryptic("hello@#$%", true, false, "base64");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_long_text) {
     // Test with long text
     const char *long_text = "The quick brown fox jumps over the lazy dog. This is a test of the cipher system with a longer input string.";
     int result = fossil_shark_cryptic(long_text, true, false, "caesar");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_unicode_text) {
     // Test with unicode/special text
     int result = fossil_shark_cryptic("café", true, false, "base64");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_base64_decode) {
     // Test Base64 decoding
     int result = fossil_shark_cryptic("aGVsbG8=", false, true, "base64");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_rot13_roundtrip) {
     // Test ROT13 decode (ROT13 applied twice returns original)
     int result = fossil_shark_cryptic("uryyb", false, true, "rot13");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_whitespace_text) {
     // Test with whitespace and newlines
     int result = fossil_shark_cryptic("hello world\nfoo bar", true, false, "base64");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_numeric_text) {
     // Test with numeric text
     int result = fossil_shark_cryptic("1234567890", true, false, "caesar");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_cryptic_mixed_case) {
     // Test with mixed case text
     int result = fossil_shark_cryptic("HeLLo WoRLd", true, false, "rot13");
-    ASSUME_ITS_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *

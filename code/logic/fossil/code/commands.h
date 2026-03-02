@@ -100,10 +100,19 @@ int fossil_shark_copy(ccstring src, ccstring dest,
  * @param force Force removal without prompts
  * @param interactive Prompt before each removal
  * @param use_trash Move to trash instead of permanent deletion
+ * @param wipe Securely overwrite files before deletion
+ * @param shred_passes Number of passes for multi-pass secure deletion (0 for none)
+ * @param older_than Delete only files older than specified time (NULL for no filter)
+ * @param larger_than Delete only files larger than specified size (0 for no filter)
+ * @param empty_only Delete only empty directories
+ * @param log_file Write deletion log to specified file (NULL for no logging)
  * @return 0 on success, non-zero on error
  */
 int fossil_shark_remove(ccstring path, bool recursive, bool force,
-                        bool interactive, bool use_trash);
+                        bool interactive, bool use_trash, bool wipe,
+                        int shred_passes, ccstring older_than,
+                        size_t larger_than, bool empty_only,
+                        ccstring log_file);
 
 /**
  * Rename files or directories with safety checks
