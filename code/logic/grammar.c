@@ -158,16 +158,10 @@ int fossil_shark_grammar(ccstring file_path,
     // Grammar/style check
     if (check) {
         fossil_io_soap_grammar_style_t style = fossil_io_soap_analyze_grammar_style(work);
-        fossil_io_printf("{green}[check]{normal} Grammar OK: %s, Passive voice: %d%%, Style: %s, Errors: %d\n",
+        fossil_io_printf("{green}[check]{normal} Grammar OK: %s, Passive voice: %d%%, Style: %s\n",
             style.grammar_ok ? "yes" : "no",
             style.passive_voice_pct,
-            style.style ? style.style : "unknown",
-            style.grammar_error_count);
-        if (style.grammar_errors) {
-            for (int i = 0; style.grammar_errors[i]; i++) {
-                fossil_io_printf("  - %s\n", style.grammar_errors[i]);
-            }
-        }
+            style.style ? style.style : "unknown");
     }
 
     // Correct grammar
@@ -209,9 +203,7 @@ int fossil_shark_grammar(ccstring file_path,
     // Tone/style detection
     if (tone) {
         fossil_io_soap_grammar_style_t style = fossil_io_soap_analyze_grammar_style(work);
-        fossil_io_printf("{blue}[tone]{normal} Detected style: %s (confidence: %d%%)\n", 
-            style.style ? style.style : "unknown",
-            style.style_confidence);
+        fossil_io_printf("{blue}[tone]{normal} Detected style: %s\n", style.style ? style.style : "unknown");
     }
 
     // Trait detection

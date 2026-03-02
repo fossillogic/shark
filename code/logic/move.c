@@ -83,8 +83,81 @@ static bool confirm_overwrite(ccstring dest) {
     return result;
 }
 
+static int handle_atomic_move(ccstring src, ccstring dest) {
+    if (fossil_io_file_rename(src, dest) != 0) {
+        fossil_io_printf("{red}Atomic move failed: %s{normal}\n", strerror(errno));
+        return errno;
+    }
+    fossil_io_printf("{cyan}Atomic move completed: '%s' -> '%s'{normal}\n", src, dest);
+    return 0;
+}
+
+static int handle_move_with_progress(ccstring src, ccstring dest) {
+    fossil_io_printf("{cyan}Moving '%s' to '%s'{normal}\n", src, dest);
+    
+    if (fossil_io_file_rename(src, dest) != 0) {
+        fossil_io_printf("{red}Move with progress failed: %s{normal}\n", strerror(errno));
+        return errno;
+    }
+    
+    fossil_io_printf("{cyan}Move completed: 100%%{normal}\n");
+    return 0;
+}
+
+static int filter_by_patterns(ccstring src, ccstring dest, ccstring exclude, ccstring include) {
+    if (include && !fossil_io_cstring_contains(src, include)) {
+        fossil_io_printf("{yellow}Skipped (include pattern): %s{normal}\n", src);
+        return 0;
+    }
+    
+    if (exclude && fossil_io_cstring_contains(src, exclude)) {
+        fossil_io_printf("{yellow}Skipped (exclude pattern): %s{normal}\n", src);
+        return 0;
+    }
+    
+    if (fossil_io_file_rename(src, dest) != 0) {
+        fossil_io_printf("{red}Pattern-filtered move failed: %s{normal}\n", strerror(errno));
+        return errno;
+    }
+    
+    fossil_io_printf("{cyan}Moved: '%s' -> '%s'{normal}\n", src, dest);
+    return 0;
+}
+
+//
+static void cleanup_paths(cstring norm_src, cstring norm_dest) {
+    if (norm_src) fossil_io_cstring_free(norm_src);
+    if (norm_dest) fossil_io_cstring_free(norm_dest);
+}
+
+static int execute_move_operation(ccstring norm_src, ccstring norm_dest,
+                                   bool atomic, bool progress,
+                                   ccstring exclude_pattern, ccstring include_pattern) {
+    if (atomic) {
+        return handle_atomic_move(norm_src, norm_dest);
+    }
+    
+    if (progress) {
+        return handle_move_with_progress(norm_src, norm_dest);
+    }
+    
+    if (cnotnull(exclude_pattern) || cnotnull(include_pattern)) {
+        return filter_by_patterns(norm_src, norm_dest, exclude_pattern, include_pattern);
+    }
+    
+    if (fossil_io_file_rename(norm_src, norm_dest) != 0) {
+        fossil_io_printf("{red}Failed to move/rename: %s{normal}\n", strerror(errno));
+        return errno;
+    }
+    
+    fossil_io_printf("{cyan}Successfully moved '%s' to '%s'{normal}\n", norm_src, norm_dest);
+    return 0;
+}
+
 int fossil_shark_move(ccstring src, ccstring dest,
-                      bool force, bool interactive, bool backup) {
+                      bool force, bool interactive, bool backup,
+                      bool atomic, bool progress, bool dry_run,
+                      ccstring exclude_pattern, ccstring include_pattern) {
     if (!cnotnull(src) || !cnotnull(dest)) {
         fossil_io_printf("{red}Error: Source and destination paths must be specified.{normal}\n");
         return 1;
@@ -99,6 +172,13 @@ int fossil_shark_move(ccstring src, ccstring dest,
         if (norm_src) fossil_io_cstring_free(norm_src);
         if (norm_dest) fossil_io_cstring_free(norm_dest);
         return 1;
+    }
+
+    if (dry_run) {
+        fossil_io_printf("{cyan}[DRY RUN] Would move '%s' to '%s'{normal}\n", norm_src, norm_dest);
+        fossil_io_cstring_free(norm_src);
+        fossil_io_cstring_free(norm_dest);
+        return 0;
     }
 
     bool dest_exists = fossil_io_file_file_exists(norm_dest);
@@ -127,6 +207,42 @@ int fossil_shark_move(ccstring src, ccstring dest,
             fossil_io_cstring_free(norm_dest);
             return 1;
         }
+    }
+
+    // Handle atomic operation
+    if (atomic) {
+        if (handle_atomic_move(norm_src, norm_dest) != 0) {
+            fossil_io_cstring_free(norm_src);
+            fossil_io_cstring_free(norm_dest);
+            return 1;
+        }
+        fossil_io_cstring_free(norm_src);
+        fossil_io_cstring_free(norm_dest);
+        return 0;
+    }
+
+    // Handle progress reporting
+    if (progress) {
+        if (handle_move_with_progress(norm_src, norm_dest) != 0) {
+            fossil_io_cstring_free(norm_src);
+            fossil_io_cstring_free(norm_dest);
+            return 1;
+        }
+        fossil_io_cstring_free(norm_src);
+        fossil_io_cstring_free(norm_dest);
+        return 0;
+    }
+
+    // Handle pattern filtering
+    if (cnotnull(exclude_pattern) || cnotnull(include_pattern)) {
+        if (filter_by_patterns(norm_src, norm_dest, exclude_pattern, include_pattern) != 0) {
+            fossil_io_cstring_free(norm_src);
+            fossil_io_cstring_free(norm_dest);
+            return 1;
+        }
+        fossil_io_cstring_free(norm_src);
+        fossil_io_cstring_free(norm_dest);
+        return 0;
     }
 
     if (fossil_io_file_rename(norm_src, norm_dest) != 0) {

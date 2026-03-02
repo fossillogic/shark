@@ -58,11 +58,24 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    -f, --force         Overwrite\n");
     fossil_io_printf("{bright_black}    -i, --interactive   Confirm overwrite\n");
     fossil_io_printf("{bright_black}    -b, --backup        Backup before move\n");
+    fossil_io_printf("{bright_black}    --atomic            Atomic move\n");
+    fossil_io_printf("{bright_black}    --progress          Show progress\n");
+    fossil_io_printf("{bright_black}    --dry-run           Simulate\n");
+    fossil_io_printf("{bright_black}    --exclude <pat>     Exclude files\n");
+    fossil_io_printf("{bright_black}    --include <pat>     Include files\n");
 
     fossil_io_printf("{cyan}  copy             {reset}Copy files or directories\n");
     fossil_io_printf("{bright_black}    -r, --recursive     Copy subdirs\n");
     fossil_io_printf("{bright_black}    -u, --update        Only newer\n");
     fossil_io_printf("{bright_black}    -p, --preserve      Keep permissions/timestamps\n");
+    fossil_io_printf("{bright_black}    --checksum          Verify after copy\n");
+    fossil_io_printf("{bright_black}    --sparse            Preserve sparse files\n");
+    fossil_io_printf("{bright_black}    --link              Hardlink instead\n");
+    fossil_io_printf("{bright_black}    --reflink           Copy-on-write\n");
+    fossil_io_printf("{bright_black}    --progress          Show progress\n");
+    fossil_io_printf("{bright_black}    --dry-run           Simulate\n");
+    fossil_io_printf("{bright_black}    --exclude <pat>     Exclude files\n");
+    fossil_io_printf("{bright_black}    --include <pat>     Include files\n");
 
     fossil_io_printf("{cyan}  remove, delete   {reset}Delete files or directories\n");
     fossil_io_printf("{bright_black}    -r, --recursive     Delete contents\n");
@@ -337,6 +350,8 @@ bool app_entry(int argc, char** argv) {
         } else if (fossil_io_cstring_compare(argv[i], "move") == 0) {
             ccstring src = cnull, dest = cnull;
             bool force = false, interactive = false, backup = false;
+            bool atomic = false, progress = false, dry_run = false;
+            ccstring exclude_pattern = cnull, include_pattern = cnull;
             
             for (int j = i + 1; j < argc; j++) {
                 if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0) {
@@ -345,6 +360,16 @@ bool app_entry(int argc, char** argv) {
                     interactive = true;
                 } else if (fossil_io_cstring_compare(argv[j], "-b") == 0 || fossil_io_cstring_compare(argv[j], "--backup") == 0) {
                     backup = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--atomic") == 0) {
+                    atomic = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--progress") == 0) {
+                    progress = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--dry-run") == 0) {
+                    dry_run = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--exclude") == 0 && j + 1 < argc) {
+                    exclude_pattern = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--include") == 0 && j + 1 < argc) {
+                    include_pattern = argv[++j];
                 } else if (!cnotnull(src)) {
                     src = argv[j];
                 } else if (!cnotnull(dest)) {
@@ -352,11 +377,14 @@ bool app_entry(int argc, char** argv) {
                 }
                 i = j;
             }
-            if (cnotnull(src) && cnotnull(dest)) fossil_shark_move(src, dest, force, interactive, backup);
+            if (cnotnull(src) && cnotnull(dest)) fossil_shark_move(src, dest, force, interactive, backup, atomic, progress, dry_run, exclude_pattern, include_pattern);
             
         } else if (fossil_io_cstring_compare(argv[i], "copy") == 0) {
             ccstring src = cnull, dest = cnull;
             bool recursive = false, update = false, preserve = false;
+            bool checksum = false, sparse = false, link = false, reflink = false;
+            bool progress = false, dry_run = false;
+            ccstring exclude_pattern = cnull, include_pattern = cnull;
             
             for (int j = i + 1; j < argc; j++) {
                 if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
@@ -365,6 +393,22 @@ bool app_entry(int argc, char** argv) {
                     update = true;
                 } else if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--preserve") == 0) {
                     preserve = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--checksum") == 0) {
+                    checksum = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--sparse") == 0) {
+                    sparse = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--link") == 0) {
+                    link = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--reflink") == 0) {
+                    reflink = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--progress") == 0) {
+                    progress = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--dry-run") == 0) {
+                    dry_run = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--exclude") == 0 && j + 1 < argc) {
+                    exclude_pattern = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--include") == 0 && j + 1 < argc) {
+                    include_pattern = argv[++j];
                 } else if (!cnotnull(src)) {
                     src = argv[j];
                 } else if (!cnotnull(dest)) {
@@ -372,7 +416,7 @@ bool app_entry(int argc, char** argv) {
                 }
                 i = j;
             }
-            if (cnotnull(src) && cnotnull(dest)) fossil_shark_copy(src, dest, recursive, update, preserve);
+            if (cnotnull(src) && cnotnull(dest)) fossil_shark_copy(src, dest, recursive, update, preserve, checksum, sparse, link, reflink, progress, dry_run, exclude_pattern, include_pattern);
             
         } else if (fossil_io_cstring_compare(argv[i], "remove") == 0 || 
                fossil_io_cstring_compare(argv[i], "delete") == 0) {

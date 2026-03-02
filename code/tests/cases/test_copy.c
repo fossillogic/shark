@@ -59,15 +59,15 @@ FOSSIL_TEARDOWN(c_copy_command_suite) {
 
 FOSSIL_TEST(c_test_copy_null_parameters) {
     // Test with null source
-    int result = fossil_shark_copy(cnull, "dest.txt", false, false, false);
+    int result = fossil_shark_copy(cnull, "dest.txt", false, false, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     // Test with null destination
-    result = fossil_shark_copy("src.txt", cnull, false, false, false);
+    result = fossil_shark_copy("src.txt", cnull, false, false, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     // Test with both null
-    result = fossil_shark_copy(cnull, cnull, false, false, false);
+    result = fossil_shark_copy(cnull, cnull, false, false, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -79,7 +79,7 @@ FOSSIL_TEST(c_test_copy_simple_file) {
     fclose(src_file);
     
     // Copy file
-    int result = fossil_shark_copy("copy_source.txt", "copy_dest.txt", false, false, false);
+    int result = fossil_shark_copy("copy_source.txt", "copy_dest.txt", false, false, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify source still exists
@@ -95,7 +95,7 @@ FOSSIL_TEST(c_test_copy_simple_file) {
 
 FOSSIL_TEST(c_test_copy_nonexistent_source) {
     // Try to copy non-existent file
-    int result = fossil_shark_copy("nonexistent_copy.txt", "dest.txt", false, false, false);
+    int result = fossil_shark_copy("nonexistent_copy.txt", "dest.txt", false, false, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -107,7 +107,7 @@ FOSSIL_TEST(c_test_copy_file_with_preserve) {
     fclose(src_file);
     
     // Copy with preserve flag
-    int result = fossil_shark_copy("preserve_src.txt", "preserve_dest.txt", false, false, true);
+    int result = fossil_shark_copy("preserve_src.txt", "preserve_dest.txt", false, false, true, false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify both files exist
@@ -146,7 +146,7 @@ FOSSIL_TEST(c_test_copy_file_with_update_newer) {
     fclose(src_file);
     
     // Copy with update flag - should copy because source is newer
-    int result = fossil_shark_copy("update_src.txt", "update_dest.txt", false, true, false);
+    int result = fossil_shark_copy("update_src.txt", "update_dest.txt", false, true, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
@@ -175,7 +175,7 @@ FOSSIL_TEST(c_test_copy_file_with_update_skip) {
     fclose(src_file);
     
     // Copy with update flag - should skip because destination is newer
-    int result = fossil_shark_copy("skip_src.txt", "skip_dest.txt", false, true, false);
+    int result = fossil_shark_copy("skip_src.txt", "skip_dest.txt", false, true, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
@@ -192,7 +192,7 @@ FOSSIL_TEST(c_test_copy_directory_without_recursive) {
     #endif
     
     // Try to copy directory without recursive flag
-    int result = fossil_shark_copy("copy_dir_test", "copy_dir_dest", false, false, false);
+    int result = fossil_shark_copy("copy_dir_test", "copy_dir_dest", false, false, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     // Clean up
@@ -225,7 +225,7 @@ FOSSIL_TEST(c_test_copy_directory_recursive) {
     fclose(file2);
     
     // Copy directory recursively
-    int result = fossil_shark_copy("copy_recursive_src", "copy_recursive_dest", true, false, false);
+    int result = fossil_shark_copy("copy_recursive_src", "copy_recursive_dest", true, false, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify destination structure
@@ -257,7 +257,7 @@ FOSSIL_TEST(c_test_copy_empty_file) {
     fclose(src_file);
     
     // Copy empty file
-    int result = fossil_shark_copy("empty_copy_src.txt", "empty_copy_dest.txt", false, false, false);
+    int result = fossil_shark_copy("empty_copy_src.txt", "empty_copy_dest.txt", false, false, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify both files exist
@@ -279,7 +279,7 @@ FOSSIL_TEST(c_test_copy_large_file) {
     fclose(src_file);
     
     // Copy large file
-    int result = fossil_shark_copy("large_copy_src.txt", "large_copy_dest.txt", false, false, false);
+    int result = fossil_shark_copy("large_copy_src.txt", "large_copy_dest.txt", false, false, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify both files exist
@@ -305,7 +305,7 @@ FOSSIL_TEST(c_test_copy_overwrite_existing) {
     fclose(dest_file);
     
     // Copy should overwrite existing destination
-    int result = fossil_shark_copy("overwrite_copy_src.txt", "overwrite_copy_dest.txt", false, false, false);
+    int result = fossil_shark_copy("overwrite_copy_src.txt", "overwrite_copy_dest.txt", false, false, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
@@ -328,7 +328,7 @@ FOSSIL_TEST(c_test_copy_all_flags) {
     fclose(file);
     
     // Copy with all flags enabled
-    int result = fossil_shark_copy("all_flags_src", "all_flags_dest", true, true, true);
+    int result = fossil_shark_copy("all_flags_src", "all_flags_dest", true, true, true, true, true, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify destination exists
@@ -355,7 +355,7 @@ FOSSIL_TEST(c_test_copy_unsupported_file_type) {
     fclose(src_file);
     
     // Copy regular file - should succeed
-    int result = fossil_shark_copy("regular_file.txt", "regular_copy.txt", false, false, false);
+    int result = fossil_shark_copy("regular_file.txt", "regular_copy.txt", false, false, false, false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
