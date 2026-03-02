@@ -124,36 +124,6 @@ static int filter_by_patterns(ccstring src, ccstring dest, ccstring exclude, ccs
     return 0;
 }
 
-//
-static void cleanup_paths(cstring norm_src, cstring norm_dest) {
-    if (norm_src) fossil_io_cstring_free(norm_src);
-    if (norm_dest) fossil_io_cstring_free(norm_dest);
-}
-
-static int execute_move_operation(ccstring norm_src, ccstring norm_dest,
-                                   bool atomic, bool progress,
-                                   ccstring exclude_pattern, ccstring include_pattern) {
-    if (atomic) {
-        return handle_atomic_move(norm_src, norm_dest);
-    }
-    
-    if (progress) {
-        return handle_move_with_progress(norm_src, norm_dest);
-    }
-    
-    if (cnotnull(exclude_pattern) || cnotnull(include_pattern)) {
-        return filter_by_patterns(norm_src, norm_dest, exclude_pattern, include_pattern);
-    }
-    
-    if (fossil_io_file_rename(norm_src, norm_dest) != 0) {
-        fossil_io_printf("{red}Failed to move/rename: %s{normal}\n", strerror(errno));
-        return errno;
-    }
-    
-    fossil_io_printf("{cyan}Successfully moved '%s' to '%s'{normal}\n", norm_src, norm_dest);
-    return 0;
-}
-
 int fossil_shark_move(ccstring src, ccstring dest,
                       bool force, bool interactive, bool backup,
                       bool atomic, bool progress, bool dry_run,
