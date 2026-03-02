@@ -11,7 +11,7 @@ on:
       - main
 
 jobs:
-  build_msvc:
+  build_microslop:
     name: Building on Microslop ${{ matrix.msvc_version }}
     runs-on: windows-latest
     strategy:
