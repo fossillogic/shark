@@ -45,10 +45,14 @@ static void log_deletion(ccstring log_file, ccstring path, bool success) {
     FILE *f = fopen(log_file, "a");
     if (f == cnull) return;
     
-    time_t now = time(cnull);
-    char time_str[26];
-    ctime_r(&now, time_str);
-    time_str[24] = '\0'; // Remove newline
+        time_t now = time(cnull);
+        char time_str[26];
+    #ifdef _WIN32
+        ctime_s(time_str, sizeof(time_str), &now);
+    #else
+        ctime_r(&now, time_str);
+    #endif
+        time_str[24] = '\0'; // Remove newline
     
     fprintf(f, "[%s] %s: %s\n", time_str, success ? "OK" : "FAIL", path);
     fclose(f);
