@@ -102,6 +102,16 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    -n, --name <pat>    Filename match\n");
     fossil_io_printf("{bright_black}    -c, --content <pat> Search contents\n");
     fossil_io_printf("{bright_black}    -i, --ignore-case   Case-insensitive\n");
+    fossil_io_printf("{bright_black}    --regex             Treat patterns as regex\n");
+    fossil_io_printf("{bright_black}    --glob <pat>        Glob pattern matching\n");
+    fossil_io_printf("{bright_black}    --ext <list>        Filter by extensions\n");
+    fossil_io_printf("{bright_black}    --size <range>      Filter by file size\n");
+    fossil_io_printf("{bright_black}    --modified <range>  Filter by modification time\n");
+    fossil_io_printf("{bright_black}    --hash <value>      Match file hash\n");
+    fossil_io_printf("{bright_black}    --follow-links      Follow symlinks\n");
+    fossil_io_printf("{bright_black}    --fson              Output as FSON\n");
+    fossil_io_printf("{bright_black}    --max-results <n>   Limit results\n");
+    fossil_io_printf("{bright_black}    --parallel          Parallel processing\n");
 
     fossil_io_printf("{cyan}  archive          {reset}Create, extract, or list archives\n");
     fossil_io_printf("{bright_black}    -c, --create        New archive\n");
@@ -498,7 +508,11 @@ bool app_entry(int argc, char** argv) {
             
         } else if (fossil_io_cstring_compare(argv[i], "search") == 0) {
             ccstring path = ".", name_pattern = cnull, content_pattern = cnull;
-            bool recursive = false, ignore_case = false;
+            ccstring glob_pattern = cnull, extensions = cnull, size_range = cnull;
+            ccstring modified_range = cnull, hash_value = cnull;
+            bool recursive = false, ignore_case = false, use_regex = false;
+            bool follow_links = false, output_fson = false, use_parallel = false;
+            int max_results = 0;
             
             for (int j = i + 1; j < argc; j++) {
                 if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0) {
@@ -509,12 +523,34 @@ bool app_entry(int argc, char** argv) {
                     if (j + 1 < argc) name_pattern = argv[++j];
                 } else if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--content") == 0) {
                     if (j + 1 < argc) content_pattern = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--regex") == 0) {
+                    use_regex = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--glob") == 0 && j + 1 < argc) {
+                    glob_pattern = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--ext") == 0 && j + 1 < argc) {
+                    extensions = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--size") == 0 && j + 1 < argc) {
+                    size_range = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--modified") == 0 && j + 1 < argc) {
+                    modified_range = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--hash") == 0 && j + 1 < argc) {
+                    hash_value = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--follow-links") == 0) {
+                    follow_links = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--fson") == 0) {
+                    output_fson = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--max-results") == 0 && j + 1 < argc) {
+                    max_results = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--parallel") == 0) {
+                    use_parallel = true;
                 } else if (argv[j][0] != '-') {
                     path = argv[j];
                 }
                 i = j;
             }
-            fossil_shark_search(path, recursive, name_pattern, content_pattern, ignore_case);
+            fossil_shark_search(path, recursive, name_pattern, content_pattern, ignore_case, use_regex,
+                              glob_pattern, extensions, size_range, modified_range, hash_value,
+                              follow_links, output_fson, max_results, use_parallel);
             
         } else if (fossil_io_cstring_compare(argv[i], "archive") == 0) {
             ccstring path = cnull, format = "zip", password = cnull;

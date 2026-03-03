@@ -123,10 +123,20 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         } else if (fossil_io_cstring_equals(command, "search")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}search [options] <path>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
-            fossil_io_printf("  {cyan,bold}-r, --recursive{normal}  Include subdirs\n");
+            fossil_io_printf("  {cyan,bold}-r, --recursive{normal}      Include subdirs\n");
             fossil_io_printf("  {cyan,bold}-n, --name <pattern>{normal} Filename match\n");
             fossil_io_printf("  {cyan,bold}-c, --content <pattern>{normal} Search contents\n");
-            fossil_io_printf("  {cyan,bold}-i, --ignore-case{normal} Case-insensitive\n");
+            fossil_io_printf("  {cyan,bold}-i, --ignore-case{normal}    Case-insensitive\n");
+            fossil_io_printf("  {cyan,bold}--regex{normal}              Treat patterns as regex\n");
+            fossil_io_printf("  {cyan,bold}--glob <pattern>{normal}     Glob pattern matching\n");
+            fossil_io_printf("  {cyan,bold}--ext <list>{normal}         Filter by extensions\n");
+            fossil_io_printf("  {cyan,bold}--size <range>{normal}       Filter by file size\n");
+            fossil_io_printf("  {cyan,bold}--modified <range>{normal}   Filter by modification time\n");
+            fossil_io_printf("  {cyan,bold}--hash <value>{normal}       Match file hash\n");
+            fossil_io_printf("  {cyan,bold}--follow-links{normal}       Follow symlinks\n");
+            fossil_io_printf("  {cyan,bold}--fson{normal}               Output as FSON\n");
+            fossil_io_printf("  {cyan,bold}--max-results <n>{normal}    Limit results\n");
+            fossil_io_printf("  {cyan,bold}--parallel{normal}           Parallel processing\n");
         } else if (fossil_io_cstring_equals(command, "archive")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}archive [options] <path>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
@@ -247,6 +257,8 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}shark create -p -t dir logs/archive/2024/{normal}\n");
             else if (fossil_io_cstring_equals(command, "search"))
             fossil_io_printf("  {cyan,bold}shark search -rc \"config\"{normal}\n");
+            else if (fossil_io_cstring_equals(command, "sync"))
+            fossil_io_printf("  {cyan,bold}shark sync -ru src/ dest/{normal}\n");
             else if (fossil_io_cstring_equals(command, "archive"))
             fossil_io_printf("  {cyan,bold}shark archive -c -f tar project.tar src/{normal}\n");
             else if (fossil_io_cstring_equals(command, "view"))
