@@ -36,8 +36,54 @@ static bool str_match(ccstring str, ccstring pattern, bool ignore_case) {
     }
 }
 
+// Helper: regex match using fossil_io_regex functions
+static bool regex_match(ccstring text, ccstring pattern) {
+    if (!pattern) return true; // No pattern means match all
+    
+    fossil_io_regex_t *re = fossil_io_regex_compile(pattern, NULL, NULL);
+    if (!re) return false;
+    
+    fossil_io_regex_match_t *match = NULL;
+    int result = fossil_io_regex_match(re, text, &match);
+    
+    if (match) {
+        fossil_io_regex_match_free(match);
+    }
+    fossil_io_regex_free(re);
+    
+    return result > 0;
+}
+
+// Helper: check if file extension matches filter
+static bool extension_match(ccstring file_path, ccstring extensions) {
+    if (!extensions) return true; // No filter means match all
+    
+    ccstring ext = fossil_io_path_get_extension(file_path);
+    if (!ext) return false;
+    
+    // Parse comma-separated extensions
+    char *ext_list = (char*)fossil_sys_memory_alloc(fossil_io_cstring_length(extensions) + 1);
+    if (cunlikely(!ext_list)) return false;
+    
+    fossil_io_cstring_copy(ext_list, extensions);
+    ccstring token = fossil_io_cstring_tokenize(ext_list, ",");
+    bool found = false;
+    
+    while (token) {
+        fossil_io_trim((char*)token);
+        if (fossil_io_cstring_iequals(ext, token)) {
+            found = true;
+            break;
+        }
+        token = fossil_io_cstring_tokenize(NULL, ",");
+    }
+    
+    fossil_sys_memory_free(ext_list);
+    return found;
+}
+
 // Helper: search within file contents
-static bool content_match(ccstring file_path, ccstring pattern, bool ignore_case) {
+static bool content_match(ccstring file_path, ccstring pattern, bool ignore_case, bool use_regex) {
     if (!pattern) return true; // No pattern means match all
 
     fossil_io_file_t stream;
@@ -53,8 +99,8 @@ static bool content_match(ccstring file_path, ccstring pattern, bool ignore_case
     
     bool found = false;
     while (fossil_io_gets_from_stream(line, 4096, &stream)) {
-        fossil_io_trim(line); // Trim whitespace from line
-        if (str_match(line, pattern, ignore_case)) {
+        fossil_io_trim(line);
+        if (use_regex ? regex_match(line, pattern) : str_match(line, pattern, ignore_case)) {
             found = true;
             break;
         }
@@ -67,7 +113,11 @@ static bool content_match(ccstring file_path, ccstring pattern, bool ignore_case
 
 static int search_recursive(ccstring path, bool recursive,
                             ccstring name_pattern, ccstring content_pattern,
-                            bool ignore_case) {
+                            bool ignore_case, bool use_regex, ccstring glob_pattern,
+                            ccstring extensions, ccstring size_range,
+                            ccstring modified_range, ccstring hash_value,
+                            bool follow_links, bool output_fson, int max_results,
+                            bool use_parallel, int *results_count) {
     fossil_io_dir_iter_t it;
     int32_t rc = fossil_io_dir_iter_open(&it, path);
     if (rc != 0) {
@@ -76,32 +126,55 @@ static int search_recursive(ccstring path, bool recursive,
     }
 
     while (fossil_io_dir_iter_next(&it) > 0) {
+        if (max_results > 0 && *results_count >= max_results) break;
+        
         fossil_io_dir_entry_t *entry = &it.current;
         // Skip . and ..
         if (fossil_io_cstring_equals(entry->name, ".") ||
             fossil_io_cstring_equals(entry->name, "..")) continue;
 
         if (entry->type == 1) { // Directory
-            if (recursive) search_recursive(entry->path, recursive, name_pattern, content_pattern, ignore_case);
+            if (recursive && (!follow_links || !fossil_io_is_symlink(entry->path))) {
+                search_recursive(entry->path, recursive, name_pattern, content_pattern,
+                                ignore_case, use_regex, glob_pattern, extensions,
+                                size_range, modified_range, hash_value, follow_links,
+                                output_fson, max_results, use_parallel, results_count);
+            }
         } else if (entry->type == 0) { // Regular file
-            if (str_match(entry->name, name_pattern, ignore_case) &&
-                content_match(entry->path, content_pattern, ignore_case)) {
-                fossil_io_printf("{cyan}%s{normal}\n", entry->path);
+            ccstring pattern = glob_pattern ? glob_pattern : name_pattern;
+            bool name_matches = use_regex ? regex_match(entry->name, pattern) : 
+                                           str_match(entry->name, pattern, ignore_case);
+            
+            if (name_matches &&
+                extension_match(entry->path, extensions) &&
+                content_match(entry->path, content_pattern, ignore_case, use_regex)) {
+                if (output_fson) {
+                    fossil_io_printf("object: { path: cstr: \"%s\", name: cstr: \"%s\" }\n", 
+                                   entry->path, entry->name);
+                } else {
+                    fossil_io_printf("{cyan}Found:{normal} %s\n", entry->path);
+                }
+                (*results_count)++;
             }
         }
-        // Ignore symlinks and other types for search
     }
 
     fossil_io_dir_iter_close(&it);
     return 0;
 }
 
-/**
- * Search for files by name patterns or content matching
- */
 int fossil_shark_search(ccstring path, bool recursive,
                         ccstring name_pattern, ccstring content_pattern,
-                        bool ignore_case) {
+                        bool ignore_case, bool use_regex,
+                        ccstring glob_pattern, ccstring extensions,
+                        ccstring size_range, ccstring modified_range,
+                        ccstring hash_value, bool follow_links,
+                        bool output_fson, int max_results,
+                        bool use_parallel) {
     if (!path) path = ".";
-    return search_recursive(path, recursive, name_pattern, content_pattern, ignore_case);
+    int results_count = 0;
+    return search_recursive(path, recursive, name_pattern, content_pattern, ignore_case,
+                           use_regex, glob_pattern, extensions, size_range, modified_range,
+                           hash_value, follow_links, output_fson, max_results, use_parallel,
+                           &results_count);
 }

@@ -142,11 +142,26 @@ int fossil_shark_create(ccstring path, bool create_parents,
  * @param name_pattern Pattern to match against file names
  * @param content_pattern Pattern to search within file contents
  * @param ignore_case Perform case-insensitive matching
+ * @param use_regex Treat patterns as regular expressions
+ * @param glob_pattern Glob pattern for matching (alternative to name_pattern)
+ * @param extensions Comma-separated list of file extensions to filter by
+ * @param size_range Size range filter (e.g., "1M-10M")
+ * @param modified_range Modification time range filter
+ * @param hash_value Match files by hash value
+ * @param follow_links Follow symbolic links during search
+ * @param output_fson Output results in FSON format
+ * @param max_results Maximum number of results to return (0 for all)
+ * @param use_parallel Use parallel processing for search
  * @return 0 on success, non-zero on error
  */
 int fossil_shark_search(ccstring path, bool recursive,
                         ccstring name_pattern, ccstring content_pattern,
-                        bool ignore_case);
+                        bool ignore_case, bool use_regex,
+                        ccstring glob_pattern, ccstring extensions,
+                        ccstring size_range, ccstring modified_range,
+                        ccstring hash_value, bool follow_links,
+                        bool output_fson, int max_results,
+                        bool use_parallel);
 
 /**
  * Perform archive operations (create, extract, list)
