@@ -258,7 +258,7 @@ FOSSIL_TEST(c_test_archive_compression_levels) {
     
     // Valid compression levels (0-9) would work
     result = fossil_shark_archive("compress.zip", true, false, false, "zip", cnull, 5, false, cnull);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_archive_solid_archive) {
