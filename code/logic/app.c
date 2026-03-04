@@ -110,8 +110,7 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    -f <format>         Format: zip/tar/gz\n");
     fossil_io_printf("{bright_black}    -p, --password <pw> Encrypt with password\n");
     fossil_io_printf("{bright_black}    --stdout            Output to stdout\n");
-    fossil_io_printf("{bright_black}    --verify            Verify archive\n");
-    fossil_io_printf("{bright_black}    --sign              Sign archive\n");
+    fossil_io_printf("{bright_black}    --compress <n>      Compression level (0-9)\n");
     fossil_io_printf("{bright_black}    --exclude <pat>     Exclude files\n");
 
     fossil_io_printf("{cyan}  view             {reset}Output file contents to terminal\n");
@@ -523,7 +522,7 @@ bool app_entry(int argc, char** argv) {
         } else if (fossil_io_cstring_compare(argv[i], "archive") == 0) {
             ccstring path = cnull, format = "zip", password = cnull, exclude_pattern = cnull;
             bool create = false, extract = false, list = false;
-            bool stdout_output = false, verify = false, sign = false, solid = false;
+            bool stdout_output = false;
             int compress_level = 6;
             
             for (int j = i + 1; j < argc; j++) {
@@ -539,12 +538,6 @@ bool app_entry(int argc, char** argv) {
                     if (j + 1 < argc) password = argv[++j];
                 } else if (fossil_io_cstring_compare(argv[j], "--stdout") == 0) {
                     stdout_output = true;
-                } else if (fossil_io_cstring_compare(argv[j], "--verify") == 0) {
-                    verify = true;
-                } else if (fossil_io_cstring_compare(argv[j], "--sign") == 0) {
-                    sign = true;
-                } else if (fossil_io_cstring_compare(argv[j], "--solid") == 0) {
-                    solid = true;
                 } else if (fossil_io_cstring_compare(argv[j], "--compress") == 0 && j + 1 < argc) {
                     compress_level = atoi(argv[++j]);
                 } else if (fossil_io_cstring_compare(argv[j], "--exclude") == 0 && j + 1 < argc) {
@@ -554,7 +547,7 @@ bool app_entry(int argc, char** argv) {
                 }
                 i = j;
             }
-            if (cnotnull(path)) fossil_shark_archive(path, create, extract, list, format, password, compress_level, solid, stdout_output, verify, sign, exclude_pattern);
+            if (cnotnull(path)) fossil_shark_archive(path, create, extract, list, format, password, compress_level, stdout_output, exclude_pattern);
             
         } else if (fossil_io_cstring_compare(argv[i], "view") == 0) {
             ccstring path = cnull;

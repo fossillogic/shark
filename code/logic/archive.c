@@ -93,8 +93,7 @@ static fossil_io_archive_type_t get_archive_type_from_format(ccstring format) {
 
 int fossil_shark_archive(ccstring path, bool create, bool extract,
                          bool list, ccstring format, ccstring password,
-                         int compress_level, bool solid,
-                         bool stdout_output, bool verify, bool sign,
+                         int compress_level, bool stdout_output,
                          ccstring exclude_pattern) {
     if (!path) {
         fossil_io_printf("{red}Error: Archive path must be specified.{normal}\n");
