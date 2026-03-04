@@ -174,13 +174,12 @@ FOSSIL_TEST(c_test_archive_extract_tar) {
     FOSSIL_SANITY_SYS_WRITE_FILE("tar_extract.txt", "tar extraction\n");
 
     fossil_shark_archive("tar_extract.txt", true, false, false, "tar", NULL, 0, false, NULL);
-    FOSSIL_SANITY_SYS_DELETE_FILE("tar_extract.txt");
     
     int result = fossil_shark_archive("tar_extract.txt.tar", false, true, false, "tar", NULL, 0, false, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    FOSSIL_SANITY_SYS_DELETE_FILE("tar_extract.txt.tar");
     FOSSIL_SANITY_SYS_DELETE_FILE("tar_extract.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("tar_extract.txt.tar");
 }
 
 FOSSIL_TEST(c_test_archive_list_tar_gz) {
@@ -188,7 +187,7 @@ FOSSIL_TEST(c_test_archive_list_tar_gz) {
     FOSSIL_SANITY_SYS_WRITE_FILE("list_targz.txt", "list tar.gz\n");
 
     fossil_shark_archive("list_targz.txt", true, false, false, "gz", NULL, 9, false, NULL);
-    int result = fossil_shark_archive("list_targz.txt.tar.gz", false, false, true, "gz", NULL, 0, false, NULL);
+    int result = fossil_shark_archive("list_targz.txt.tar.gz", false, false, true, "tar", NULL, 0, false, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("list_targz.txt");
