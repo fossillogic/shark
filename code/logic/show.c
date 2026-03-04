@@ -72,6 +72,11 @@ static int show_list(ccstring path, bool show_all, bool long_format,
         fossil_io_dir_entry_t *entry = &it.current;
         if (!show_all && entry->name[0] == '.') continue;
 
+        // Print indentation for nested entries
+        for (int i = 0; i < depth; ++i) {
+            fossil_io_printf("____");
+        }
+
         if (long_format) {
             print_permissions_advanced(entry->path);
             print_size(entry->size, human_readable);
@@ -79,15 +84,14 @@ static int show_list(ccstring path, bool show_all, bool long_format,
                 fossil_io_printf("{bright_black}%llu{normal} ", (unsigned long long)entry->modified);
             }
         }
-        fossil_io_printf("{green}%s{normal}\n", entry->name);
+        fossil_io_printf("{cyan}%s{normal}\n", entry->name);
 
         // If entry is a directory and recursive is true, recurse into it
         if (recursive &&
             entry->type == 1 &&
             strcmp(entry->name, ".") != 0 &&
-            strcmp(entry->name, "..") != 0 &&
-            (depth == 0 || depth > 1)) {
-            show_list(entry->path, show_all, long_format, human_readable, recursive, format, show_time, depth == 0 ? 0 : depth - 1);
+            strcmp(entry->name, "..") != 0) {
+            show_list(entry->path, show_all, long_format, human_readable, recursive, format, show_time, depth + 1);
         }
     }
 
@@ -113,7 +117,7 @@ static int show_tree(ccstring path, bool show_all, bool long_format,
         if (!show_all && entry->name[0] == '.') continue;
 
         // Print indentation for tree structure
-        for (int i = 0; i < (depth == 0 ? 0 : depth); ++i) {
+        for (int i = 0; i < depth; ++i) {
             fossil_io_printf("    ");
         }
         fossil_io_printf("{bright_yellow}|--{normal} ");
@@ -130,10 +134,9 @@ static int show_tree(ccstring path, bool show_all, bool long_format,
         if (recursive &&
             entry->type == 1 &&
             strcmp(entry->name, ".") != 0 &&
-            strcmp(entry->name, "..") != 0 &&
-            (depth == 0 || depth > 1)) {
+            strcmp(entry->name, "..") != 0) {
             show_tree(entry->path, show_all, long_format, human_readable, recursive,
-                      format, show_time, depth == 0 ? 0 : depth - 1);
+                      format, show_time, depth + 1);
         }
     }
 
@@ -159,7 +162,7 @@ static int show_graph(ccstring path, bool show_all, bool long_format,
         if (!show_all && entry->name[0] == '.') continue;
 
         // Print indentation for graph structure
-        for (int i = 0; i < (depth == 0 ? 0 : depth); ++i) {
+        for (int i = 0; i < depth; ++i) {
             fossil_io_printf("    ");
         }
         fossil_io_printf("{bright_yellow}|--{normal} ");
@@ -176,10 +179,9 @@ static int show_graph(ccstring path, bool show_all, bool long_format,
         if (recursive &&
             entry->type == 1 &&
             strcmp(entry->name, ".") != 0 &&
-            strcmp(entry->name, "..") != 0 &&
-            (depth == 0 || depth > 1)) {
+            strcmp(entry->name, "..") != 0) {
             show_graph(entry->path, show_all, long_format, human_readable, recursive,
-                       format, show_time, depth == 0 ? 0 : depth - 1);
+                       format, show_time, depth + 1);
         }
     }
 
