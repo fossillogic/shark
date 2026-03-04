@@ -155,7 +155,7 @@ FOSSIL_TEST(c_test_archive_format_sanitization) {
 FOSSIL_TEST(c_test_archive_password_validation) {
     // Test with malicious password
     int result = fossil_shark_archive("test.zip", true, false, false, "zip", "pass; rm file", 0, false, cnull);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_archive_default_format) {
@@ -247,7 +247,7 @@ FOSSIL_TEST(c_test_archive_compression_levels) {
     
     for (int level = 1; level <= 9; level++) {
         int result = fossil_shark_archive("compress.zip", true, false, false, "zip", cnull, level, false, cnull);
-        ASSUME_EQUAL_I32(0, result);
+        ASSUME_ITS_EQUAL_I32(0, result);
     }
     
     remove("compress_test.txt");
@@ -261,7 +261,7 @@ FOSSIL_TEST(c_test_archive_solid_archive) {
     fclose(file);
     
     int result = fossil_shark_archive("solid.7z", true, false, false, "7z", cnull, 0, false, cnull);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
     
     remove("solid_test.txt");
 }
@@ -274,7 +274,7 @@ FOSSIL_TEST(c_test_archive_split_archive) {
     fclose(file);
     
     int result = fossil_shark_archive("split.zip", true, false, false, "zip", cnull, 0, false, cnull);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
     
     remove("split_test.txt");
 }
@@ -288,7 +288,7 @@ FOSSIL_TEST(c_test_archive_verify_integrity) {
     fclose(file);
     
     int result = fossil_shark_archive("verify_test.tar", false, false, true, "tar", cnull, 0, false, cnull);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
     
     remove("verify_test.tar");
 }
@@ -301,7 +301,7 @@ FOSSIL_TEST(c_test_archive_exclude_pattern) {
     fclose(file);
     
     int result = fossil_shark_archive("exclude.zip", true, false, false, "zip", cnull, 0, false, "*.log");
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
     
     remove("exclude_test.txt");
 }
@@ -314,7 +314,7 @@ FOSSIL_TEST(c_test_archive_stdout_output) {
     fclose(file);
     
     int result = fossil_shark_archive("stdout.zip", true, false, false, "zip", cnull, 0, true, cnull);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
     
     remove("stdout_test.txt");
 }
@@ -327,7 +327,7 @@ FOSSIL_TEST(c_test_archive_sign_archive) {
     fclose(file);
     
     int result = fossil_shark_archive("signed.zip", true, false, false, "zip", "password123", 0, false, cnull);
-    ASSUME_EQUAL_I32(0, result);
+    ASSUME_ITS_EQUAL_I32(0, result);
     
     remove("sign_test.txt");
 }
