@@ -21,6 +21,65 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 - File synchronization and backup with flexible options
 - Real-time file monitoring and change detection
 
+## **Why Choose Shark Tool?**
+
+Unlike traditional CLI utilities that require juggling multiple tools, Shark consolidates essential file and system operations into a single, intuitive command-line interface. Here's what sets it apart:
+
+- **All-in-One Solution**: Eliminate tool switching. File management, archiving, searching, synchronization, and analysis all in one place.
+- **Unique Advanced Features**: Commands like `grammar` for intelligent text analysis, `summary` for structured insights, and `introspect` for deep file inspection go beyond standard utilities.
+- **Developer-Friendly**: Built specifically for admins and developers who need power and flexibility without complexity.
+- **Cross-Platform**: Works seamlessly across Linux, macOS, and Windows.
+- **Intelligent Defaults**: Smart handling of timestamps, metadata, and file permissions with optional fine-grained control.
+- **Modern Architecture**: Built with Meson and designed for performance and extensibility.
+
+Shark Tool is the unified solution for professionals who demand more from their command-line utilities.
+
+---
+
+## **Prerequisites**
+
+Ensure you have the following installed before starting:
+
+- **Meson Build System**: This project relies on Meson. For installation instructions, visit the official [Meson website](https://mesonbuild.com/Getting-meson.html).
+
+## **Setting Up Meson Build**
+
+1. **Install Meson**:
+    - Follow the installation guide on the [Meson website](https://mesonbuild.com/Getting-meson.html) for your operating system.
+
+## **Setting Up, Compiling, Installing, and Running the Project**
+
+1. **Clone the Repository**:
+
+    ```sh
+    git clone https://github.com/fossillogic/shark.git
+    cd shark
+    ```
+
+2. **Configure the Build**:
+
+    ```sh
+    meson setup builddir
+    ```
+
+3. **Compile the Project**:
+
+    ```sh
+    meson compile -C builddir
+    ```
+
+4. **Install the Project**:
+
+    ```sh
+    meson install -C builddir
+    ```
+
+5. **Run the Project**:
+
+    ```sh
+    shark --help
+    ```
+
 ## Command Palette
 
 ---
@@ -76,57 +135,15 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 | `shark create -p -t dir logs/archive/2024/` | Create a nested directory structure for logs. |
 | `shark search -rc "config"` | Recursively search for the string "config" inside files. |
 | `shark archive -c -f tar project.tar src/` | Create a TAR archive from the `src/` directory. |
-| `shark view -n -h 20 --time notes.txt` | View the first 20 lines of a file with line numbers and timestamps. |
+| `shark pack -c -f gz data.tar.gz backup/` | Create a compressed TAR.GZ archive from the `backup/` directory. |
+| `shark view -n -t 20 --time notes.txt` | View the last 20 lines of a file with line numbers and timestamps. |
 | `shark compare -t main_v1.c main_v2.c --context 5` | Show a line-by-line diff of two files with 5 lines of context. |
 | `shark sync -ru src/ dest/` | Synchronize files from `src/` to `dest/`, copying only newer files recursively. |
 | `shark watch -r -e create,delete src/` | Monitor the `src/` directory recursively for file creation and deletion events. |
-| `shark rewrite -i --append log.txt "New entry"` | Append a new entry to a log file in-place. |
-| `shark introspect --mime report.pdf` | Show the MIME type of a file. |
-| `shark grammar --check --tone notes.txt` | Run a grammar check and detect tone in a text file. |
-
-## **Prerequisites**
-
-Ensure you have the following installed before starting:
-
-- **Meson Build System**: This project relies on Meson. For installation instructions, visit the official [Meson website](https://mesonbuild.com/Getting-meson.html).
-
-## **Setting Up Meson Build**
-
-1. **Install Meson**:
-    - Follow the installation guide on the [Meson website](https://mesonbuild.com/Getting-meson.html) for your operating system.
-
-## **Setting Up, Compiling, Installing, and Running the Project**
-
-1. **Clone the Repository**:
-
-    ```sh
-    git clone https://github.com/fossillogic/shark.git
-    cd shark
-    ```
-
-2. **Configure the Build**:
-
-    ```sh
-    meson setup builddir
-    ```
-
-3. **Compile the Project**:
-
-    ```sh
-    meson compile -C builddir
-    ```
-
-4. **Install the Project**:
-
-    ```sh
-    meson install -C builddir
-    ```
-
-5. **Run the Project**:
-
-    ```sh
-    shark --help
-    ```
+| `shark rewrite -a --in-place log.txt "New entry"` | Append a new entry to a log file in-place. |
+| `shark introspect --count report.pdf` | Show line, word, and byte counts for a file. |
+| `shark grammar --check --tone --score notes.txt` | Run grammar check, detect tone, and display readability scores. |
+| `shark cryptic -e -c caesar "hello"` | Encode text using a Caesar cipher. |
 
 ## **Contributing**
 
