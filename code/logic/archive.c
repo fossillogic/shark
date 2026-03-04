@@ -92,7 +92,9 @@ static fossil_io_archive_type_t get_archive_type_from_format(ccstring format) {
 }
 
 int fossil_shark_archive(ccstring path, bool create, bool extract,
-                         bool list, ccstring format, ccstring password) {
+                         bool list, ccstring format, ccstring password,
+                         int compress_level, bool stdout_output,
+                         ccstring exclude_pattern) {
     if (!path) {
         fossil_io_printf("{red}Error: Archive path must be specified.{normal}\n");
         return 1;
@@ -100,6 +102,12 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
 
     if ((!create && !extract && !list) || (create + extract + list > 1)) {
         fossil_io_printf("{red}Error: Specify exactly one operation: create, extract, or list.{normal}\n");
+        return 1;
+    }
+
+    // Validate compression level
+    if (compress_level < 0 || compress_level > 9) {
+        fossil_io_printf("{red}Error: Compression level must be 0-9.{normal}\n");
         return 1;
     }
 
@@ -121,18 +129,21 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     char *sanitized_path = (char*)fossil_sys_memory_alloc(1024);
     char *sanitized_format = (char*)fossil_sys_memory_alloc(64);
     char *sanitized_password = (char*)fossil_sys_memory_alloc(256);
+    char *sanitized_exclude = (char*)fossil_sys_memory_alloc(512);
     
-    if (cunlikely(!sanitized_path || !sanitized_format || !sanitized_password)) {
+    if (cunlikely(!sanitized_path || !sanitized_format || !sanitized_password || !sanitized_exclude)) {
         fossil_io_printf("{red}Error: Memory allocation failed.{normal}\n");
         if (cnotnull(sanitized_path)) fossil_sys_memory_free(sanitized_path);
         if (cnotnull(sanitized_format)) fossil_sys_memory_free(sanitized_format);
         if (cnotnull(sanitized_password)) fossil_sys_memory_free(sanitized_password);
+        if (cnotnull(sanitized_exclude)) fossil_sys_memory_free(sanitized_exclude);
         return 1;
     }
     
     fossil_sys_memory_zero(sanitized_path, 1024);
     fossil_sys_memory_zero(sanitized_format, 64);
     fossil_sys_memory_zero(sanitized_password, 256);
+    fossil_sys_memory_zero(sanitized_exclude, 512);
     
     if (fossil_io_validate_sanitize_string(path, sanitized_path, 1024, FOSSIL_CTX_FILENAME) & 
         (FOSSIL_SAN_SHELL | FOSSIL_SAN_PATH)) {
@@ -140,6 +151,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         fossil_sys_memory_free(sanitized_path);
         fossil_sys_memory_free(sanitized_format);
         fossil_sys_memory_free(sanitized_password);
+        fossil_sys_memory_free(sanitized_exclude);
         return 1;
     }
     
@@ -150,6 +162,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         fossil_sys_memory_free(sanitized_path);
         fossil_sys_memory_free(sanitized_format);
         fossil_sys_memory_free(sanitized_password);
+        fossil_sys_memory_free(sanitized_exclude);
         return 1;
     }
     
@@ -164,6 +177,19 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             fossil_sys_memory_free(sanitized_path);
             fossil_sys_memory_free(sanitized_format);
             fossil_sys_memory_free(sanitized_password);
+            fossil_sys_memory_free(sanitized_exclude);
+            return 1;
+        }
+    }
+
+    if (cnotnull(exclude_pattern)) {
+        if (fossil_io_validate_sanitize_string(exclude_pattern, sanitized_exclude, 512, FOSSIL_CTX_GENERIC) & 
+            FOSSIL_SAN_SHELL) {
+            fossil_io_printf("{red}Error: Invalid characters in exclude pattern.{normal}\n");
+            fossil_sys_memory_free(sanitized_path);
+            fossil_sys_memory_free(sanitized_format);
+            fossil_sys_memory_free(sanitized_password);
+            fossil_sys_memory_free(sanitized_exclude);
             return 1;
         }
     }
@@ -175,6 +201,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         fossil_sys_memory_free(sanitized_path);
         fossil_sys_memory_free(sanitized_format);
         fossil_sys_memory_free(sanitized_password);
+        fossil_sys_memory_free(sanitized_exclude);
         return 1;
     }
 
@@ -186,6 +213,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             fossil_sys_memory_free(sanitized_path);
             fossil_sys_memory_free(sanitized_format);
             fossil_sys_memory_free(sanitized_password);
+            fossil_sys_memory_free(sanitized_exclude);
             return 1;
         }
     }
@@ -196,6 +224,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         fossil_sys_memory_free(sanitized_path);
         fossil_sys_memory_free(sanitized_format);
         fossil_sys_memory_free(sanitized_password);
+        fossil_sys_memory_free(sanitized_exclude);
         return 1;
     }
     
@@ -214,7 +243,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
 
     fossil_io_file_t log_stream;
     COption log_option = cnone();
-    if (fossil_io_file_open(&log_stream, log_filename, "w") == 0) {
+    if (!stdout_output && fossil_io_file_open(&log_stream, log_filename, "w") == 0) {
         log_option = csome(&log_stream);
         char *log_msg = (char*)fossil_sys_memory_alloc(1000);
         if (cnotnull(log_msg)) {
@@ -260,6 +289,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             fossil_sys_memory_free(sanitized_path);
             fossil_sys_memory_free(sanitized_format);
             fossil_sys_memory_free(sanitized_password);
+            fossil_sys_memory_free(sanitized_exclude);
             if (log_option.is_some) {
                 fossil_io_file_close((fossil_io_file_t*)log_option.value);
             }
@@ -276,6 +306,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
                 fossil_sys_memory_free(sanitized_path);
                 fossil_sys_memory_free(sanitized_format);
                 fossil_sys_memory_free(sanitized_password);
+                fossil_sys_memory_free(sanitized_exclude);
                 if (log_option.is_some) {
                     fossil_io_file_close((fossil_io_file_t*)log_option.value);
                 }
@@ -285,13 +316,13 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         fossil_sys_memory_free(confirm);
         
         // Create archive using new API
-        archive = fossil_io_archive_create(sanitized_path, archive_type, FOSSIL_IO_COMPRESSION_NORMAL);
+        archive = fossil_io_archive_create(sanitized_path, archive_type, compress_level > 0 ? compress_level : FOSSIL_IO_COMPRESSION_NORMAL);
         if (!archive) {
             fossil_io_printf("{red}Error: Failed to create archive{normal}\n");
             ret = 1;
         } else {
             // Add current directory contents (cross-platform)
-            if (!fossil_io_archive_add_directory(archive, ".", "")) {
+            if (!fossil_io_archive_add_directory(archive, ".", sanitized_exclude)) {
                 fossil_io_printf("{red}Error: Failed to add files to archive{normal}\n");
                 ret = 1;
             } else {
@@ -381,6 +412,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     fossil_sys_memory_free(sanitized_path);
     fossil_sys_memory_free(sanitized_format);
     fossil_sys_memory_free(sanitized_password);
+    fossil_sys_memory_free(sanitized_exclude);
     
     return ret;
 }
