@@ -130,11 +130,18 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         } else if (fossil_io_cstring_equals(command, "archive")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}archive [options] <path>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
-            fossil_io_printf("  {cyan,bold}-c, --create{normal}     New archive\n");
-            fossil_io_printf("  {cyan,bold}-x, --extract{normal}    Extract\n");
-            fossil_io_printf("  {cyan,bold}-l, --list{normal}       List archive\n");
-            fossil_io_printf("  {cyan,bold}-f <format>{normal}      zip/tar/gz\n");
-            fossil_io_printf("  {cyan,bold}-p, --password <pw>{normal} Encrypt\n");
+            fossil_io_printf("  {cyan,bold}-c, --create{normal}          New archive\n");
+            fossil_io_printf("  {cyan,bold}-x, --extract{normal}         Extract\n");
+            fossil_io_printf("  {cyan,bold}-l, --list{normal}            List archive\n");
+            fossil_io_printf("  {cyan,bold}-f <format>{normal}           zip/tar/gz\n");
+            fossil_io_printf("  {cyan,bold}-p, --password <pw>{normal}   Encrypt\n");
+            fossil_io_printf("  {cyan,bold}--compress-level <1-9>{normal} Compression level\n");
+            fossil_io_printf("  {cyan,bold}--solid{normal}               Solid archive\n");
+            fossil_io_printf("  {cyan,bold}--split <size>{normal}        Split archive\n");
+            fossil_io_printf("  {cyan,bold}--stdout{normal}              Output to stdout\n");
+            fossil_io_printf("  {cyan,bold}--verify{normal}              Verify archive\n");
+            fossil_io_printf("  {cyan,bold}--sign{normal}                Sign archive\n");
+            fossil_io_printf("  {cyan,bold}--exclude <pattern>{normal}   Exclude files\n");
         } else if (fossil_io_cstring_equals(command, "view")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}view [options] <file>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");

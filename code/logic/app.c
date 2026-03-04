@@ -104,11 +104,18 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    -i, --ignore-case   Case-insensitive\n");
 
     fossil_io_printf("{cyan}  archive          {reset}Create, extract, or list archives\n");
-    fossil_io_printf("{bright_black}    -c, --create        New archive\n");
-    fossil_io_printf("{bright_black}    -x, --extract       Extract\n");
-    fossil_io_printf("{bright_black}    -l, --list          List archive\n");
-    fossil_io_printf("{bright_black}    -f <format>         zip/tar/gz\n");
-    fossil_io_printf("{bright_black}    -p, --password <pw> Encrypt\n");
+    fossil_io_printf("{bright_black}    -c, --create        Create new archive\n");
+    fossil_io_printf("{bright_black}    -x, --extract       Extract archive\n");
+    fossil_io_printf("{bright_black}    -l, --list          List archive contents\n");
+    fossil_io_printf("{bright_black}    -f <format>         Format: zip/tar/gz\n");
+    fossil_io_printf("{bright_black}    -p, --password <pw> Encrypt with password\n");
+    fossil_io_printf("{bright_black}    --compress-level <n>Compression level 1-9\n");
+    fossil_io_printf("{bright_black}    --solid             Create solid archive\n");
+    fossil_io_printf("{bright_black}    --split-size <size> Split archive by size\n");
+    fossil_io_printf("{bright_black}    --stdout            Output to stdout\n");
+    fossil_io_printf("{bright_black}    --verify            Verify archive\n");
+    fossil_io_printf("{bright_black}    --sign              Sign archive\n");
+    fossil_io_printf("{bright_black}    --exclude <pat>     Exclude files\n");
 
     fossil_io_printf("{cyan}  view             {reset}Output file contents to terminal\n");
     fossil_io_printf("{bright_black}    -n, --number        Number lines\n");
@@ -517,8 +524,11 @@ bool app_entry(int argc, char** argv) {
             fossil_shark_search(path, recursive, name_pattern, content_pattern, ignore_case);
             
         } else if (fossil_io_cstring_compare(argv[i], "archive") == 0) {
-            ccstring path = cnull, format = "zip", password = cnull;
+            ccstring path = cnull, format = "zip", password = cnull, exclude_pattern = cnull;
             bool create = false, extract = false, list = false;
+            bool solid = false, stdout_output = false, verify = false, sign = false;
+            int compress_level = 0;
+            size_t split_size = 0;
             
             for (int j = i + 1; j < argc; j++) {
                 if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--create") == 0) {
@@ -531,12 +541,26 @@ bool app_entry(int argc, char** argv) {
                     format = argv[++j];
                 } else if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--password") == 0) {
                     if (j + 1 < argc) password = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--compress-level") == 0 && j + 1 < argc) {
+                    compress_level = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--solid") == 0) {
+                    solid = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--split-size") == 0 && j + 1 < argc) {
+                    split_size = (size_t)atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--stdout") == 0) {
+                    stdout_output = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--verify") == 0) {
+                    verify = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--sign") == 0) {
+                    sign = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--exclude") == 0 && j + 1 < argc) {
+                    exclude_pattern = argv[++j];
                 } else if (!cnotnull(path)) {
                     path = argv[j];
                 }
                 i = j;
             }
-            if (cnotnull(path)) fossil_shark_archive(path, create, extract, list, format, password);
+            if (cnotnull(path)) fossil_shark_archive(path, create, extract, list, format, password, compress_level, solid, split_size, stdout_output, verify, sign, exclude_pattern);
             
         } else if (fossil_io_cstring_compare(argv[i], "view") == 0) {
             ccstring path = cnull;

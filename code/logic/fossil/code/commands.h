@@ -154,12 +154,22 @@ int fossil_shark_search(ccstring path, bool recursive,
  * @param create Create new archive
  * @param extract Extract existing archive
  * @param list List contents of archive
- * @param format Archive format specification
+ * @param format Archive format specification (zip/tar/gz)
  * @param password Password for encrypted archives
+ * @param compress_level Compression level 1-9 (0 for default)
+ * @param solid Create solid archive
+ * @param split_size Split archive into chunks of specified size (0 for no split)
+ * @param stdout_output Output to stdout instead of file
+ * @param verify Verify archive integrity after operation
+ * @param sign Sign the archive
+ * @param exclude_pattern Pattern for files to exclude
  * @return 0 on success, non-zero on error
  */
 int fossil_shark_archive(ccstring path, bool create, bool extract,
-                         bool list, ccstring format, ccstring password);
+                         bool list, ccstring format, ccstring password,
+                         int compress_level, bool solid, size_t split_size,
+                         bool stdout_output, bool verify, bool sign,
+                         ccstring exclude_pattern);
 
 /**
  * View and display file contents with various formatting options
