@@ -523,9 +523,7 @@ bool app_entry(int argc, char** argv) {
         } else if (fossil_io_cstring_compare(argv[i], "archive") == 0) {
             ccstring path = cnull, format = "zip", password = cnull, exclude_pattern = cnull;
             bool create = false, extract = false, list = false;
-            bool solid = false, stdout_output = false, verify = false, sign = false;
-            int compress_level = 0;
-            size_t split_size = 0;
+            bool stdout_output = false, verify = false, sign = false;
             
             for (int j = i + 1; j < argc; j++) {
                 if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--create") == 0) {
@@ -538,12 +536,6 @@ bool app_entry(int argc, char** argv) {
                     format = argv[++j];
                 } else if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--password") == 0) {
                     if (j + 1 < argc) password = argv[++j];
-                } else if (fossil_io_cstring_compare(argv[j], "--compress-level") == 0 && j + 1 < argc) {
-                    compress_level = atoi(argv[++j]);
-                } else if (fossil_io_cstring_compare(argv[j], "--solid") == 0) {
-                    solid = true;
-                } else if (fossil_io_cstring_compare(argv[j], "--split-size") == 0 && j + 1 < argc) {
-                    split_size = (size_t)atoi(argv[++j]);
                 } else if (fossil_io_cstring_compare(argv[j], "--stdout") == 0) {
                     stdout_output = true;
                 } else if (fossil_io_cstring_compare(argv[j], "--verify") == 0) {
@@ -557,7 +549,7 @@ bool app_entry(int argc, char** argv) {
                 }
                 i = j;
             }
-            if (cnotnull(path)) fossil_shark_archive(path, create, extract, list, format, password, compress_level, solid, split_size, stdout_output, verify, sign, exclude_pattern);
+            if (cnotnull(path)) fossil_shark_archive(path, create, extract, list, format, password, stdout_output, verify, sign, exclude_pattern);
             
         } else if (fossil_io_cstring_compare(argv[i], "view") == 0) {
             ccstring path = cnull;

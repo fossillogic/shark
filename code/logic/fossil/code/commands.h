@@ -156,6 +156,8 @@ int fossil_shark_search(ccstring path, bool recursive,
  * @param list List contents of archive
  * @param format Archive format specification (zip/tar/gz)
  * @param password Password for encrypted archives
+ * @param compress_level Compression level (0-9, 0 for no compression)
+ * @param solid Create solid archive (--solid)
  * @param stdout_output Output to stdout instead of file
  * @param verify Verify archive integrity after operation
  * @param sign Sign the archive
@@ -164,7 +166,7 @@ int fossil_shark_search(ccstring path, bool recursive,
  */
 int fossil_shark_archive(ccstring path, bool create, bool extract,
                          bool list, ccstring format, ccstring password,
-                         int compress_level, bool solid, size_t split_size,
+                         int compress_level, bool solid,
                          bool stdout_output, bool verify, bool sign,
                          ccstring exclude_pattern);
 
