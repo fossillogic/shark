@@ -66,37 +66,37 @@ FOSSIL_TEST(c_test_archive_null_path) {
 
 FOSSIL_TEST(c_test_archive_multiple_operations) {
     // Test with multiple operations specified (invalid)
-    int result = fossil_shark_archive("test.zip", true, true, false, "zip", cnull, 0, false, 0, false, false, false, cnull);
+    int result = fossil_shark_archive("test.zip", true, true, false, "zip", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     // Test with create and list
-    result = fossil_shark_archive("test.zip", true, false, true, "zip", cnull, 0, false, 0, false, false, false, cnull);
+    result = fossil_shark_archive("test.zip", true, false, true, "zip", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     // Test with extract and list
-    result = fossil_shark_archive("test.zip", false, true, true, "zip", cnull, 0, false, 0, false, false, false, cnull);
+    result = fossil_shark_archive("test.zip", false, true, true, "zip", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     // Test with all three operations
-    result = fossil_shark_archive("test.zip", true, true, true, "zip", cnull, 0, false, 0, false, false, false, cnull);
+    result = fossil_shark_archive("test.zip", true, true, true, "zip", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_archive_no_operations) {
     // Test with no operations specified
-    int result = fossil_shark_archive("test.zip", false, false, false, "zip", cnull, 0, false, 0, false, false, false, cnull);
+    int result = fossil_shark_archive("test.zip", false, false, false, "zip", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_archive_extract_nonexistent_file) {
     // Test extract operation on non-existent file
-    int result = fossil_shark_archive("nonexistent.zip", false, true, false, "zip", cnull, 0, false, 0, false, false, false, cnull);
+    int result = fossil_shark_archive("nonexistent.zip", false, true, false, "zip", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_archive_list_nonexistent_file) {
     // Test list operation on non-existent file
-    int result = fossil_shark_archive("nonexistent.tar", false, false, true, "tar", cnull, 0, false, 0, false, false, false, cnull);
+    int result = fossil_shark_archive("nonexistent.tar", false, false, true, "tar", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -124,37 +124,37 @@ FOSSIL_TEST(c_test_archive_create_targz_format) {
 
 FOSSIL_TEST(c_test_archive_unsupported_format) {
     // Test with unsupported format for create operation
-    int result = fossil_shark_archive("test.unknown", true, false, false, "unknown_format", cnull, 0, false, 0, false, false, false, cnull);
+    int result = fossil_shark_archive("test.unknown", true, false, false, "unknown_format", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_archive_path_sanitization) {
     // Test with suspicious path characters
-    int result = fossil_shark_archive("../../../etc/passwd", true, false, false, "zip", cnull, 0, false, 0, false, false, false, cnull);
+    int result = fossil_shark_archive("../../../etc/passwd", true, false, false, "zip", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     // Test with shell injection attempts
-    result = fossil_shark_archive("test; rm -rf /", true, false, false, "zip", cnull, 0, false, 0, false, false, false, cnull);
+    result = fossil_shark_archive("test; rm -rf /", true, false, false, "zip", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     // Test with pipe characters
-    result = fossil_shark_archive("test | cat", true, false, false, "zip", cnull, 0, false, 0, false, false, false, cnull);
+    result = fossil_shark_archive("test | cat", true, false, false, "zip", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_archive_format_sanitization) {
     // Test with malicious format strings
-    int result = fossil_shark_archive("test.zip", true, false, false, "zip; rm -rf /", cnull, 0, false, 0, false, false, false, cnull);
+    int result = fossil_shark_archive("test.zip", true, false, false, "zip; rm -rf /", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     // Test with shell metacharacters in format
-    result = fossil_shark_archive("test.tar", true, false, false, "tar | nc", cnull, 0, false, 0, false, false, false, cnull);
+    result = fossil_shark_archive("test.tar", true, false, false, "tar | nc", cnull, 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_archive_password_validation) {
     // Test with malicious password
-    int result = fossil_shark_archive("test.zip", true, false, false, "zip", "pass; rm file", 0, false, 0, false, false, false, cnull);
+    int result = fossil_shark_archive("test.zip", true, false, false, "zip", "pass; rm file", 0, false, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -178,7 +178,7 @@ FOSSIL_TEST(c_test_archive_extract_existing_archive) {
     fclose(archive_file);
     
     // Test extract operation
-    fossil_shark_archive("test_extract.tar", false, true, false, "tar", cnull, 0, false, 0, false, false, false, cnull);
+    fossil_shark_archive("test_extract.tar", false, true, false, "tar", cnull, 0, false, 0, false, false, cnull);
     
     // Clean up
     remove("test_extract.tar");
@@ -193,7 +193,7 @@ FOSSIL_TEST(c_test_archive_list_existing_archive) {
     fclose(archive_file);
     
     // Test list operation
-    fossil_shark_archive("test_list.zip", false, false, true, "zip", cnull, 0, false, 0, false, false, false, cnull);
+    fossil_shark_archive("test_list.zip", false, false, true, "zip", cnull, 0, false, 0, false, false, cnull);
     
     // Clean up
     remove("test_list.zip");
@@ -246,7 +246,7 @@ FOSSIL_TEST(c_test_archive_compression_levels) {
     fclose(file);
     
     for (int level = 1; level <= 9; level++) {
-        int result = fossil_shark_archive("compress.zip", true, false, false, "zip", cnull, level, false, 0, false, false, false, cnull);
+        int result = fossil_shark_archive("compress.zip", true, false, false, "zip", cnull, level, false, 0, false, false, cnull);
         ASSUME_NOT_EQUAL_I32(0, result);
     }
     
@@ -260,7 +260,7 @@ FOSSIL_TEST(c_test_archive_solid_archive) {
     fprintf(file, "Test content for solid archive\n");
     fclose(file);
     
-    int result = fossil_shark_archive("solid.7z", true, false, false, "7z", cnull, 0, true, 0, false, false, false, cnull);
+    int result = fossil_shark_archive("solid.7z", true, false, false, "7z", cnull, 0, true, 0, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     remove("solid_test.txt");
@@ -273,7 +273,7 @@ FOSSIL_TEST(c_test_archive_split_archive) {
     fprintf(file, "Test content for split archive\n");
     fclose(file);
     
-    int result = fossil_shark_archive("split.zip", true, false, false, "zip", cnull, 0, false, 1048576, false, false, false, cnull);
+    int result = fossil_shark_archive("split.zip", true, false, false, "zip", cnull, 0, false, 1048576, false, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     remove("split_test.txt");
@@ -287,7 +287,7 @@ FOSSIL_TEST(c_test_archive_verify_integrity) {
     fwrite(tar_data, 1, sizeof(tar_data), file);
     fclose(file);
     
-    int result = fossil_shark_archive("verify_test.tar", false, false, true, "tar", cnull, 0, false, 0, false, true, false, cnull);
+    int result = fossil_shark_archive("verify_test.tar", false, false, true, "tar", cnull, 0, false, 0, false, true, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     remove("verify_test.tar");
@@ -300,7 +300,7 @@ FOSSIL_TEST(c_test_archive_exclude_pattern) {
     fprintf(file, "Test content\n");
     fclose(file);
     
-    int result = fossil_shark_archive("exclude.zip", true, false, false, "zip", cnull, 0, false, 0, false, false, false, "*.log");
+    int result = fossil_shark_archive("exclude.zip", true, false, false, "zip", cnull, 0, false, 0, false, false, "*.log");
     ASSUME_NOT_EQUAL_I32(0, result);
     
     remove("exclude_test.txt");
@@ -313,7 +313,7 @@ FOSSIL_TEST(c_test_archive_stdout_output) {
     fprintf(file, "Test content for stdout\n");
     fclose(file);
     
-    int result = fossil_shark_archive("stdout.zip", true, false, false, "zip", cnull, 0, false, 0, true, false, false, cnull);
+    int result = fossil_shark_archive("stdout.zip", true, false, false, "zip", cnull, 0, false, 0, true, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     remove("stdout_test.txt");

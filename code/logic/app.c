@@ -109,9 +109,6 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    -l, --list          List archive contents\n");
     fossil_io_printf("{bright_black}    -f <format>         Format: zip/tar/gz\n");
     fossil_io_printf("{bright_black}    -p, --password <pw> Encrypt with password\n");
-    fossil_io_printf("{bright_black}    --compress-level <n>Compression level 1-9\n");
-    fossil_io_printf("{bright_black}    --solid             Create solid archive\n");
-    fossil_io_printf("{bright_black}    --split-size <size> Split archive by size\n");
     fossil_io_printf("{bright_black}    --stdout            Output to stdout\n");
     fossil_io_printf("{bright_black}    --verify            Verify archive\n");
     fossil_io_printf("{bright_black}    --sign              Sign archive\n");

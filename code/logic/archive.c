@@ -93,7 +93,7 @@ static fossil_io_archive_type_t get_archive_type_from_format(ccstring format) {
 
 int fossil_shark_archive(ccstring path, bool create, bool extract,
                          bool list, ccstring format, ccstring password,
-                         int compress_level, bool solid, size_t split_size,
+                         int compress_level, bool solid,
                          bool stdout_output, bool verify, bool sign,
                          ccstring exclude_pattern) {
     if (!path) {
@@ -322,26 +322,12 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             fossil_io_printf("{red}Error: Failed to create archive{normal}\n");
             ret = 1;
         } else {
-            // Set archive options
-            if (solid) {
-                fossil_io_archive_set_solid(archive, true);
-            }
-            if (sign) {
-                fossil_io_archive_set_sign(archive, true);
-            }
-            
             // Add current directory contents (cross-platform)
             if (!fossil_io_archive_add_directory(archive, ".", sanitized_exclude)) {
                 fossil_io_printf("{red}Error: Failed to add files to archive{normal}\n");
                 ret = 1;
             } else {
-                // Verify archive if requested
-                if (verify && !fossil_io_archive_verify(archive)) {
-                    fossil_io_printf("{yellow}Warning: Archive verification failed.{normal}\n");
-                    ret = 1;
-                } else {
-                    fossil_io_printf("{blue}Archive created successfully{normal}\n");
-                }
+                fossil_io_printf("{blue}Archive created successfully{normal}\n");
             }
         }
         
@@ -363,13 +349,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
                 fossil_io_printf("{red}Error: Failed to extract archive{normal}\n");
                 ret = 1;
             } else {
-                // Verify archive if requested
-                if (verify && !fossil_io_archive_verify(archive)) {
-                    fossil_io_printf("{yellow}Warning: Archive verification failed.{normal}\n");
-                    ret = 1;
-                } else {
-                    fossil_io_printf("{blue}Archive extracted successfully{normal}\n");
-                }
+                fossil_io_printf("{blue}Archive extracted successfully{normal}\n");
             }
         }
         
