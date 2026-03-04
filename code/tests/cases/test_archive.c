@@ -181,6 +181,7 @@ FOSSIL_TEST(c_test_archive_extract_existing_archive) {
     
     // Test extract operation (will fail on invalid tar but tests code path)
     int result = fossil_shark_archive("test_extract.tar", false, true, false, "tar", cnull, 0, false, cnull);
+    ASSUME_NOT_EQUAL_I32(0, result);
     
     // Clean up
     remove("test_extract.tar");
@@ -196,6 +197,7 @@ FOSSIL_TEST(c_test_archive_list_existing_archive) {
     
     // Test list operation
     int result = fossil_shark_archive("test_list.zip", false, false, true, "zip", cnull, 0, false, cnull);
+    ASSUME_NOT_EQUAL_I32(0, result);
     
     // Clean up
     remove("test_list.zip");
@@ -215,6 +217,7 @@ FOSSIL_TEST(c_test_archive_auto_detect_type) {
     
     // Test listing with auto-detection
     int result = fossil_shark_archive("autodetect.zip", false, false, true, cnull, cnull, 0, false, cnull);
+    ASSUME_NOT_EQUAL_I32(0, result);
     
     // Clean up
     remove("autodetect.zip");
@@ -255,6 +258,7 @@ FOSSIL_TEST(c_test_archive_compression_levels) {
     
     // Valid compression levels (0-9) would work
     result = fossil_shark_archive("compress.zip", true, false, false, "zip", cnull, 5, false, cnull);
+    ASSUME_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_archive_solid_archive) {
@@ -288,6 +292,7 @@ FOSSIL_TEST(c_test_archive_verify_integrity) {
     fclose(file);
     
     int result = fossil_shark_archive("verify_test.tar", false, false, true, "tar", cnull, 0, false, cnull);
+    ASSUME_NOT_EQUAL_I32(0, result);
     
     remove("verify_test.tar");
 }
@@ -301,6 +306,7 @@ FOSSIL_TEST(c_test_archive_exclude_pattern) {
     
     // Valid exclude pattern
     int result = fossil_shark_archive("exclude.zip", true, false, false, "zip", cnull, 0, false, "*.log");
+    ASSUME_NOT_EQUAL_I32(0, result);
     
     remove("exclude_test.txt");
 }
@@ -314,6 +320,7 @@ FOSSIL_TEST(c_test_archive_stdout_output) {
     
     // List operation with stdout flag enabled
     int result = fossil_shark_archive("nonexistent.zip", false, false, true, "zip", cnull, 0, true, cnull);
+    ASSUME_NOT_EQUAL_I32(0, result);
     
     remove("stdout_test.txt");
 }
@@ -327,6 +334,7 @@ FOSSIL_TEST(c_test_archive_sign_archive) {
     
     // Password is validated but not rejected even if weak
     int result = fossil_shark_archive("signed.zip", true, false, false, "zip", "password123", 0, false, cnull);
+    ASSUME_NOT_EQUAL_I32(0, result);
     
     remove("sign_test.txt");
 }
