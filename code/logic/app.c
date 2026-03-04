@@ -781,16 +781,16 @@ bool app_entry(int argc, char** argv) {
             bool encode = false, decode = false;
 
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-e") == 0 || fossil_io_cstring_compare(argv[j], "--encode") == 0) {
-                encode = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-d") == 0 || fossil_io_cstring_compare(argv[j], "--decode") == 0) {
-                decode = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--cipher") == 0) {
-                if (j + 1 < argc) cipher = argv[++j];
-            } else if (!cnotnull(text)) {
-                text = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-e") == 0 || fossil_io_cstring_compare(argv[j], "--encode") == 0) {
+                    encode = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-d") == 0 || fossil_io_cstring_compare(argv[j], "--decode") == 0) {
+                    decode = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--cipher") == 0) {
+                    if (j + 1 < argc) cipher = argv[++j];
+                } else if (!cnotnull(text)) {
+                    text = argv[j];
+                }
+                i = j;
             }
 
             if (cnotnull(text)) {
