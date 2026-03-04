@@ -164,7 +164,7 @@ int fossil_shark_search(ccstring path, bool recursive,
 int fossil_shark_archive(ccstring path, bool create, bool extract,
                          bool list, ccstring format, ccstring password,
                          int compress_level, bool stdout_output,
-                         ccstring exclude_pattern)
+                         ccstring exclude_pattern);
 
 /**
  * View and display file contents with various formatting options
