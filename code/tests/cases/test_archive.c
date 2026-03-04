@@ -57,166 +57,142 @@ FOSSIL_TEARDOWN(c_archive_command_suite) {
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 FOSSIL_TEST(c_test_archive_create_zip) {
-    FILE *temp = fopen("test_file.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "test content for archive\n");
-    fclose(temp);
+    FOSSIL_SANITY_SYS_CREATE_FILE("test_file.txt");
+    FOSSIL_SANITY_SYS_WRITE_FILE("test_file.txt", "test content for archive\n");
 
     int result = fossil_shark_archive("test_file.txt", true, false, false, "zip", NULL, 6, false, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    remove("test_file.txt");
-    remove("test_file.txt.zip");
+    FOSSIL_SANITY_SYS_DELETE_FILE("test_file.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("test_file.txt.zip");
 }
 
 FOSSIL_TEST(c_test_archive_create_tar) {
-    FILE *temp = fopen("test_doc.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "archive test data\n");
-    fclose(temp);
+    FOSSIL_SANITY_SYS_CREATE_FILE("test_doc.txt");
+    FOSSIL_SANITY_SYS_WRITE_FILE("test_doc.txt", "archive test data\n");
 
     int result = fossil_shark_archive("test_doc.txt", true, false, false, "tar", NULL, 0, false, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    remove("test_doc.txt");
-    remove("test_doc.txt.tar");
+    FOSSIL_SANITY_SYS_DELETE_FILE("test_doc.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("test_doc.txt.tar");
 }
 
 FOSSIL_TEST(c_test_archive_create_tar_gz) {
-    FILE *temp = fopen("test_compressed.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "compressed archive content\n");
-    fclose(temp);
+    FOSSIL_SANITY_SYS_CREATE_FILE("test_compressed.txt");
+    FOSSIL_SANITY_SYS_WRITE_FILE("test_compressed.txt", "compressed archive content\n");
 
     int result = fossil_shark_archive("test_compressed.txt", true, false, false, "gz", NULL, 9, false, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    remove("test_compressed.txt");
-    remove("test_compressed.txt.tar.gz");
+    FOSSIL_SANITY_SYS_DELETE_FILE("test_compressed.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("test_compressed.txt.tar.gz");
 }
 
 FOSSIL_TEST(c_test_archive_list_zip) {
-    FILE *temp = fopen("archive_test.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "list test\n");
-    fclose(temp);
+    FOSSIL_SANITY_SYS_CREATE_FILE("archive_test.txt");
+    FOSSIL_SANITY_SYS_WRITE_FILE("archive_test.txt", "list test\n");
 
     fossil_shark_archive("archive_test.txt", true, false, false, "zip", NULL, 6, false, NULL);
     int result = fossil_shark_archive("archive_test.txt.zip", false, false, true, "zip", NULL, 0, false, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    remove("archive_test.txt");
-    remove("archive_test.txt.zip");
+    FOSSIL_SANITY_SYS_DELETE_FILE("archive_test.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("archive_test.txt.zip");
 }
 
 FOSSIL_TEST(c_test_archive_extract_zip) {
-    FILE *temp = fopen("extract_test.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "extract me\n");
-    fclose(temp);
+    FOSSIL_SANITY_SYS_CREATE_FILE("extract_test.txt");
+    FOSSIL_SANITY_SYS_WRITE_FILE("extract_test.txt", "extract me\n");
 
     fossil_shark_archive("extract_test.txt", true, false, false, "zip", NULL, 6, false, NULL);
-    remove("extract_test.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("extract_test.txt");
     
     int result = fossil_shark_archive("extract_test.txt.zip", false, true, false, "zip", NULL, 0, false, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    remove("extract_test.txt.zip");
-    remove("extract_test.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("extract_test.txt.zip");
+    FOSSIL_SANITY_SYS_DELETE_FILE("extract_test.txt");
 }
 
 FOSSIL_TEST(c_test_archive_no_compression) {
-    FILE *temp = fopen("no_compress.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "stored without compression\n");
-    fclose(temp);
+    FOSSIL_SANITY_SYS_CREATE_FILE("no_compress.txt");
+    FOSSIL_SANITY_SYS_WRITE_FILE("no_compress.txt", "stored without compression\n");
 
     int result = fossil_shark_archive("no_compress.txt", true, false, false, "zip", NULL, 0, false, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    remove("no_compress.txt");
-    remove("no_compress.txt.zip");
+    FOSSIL_SANITY_SYS_DELETE_FILE("no_compress.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("no_compress.txt.zip");
 }
 
 FOSSIL_TEST(c_test_archive_with_exclude_pattern) {
-    FILE *temp = fopen("include_me.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "include this\n");
-    fclose(temp);
+    FOSSIL_SANITY_SYS_CREATE_FILE("include_me.txt");
+    FOSSIL_SANITY_SYS_WRITE_FILE("include_me.txt", "include this\n");
 
     int result = fossil_shark_archive("include_me.txt", true, false, false, "zip", NULL, 6, false, "*.log");
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    remove("include_me.txt");
-    remove("include_me.txt.zip");
+    FOSSIL_SANITY_SYS_DELETE_FILE("include_me.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("include_me.txt.zip");
 }
 
 FOSSIL_TEST(c_test_archive_stdout_output) {
-    FILE *temp = fopen("stdout_test.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "output to stdout\n");
-    fclose(temp);
+    FOSSIL_SANITY_SYS_CREATE_FILE("stdout_test.txt");
+    FOSSIL_SANITY_SYS_WRITE_FILE("stdout_test.txt", "output to stdout\n");
 
     int result = fossil_shark_archive("stdout_test.txt", true, false, false, "zip", NULL, 6, true, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    remove("stdout_test.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("stdout_test.txt");
 }
 
 FOSSIL_TEST(c_test_archive_encrypted_zip) {
-    FILE *temp = fopen("secret.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "encrypted content\n");
-    fclose(temp);
+    FOSSIL_SANITY_SYS_CREATE_FILE("secret.txt");
+    FOSSIL_SANITY_SYS_WRITE_FILE("secret.txt", "encrypted content\n");
 
     int result = fossil_shark_archive("secret.txt", true, false, false, "zip", "mypassword", 6, false, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    remove("secret.txt");
-    remove("secret.txt.zip");
+    FOSSIL_SANITY_SYS_DELETE_FILE("secret.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("secret.txt.zip");
 }
 
 FOSSIL_TEST(c_test_archive_max_compression) {
-    FILE *temp = fopen("max_compress.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "highly repetitive data repetitive data repetitive\n");
-    fclose(temp);
+    FOSSIL_SANITY_SYS_CREATE_FILE("max_compress.txt");
+    FOSSIL_SANITY_SYS_WRITE_FILE("max_compress.txt", "highly repetitive data repetitive data repetitive\n");
 
     int result = fossil_shark_archive("max_compress.txt", true, false, false, "zip", NULL, 9, false, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    remove("max_compress.txt");
-    remove("max_compress.txt.zip");
+    FOSSIL_SANITY_SYS_DELETE_FILE("max_compress.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("max_compress.txt.zip");
 }
 
 FOSSIL_TEST(c_test_archive_extract_tar) {
-    FILE *temp = fopen("tar_extract.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "tar extraction\n");
-    fclose(temp);
+    FOSSIL_SANITY_SYS_CREATE_FILE("tar_extract.txt");
+    FOSSIL_SANITY_SYS_WRITE_FILE("tar_extract.txt", "tar extraction\n");
 
     fossil_shark_archive("tar_extract.txt", true, false, false, "tar", NULL, 0, false, NULL);
-    remove("tar_extract.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("tar_extract.txt");
     
     int result = fossil_shark_archive("tar_extract.txt.tar", false, true, false, "tar", NULL, 0, false, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    remove("tar_extract.txt.tar");
-    remove("tar_extract.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("tar_extract.txt.tar");
+    FOSSIL_SANITY_SYS_DELETE_FILE("tar_extract.txt");
 }
 
 FOSSIL_TEST(c_test_archive_list_tar_gz) {
-    FILE *temp = fopen("list_targz.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "list tar.gz\n");
-    fclose(temp);
+    FOSSIL_SANITY_SYS_CREATE_FILE("list_targz.txt");
+    FOSSIL_SANITY_SYS_WRITE_FILE("list_targz.txt", "list tar.gz\n");
 
     fossil_shark_archive("list_targz.txt", true, false, false, "gz", NULL, 9, false, NULL);
     int result = fossil_shark_archive("list_targz.txt.tar.gz", false, false, true, "gz", NULL, 0, false, NULL);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    remove("list_targz.txt");
-    remove("list_targz.txt.tar.gz");
+    FOSSIL_SANITY_SYS_DELETE_FILE("list_targz.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("list_targz.txt.tar.gz");
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
