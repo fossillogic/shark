@@ -21,68 +21,20 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 - File synchronization and backup with flexible options
 - Real-time file monitoring and change detection
 
-## Command Palette
+## **Why Choose Shark Tool?**
+
+Unlike traditional CLI utilities that require juggling multiple tools, Shark consolidates essential file and system operations into a single, intuitive command-line interface. Here's what sets it apart:
+
+- **All-in-One Solution**: Eliminate tool switching. File management, archiving, searching, synchronization, and analysis all in one place.
+- **Unique Advanced Features**: Commands like `grammar` for intelligent text analysis, `summary` for structured insights, and `introspect` for deep file inspection go beyond standard utilities.
+- **Developer-Friendly**: Built specifically for admins and developers who need power and flexibility without complexity.
+- **Cross-Platform**: Works seamlessly across Linux, macOS, and Windows.
+- **Intelligent Defaults**: Smart handling of timestamps, metadata, and file permissions with optional fine-grained control.
+- **Modern Architecture**: Built with Meson and designed for performance and extensibility.
+
+Shark Tool is the unified solution for professionals who demand more from their command-line utilities.
 
 ---
-
-### Core File Operations
-
-| **Command** | **Description** | **Flags** |
-|-------------|-----------------|-----------|
-| `show` | Display files and directories. | `-a`, `--all` (show hidden)<br>`-l`, `--long` (detailed info)<br>`-h`, `--human` (human-readable sizes)<br>`-r`, `--recursive` (include subdirs)<br>`-d`, `--depth <n>` (limit recursion)<br>`--as <mode>` (format: list/tree/graph)<br>`--time` (show timestamps) |
-| `move` | Move or rename files/directories. | `-f`, `--force` (overwrite)<br>`-i`, `--interactive` (confirm overwrite)<br>`-b`, `--backup` (backup before move) |
-| `copy` | Copy files or directories. | `-r`, `--recursive` (copy subdirs)<br>`-u`, `--update` (only newer)<br>`-p`, `--preserve` (keep permissions/timestamps) |
-| `remove` / `delete` | Delete files or directories. | `-r`, `--recursive` (delete contents)<br>`-f`, `--force` (no confirmation)<br>`-i`, `--interactive` (confirm per file)<br>`--trash` (move to trash)<br>`--wipe` (secure overwrite before delete)<br>`--shred <passes>` (multi-pass secure deletion)<br>`--older-than <time>` (delete files older than)<br>`--larger-than <size>` (delete files larger than)<br>`--empty` (delete only empty dirs)<br>`--log <file>` (write deletion log) |
-| `rename` | Rename files or directories. | `-f`, `--force` (overwrite target)<br>`-i`, `--interactive` (confirm overwrite) |
-| `create` | Create new directories or files. | `-p`, `--parents` (create parent dirs)<br>`-t`, `--type <type>` (file or dir) |
-| `search` | Find files by name or content. | `-r`, `--recursive` (include subdirs)<br>`-n`, `--name <pattern>` (filename match)<br>`-c`, `--content <pattern>` (search contents)<br>`-i`, `--ignore-case` (case-insensitive) |
-| `archive` | Create, extract, or list archives. | `-c`, `--create` (new archive)<br>`-x`, `--extract` (extract)<br>`-l`, `--list` (list archive)<br>`-f <format>` (zip/tar/gz)<br>`-p`, `--password <pw>` (encrypt)<br>`--stdout` (output to stdout)<br>`--verify` (verify archive)<br>`--sign` (sign archive)<br>`--exclude <pattern>` (exclude files) |
-| `pack` | Create, extract, or list archives with compression. | `-c`, `--create` (new archive)<br>`-x`, `--extract` (extract)<br>`-l`, `--list` (list contents)<br>`-f <format>` (zip/tar/gz)<br>`-p`, `--password <pw>` (encrypt)<br>`--stdout` (output to stdout)<br>`--compress <n>` (compression level 0-9)<br>`--exclude <pattern>` (exclude files) |
-| `view` | Output file contents to terminal. | `-n`, `--number` (number lines)<br>`-b`, `--non-blank` (number non-blank)<br>`-s`, `--squeeze` (remove blank lines)<br>`-h`, `--head <n>` (first n lines)<br>`-t`, `--tail <n>` (last n lines)<br>`--time` (show timestamps) |
-| `compare` | Compare two files/directories. | `-t`, `--text` (line diff)<br>`-b`, `--binary` (binary diff)<br>`--context <n>` (context lines)<br>`--ignore-case` (ignore case) |
-| `help` | Display help for commands. | `--examples` (usage examples)<br>`--man` (full manual) |
-| `sync` | Synchronize files/directories. | `-r`, `--recursive` (include subdirs)<br>`-u`, `--update` (only newer)<br>`--delete` (remove extraneous files) |
-| `watch` | Monitor files or directories. | `-r`, `--recursive` (include subdirs)<br>`-e`, `--events <list>` (event filter)<br>`-t`, `--interval <n>` (poll interval) |
-| `rewrite` | Modify file contents or metadata. | `-a`, `--append` (append)<br>`--in-place` (edit in place)<br>`--access-time` (update atime)<br>`--mod-time` (update mtime)<br>`--size <n>` (set file size) |
-| `introspect` | Examine file contents/type/meta. | `--head <n>` (first n lines)<br>`--tail <n>` (last n lines)<br>`--count` (count lines/words/bytes)<br>`--type` (show type)<br>`--fson` (FSON output) |
-| `grammar` | Analyze/correct grammar/style via SOAP API. | `--check` (analyze grammar & style)<br>`--correct` (apply grammar correction)<br>`--sanitize` (clean unsafe language)<br>`--suggest` (improvement suggestions)<br>`--summarize` (concise summary)<br>`--score` (readability/clarity/quality scores)<br>`--tone` (detect tone)<br>`--detect <type>` (detect traits: `conspiracy`, `spam`, `ragebait`, `clickbait`, `bot`, `marketing`, `technobabble`, `hype`, `political`, `offensive`, `misinfo`, `brain_rot`, `formal`, `casual`, `sarcasm`, `neutral`, `aggressive`, `emotional`, `passive`, `snowflake`, `redundant`, `poor_cohesion`, `repeated_words`)<br>`--reflow-width <n>` (reflow to width)<br>`--capitalize <mode>` (sentence-case or title-case)<br>`--format` (pretty-print with indentation)<br>`--declutter` (repair whitespace & word boundaries)<br>`--punctuate` (normalize punctuation) |
-| `cryptic` | Encode or decode text using various ciphers. | `-e`, `--encode` (encode text)<br>`-d`, `--decode` (decode text)<br>`-c`, `--cipher <type>` (cipher: `caesar`, `vigenere`, `base64`, `base32`, `binary`, `morse`, `baconian`, `railfence`, `haxor`, `leet`, `rot13`, `atbash`) |
-
----
-
-### Global Flags (Available to All Commands)
-
-| **Flag** | **Description** |
-|-----------|-----------------|
-| `--help` | Show command help. |
-| `--version` | Display Shark Tool version. |
-| `-v, --verbose` | Enable detailed output. |
-| `-q, --quiet` | Suppress standard output. |
-| `--dry-run` | Simulate actions without changes. |
-| `--color` | Colorize output where applicable. |
-| `--time` | Display timestamps in output. |
-
----
-
-### Usage Examples
-
-| **Example** | **Description** |
-|--------------|-----------------|
-| `shark show -alh --as=tree --time` | List all files (including hidden) in long, human-readable format as a tree, with timestamps. |
-| `shark move -i -b old.txt archive/old.txt` | Move a file interactively, creating a backup before moving. |
-| `shark copy -rp src/ backup/` | Recursively copy the `src/` directory to `backup/`, preserving permissions and timestamps. |
-| `shark remove -r --trash temp/` | Recursively move the `temp/` directory and its contents to the system trash. |
-| `shark rename -i draft.md final.md` | Rename a file with confirmation before overwriting the target. |
-| `shark create -p -t dir logs/archive/2024/` | Create a nested directory structure for logs. |
-| `shark search -rc "config"` | Recursively search for the string "config" inside files. |
-| `shark archive -c -f tar project.tar src/` | Create a TAR archive from the `src/` directory. |
-| `shark view -n -h 20 --time notes.txt` | View the first 20 lines of a file with line numbers and timestamps. |
-| `shark compare -t main_v1.c main_v2.c --context 5` | Show a line-by-line diff of two files with 5 lines of context. |
-| `shark sync -ru src/ dest/` | Synchronize files from `src/` to `dest/`, copying only newer files recursively. |
-| `shark watch -r -e create,delete src/` | Monitor the `src/` directory recursively for file creation and deletion events. |
-| `shark rewrite -i --append log.txt "New entry"` | Append a new entry to a log file in-place. |
-| `shark introspect --mime report.pdf` | Show the MIME type of a file. |
-| `shark grammar --check --tone notes.txt` | Run a grammar check and detect tone in a text file. |
 
 ## **Prerequisites**
 
@@ -127,6 +79,69 @@ Ensure you have the following installed before starting:
     ```sh
     shark --help
     ```
+
+## Command Palette
+
+---
+
+### Core File Operations
+
+| **Command** | **Description** | **Flags** |
+|-------------|-----------------|-----------|
+| `show` | Display files and directories. | `-a`, `--all` (show hidden)<br>`-l`, `--long` (detailed info)<br>`-h`, `--human` (human-readable sizes)<br>`-r`, `--recursive` (include subdirs)<br>`-d`, `--depth <n>` (limit recursion)<br>`--as <mode>` (format: list/tree/graph)<br>`--time` (show timestamps) |
+| `move` | Move or rename files/directories. | `-f`, `--force` (overwrite)<br>`-i`, `--interactive` (confirm overwrite)<br>`-b`, `--backup` (backup before move) |
+| `copy` | Copy files or directories. | `-r`, `--recursive` (copy subdirs)<br>`-u`, `--update` (only newer)<br>`-p`, `--preserve` (keep permissions/timestamps) |
+| `remove` / `delete` | Delete files or directories. | `-r`, `--recursive` (delete contents)<br>`-f`, `--force` (no confirmation)<br>`-i`, `--interactive` (confirm per file)<br>`--trash` (move to trash)<br>`--wipe` (secure overwrite before delete)<br>`--shred <passes>` (multi-pass secure deletion)<br>`--older-than <time>` (delete files older than)<br>`--larger-than <size>` (delete files larger than)<br>`--empty` (delete only empty dirs)<br>`--log <file>` (write deletion log) |
+| `rename` | Rename files or directories. | `-f`, `--force` (overwrite target)<br>`-i`, `--interactive` (confirm overwrite) |
+| `create` | Create new directories or files. | `-p`, `--parents` (create parent dirs)<br>`-t`, `--type <type>` (file or dir) |
+| `search` | Find files by name or content. | `-r`, `--recursive` (include subdirs)<br>`-n`, `--name <pattern>` (filename match)<br>`-c`, `--content <pattern>` (search contents)<br>`-i`, `--ignore-case` (case-insensitive) |
+| `archive` | Create, extract, or list archives. | `-c`, `--create` (new archive)<br>`-x`, `--extract` (extract)<br>`-l`, `--list` (list archive)<br>`-f <format>` (zip/tar/gz)<br>`-p`, `--password <pw>` (encrypt)<br>`--stdout` (output to stdout) |
+| `view` | Output file contents to terminal. | `--format` (adds pretty format) |
+| `compare` | Compare two files/directories. | `-t`, `--text` (line diff)<br>`-b`, `--binary` (binary diff)<br>`--context <n>` (context lines)<br>`--ignore-case` (ignore case) |
+| `help` | Display help for commands. | `--examples` (usage examples)<br>`--man` (full manual) |
+| `sync` | Synchronize files/directories. | `-r`, `--recursive` (include subdirs)<br>`-u`, `--update` (only newer)<br>`--delete` (remove extraneous files) |
+| `watch` | Monitor files or directories. | `-r`, `--recursive` (include subdirs)<br>`-e`, `--events <list>` (event filter)<br>`-t`, `--interval <n>` (poll interval) |
+| `rewrite` | Modify file contents or metadata. | `-a`, `--append` (append)<br>`--in-place` (edit in place)<br>`--access-time` (update atime)<br>`--mod-time` (update mtime)<br>`--size <n>` (set file size) |
+| `introspect` | Examine file contents/type/meta. | `--head <n>` (first n lines)<br>`--tail <n>` (last n lines)<br>`--count` (count lines/words/bytes)<br>`--type` (show type)<br>`--fson` (FSON output) |
+| `grammar` | Analyze/correct grammar/style via SOAP API. | `--check` (analyze grammar & style)<br>`--correct` (apply grammar correction)<br>`--sanitize` (clean unsafe language)<br>`--suggest` (improvement suggestions)<br>`--summarize` (concise summary)<br>`--score` (readability/clarity/quality scores)<br>`--tone` (detect tone)<br>`--detect <type>` (detect traits: `conspiracy`, `spam`, `ragebait`, `clickbait`, `bot`, `marketing`, `technobabble`, `hype`, `political`, `offensive`, `misinfo`, `brain_rot`, `formal`, `casual`, `sarcasm`, `neutral`, `aggressive`, `emotional`, `passive`, `snowflake`, `redundant`, `poor_cohesion`, `repeated_words`)<br>`--reflow-width <n>` (reflow to width)<br>`--capitalize <mode>` (sentence-case or title-case)<br>`--format` (pretty-print with indentation)<br>`--declutter` (repair whitespace & word boundaries)<br>`--punctuate` (normalize punctuation) |
+| `cryptic` | Encode or decode text using various ciphers. | `-e`, `--encode` (encode text)<br>`-d`, `--decode` (decode text)<br>`-c`, `--cipher <type>` (cipher: `caesar`, `vigenere`, `base64`, `base32`, `binary`, `morse`, `baconian`, `railfence`, `haxor`, `leet`, `rot13`, `atbash`) |
+
+---
+
+### Global Flags (Available to All Commands)
+
+| **Flag** | **Description** |
+|-----------|-----------------|
+| `--help` | Show command help. |
+| `--version` | Display Shark Tool version. |
+| `-v, --verbose` | Enable detailed output. |
+| `-q, --quiet` | Suppress standard output. |
+| `--dry-run` | Simulate actions without changes. |
+| `--color` | Colorize output where applicable. |
+| `--time` | Display timestamps in output. |
+
+---
+
+### Usage Examples
+
+| **Example** | **Description** |
+|--------------|-----------------|
+| `shark show -alh --as=tree --time` | List all files (including hidden) in long, human-readable format as a tree, with timestamps. |
+| `shark move -i -b old.txt archive/old.txt` | Move a file interactively, creating a backup before moving. |
+| `shark copy -rp src/ backup/` | Recursively copy the `src/` directory to `backup/`, preserving permissions and timestamps. |
+| `shark remove -r --trash temp/` | Recursively move the `temp/` directory and its contents to the system trash. |
+| `shark rename -i draft.md final.md` | Rename a file with confirmation before overwriting the target. |
+| `shark create -p -t dir logs/archive/2024/` | Create a nested directory structure for logs. |
+| `shark search -rc "config"` | Recursively search for the string "config" inside files. |
+| `shark archive -c -f tar project.tar src/` | Create a TAR archive from the `src/` directory. |
+| `shark view --format notes.txt` | View file contents with pretty formatting, syntax highlighting, and line numbers. |
+| `shark compare -t main_v1.c main_v2.c --context 5` | Show a line-by-line diff of two files with 5 lines of context. |
+| `shark sync -ru src/ dest/` | Synchronize files from `src/` to `dest/`, copying only newer files recursively. |
+| `shark watch -r -e create,delete src/` | Monitor the `src/` directory recursively for file creation and deletion events. |
+| `shark rewrite -a --in-place log.txt "New entry"` | Append a new entry to a log file in-place. |
+| `shark introspect --count report.pdf` | Show line, word, and byte counts for a file. |
+| `shark grammar --check --tone --score notes.txt` | Run grammar check, detect tone, and display readability scores. |
+| `shark cryptic -e -c caesar "hello"` | Encode text using a Caesar cipher. |
 
 ## **Contributing**
 

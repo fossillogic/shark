@@ -114,12 +114,7 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    --exclude <pat>     Exclude files\n");
 
     fossil_io_printf("{cyan}  view             {reset}Output file contents to terminal\n");
-    fossil_io_printf("{bright_black}    -n, --number        Number lines\n");
-    fossil_io_printf("{bright_black}    -b, --non-blank     Number non-blank\n");
-    fossil_io_printf("{bright_black}    -s, --squeeze       Remove blank lines\n");
-    fossil_io_printf("{bright_black}    -h, --head <n>      First n lines\n");
-    fossil_io_printf("{bright_black}    -t, --tail <n>      Last n lines\n");
-    fossil_io_printf("{bright_black}    --time              Show timestamps\n");
+    fossil_io_printf("{bright_black}    --format            Pretty format\n");
 
     fossil_io_printf("{cyan}  compare          {reset}Compare two files/directories\n");
     fossil_io_printf("{bright_black}    -t, --text          Line diff\n");
@@ -551,29 +546,18 @@ bool app_entry(int argc, char** argv) {
             
         } else if (fossil_io_cstring_compare(argv[i], "view") == 0) {
             ccstring path = cnull;
-            bool number_lines = false, number_non_blank = false, squeeze_blank = false, show_time = false;
-            int head_lines = 0, tail_lines = 0;
+            bool format = false;
             
             for (int j = i + 1; j < argc; j++) {
-                if (fossil_io_cstring_compare(argv[j], "-n") == 0 || fossil_io_cstring_compare(argv[j], "--number") == 0) {
-                    number_lines = true;
-                } else if (fossil_io_cstring_compare(argv[j], "-b") == 0 || fossil_io_cstring_compare(argv[j], "--non-blank") == 0) {
-                    number_non_blank = true;
-                } else if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--squeeze") == 0) {
-                    squeeze_blank = true;
-                } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
-                    show_time = true;
-                } else if (fossil_io_cstring_compare(argv[j], "-h") == 0 || fossil_io_cstring_compare(argv[j], "--head") == 0) {
-                    if (j + 1 < argc) head_lines = atoi(argv[++j]);
-                } else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--tail") == 0) {
-                    if (j + 1 < argc) tail_lines = atoi(argv[++j]);
+                if (fossil_io_cstring_compare(argv[j], "--format") == 0) {
+                    format = true;
                 } else if (!cnotnull(path)) {
                     path = argv[j];
                 }
                 i = j;
             }
-            if (cnotnull(path)) fossil_shark_view(path, number_lines, number_non_blank, squeeze_blank, head_lines, tail_lines, show_time);
-            
+            if (cnotnull(path)) fossil_shark_view(path, format);
+
         } else if (fossil_io_cstring_compare(argv[i], "compare") == 0) {
             ccstring path1 = cnull, path2 = cnull;
             bool text_diff = false, binary_diff = false, ignore_case = false;
@@ -781,16 +765,16 @@ bool app_entry(int argc, char** argv) {
             bool encode = false, decode = false;
 
             for (int j = i + 1; j < argc; j++) {
-            if (fossil_io_cstring_compare(argv[j], "-e") == 0 || fossil_io_cstring_compare(argv[j], "--encode") == 0) {
-                encode = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-d") == 0 || fossil_io_cstring_compare(argv[j], "--decode") == 0) {
-                decode = true;
-            } else if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--cipher") == 0) {
-                if (j + 1 < argc) cipher = argv[++j];
-            } else if (!cnotnull(text)) {
-                text = argv[j];
-            }
-            i = j;
+                if (fossil_io_cstring_compare(argv[j], "-e") == 0 || fossil_io_cstring_compare(argv[j], "--encode") == 0) {
+                    encode = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-d") == 0 || fossil_io_cstring_compare(argv[j], "--decode") == 0) {
+                    decode = true;
+                } else if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--cipher") == 0) {
+                    if (j + 1 < argc) cipher = argv[++j];
+                } else if (!cnotnull(text)) {
+                    text = argv[j];
+                }
+                i = j;
             }
 
             if (cnotnull(text)) {

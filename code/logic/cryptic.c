@@ -38,21 +38,28 @@ int fossil_shark_cryptic(const char *text, bool encode, bool decode, const char 
         return 1; // Error: invalid arguments
     }
     
+    if (!encode && !decode) {
+        return 1; // Error: neither encode nor decode specified
+    }
+    
+    if (encode && decode) {
+        return 1; // Error: both encode and decode specified
+    }
+    
     char *result = NULL;
     
     if (encode) {
         result = fossil_io_cipher_encode(text, cipher);
-    } else if (decode) {
-        result = fossil_io_cipher_decode(text, cipher);
     } else {
-        return 1; // Error: neither encode nor decode specified
+        result = fossil_io_cipher_decode(text, cipher);
     }
     
     if (!result) {
         return 1; // Error: cipher operation failed
     }
     
-    // Use result as needed (output, etc.)
+    // Output the result
+    fossil_io_printf("%s\n", result);
     free(result);
     return 0; // Success
 }

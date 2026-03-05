@@ -141,12 +141,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         } else if (fossil_io_cstring_equals(command, "view")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}view [options] <file>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
-            fossil_io_printf("  {cyan,bold}-n, --number{normal}      Number lines\n");
-            fossil_io_printf("  {cyan,bold}-b, --non-blank{normal}   Number non-blank\n");
-            fossil_io_printf("  {cyan,bold}-s, --squeeze{normal}     Remove blank lines\n");
-            fossil_io_printf("  {cyan,bold}-h, --head <n>{normal}    First n lines\n");
-            fossil_io_printf("  {cyan,bold}-t, --tail <n>{normal}    Last n lines\n");
-            fossil_io_printf("  {cyan,bold}--time{normal}            Show timestamps\n");
+            fossil_io_printf("  {cyan,bold}--format{normal}          Pretty format\n");
         } else if (fossil_io_cstring_equals(command, "compare")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}compare [options] <path1> <path2>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
@@ -253,7 +248,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             else if (fossil_io_cstring_equals(command, "archive"))
             fossil_io_printf("  {cyan,bold}shark archive -c -f tar project.tar src/{normal}\n");
             else if (fossil_io_cstring_equals(command, "view"))
-            fossil_io_printf("  {cyan,bold}shark view -n -h 20 --time notes.txt{normal}\n");
+            fossil_io_printf("  {cyan,bold}shark view --format notes.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "compare"))
             fossil_io_printf("  {cyan,bold}shark compare -t main_v1.c main_v2.c --context 5{normal}\n");
             else if (fossil_io_cstring_equals(command, "help"))
