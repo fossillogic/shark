@@ -169,18 +169,10 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
 /**
  * View and display file contents with various formatting options
  * @param path Path to file to view
- * @param number_lines Show line numbers for all lines
- * @param number_non_blank Show line numbers only for non-blank lines
- * @param squeeze_blank Reduce multiple blank lines to single blank line
- * @param head_lines Number of lines to show from beginning (0 for all)
- * @param tail_lines Number of lines to show from end (0 for all)
- * @param show_time Display file timestamps
  * @param format Apply formatting based on file type else raw if false
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_view(ccstring path, bool number_lines,
-                      bool number_non_blank, bool squeeze_blank, bool format,
-                      int head_lines, int tail_lines, bool show_time);
+int fossil_shark_view(ccstring path, bool format);
 
 /**
  * Compare two files or directories and show differences

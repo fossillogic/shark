@@ -64,7 +64,7 @@ FOSSIL_TEST(c_test_view_media_file_jpg) {
     fwrite(jpg_header, 1, sizeof(jpg_header), temp);
     fclose(temp);
 
-    int result = fossil_shark_view("test_image.jpg", false, false, false, false, 0, 0, false);
+    int result = fossil_shark_view("test_image.jpg", false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("test_image.jpg");
@@ -78,7 +78,7 @@ FOSSIL_TEST(c_test_view_media_file_mp3) {
     fwrite(mp3_header, 1, sizeof(mp3_header), temp);
     fclose(temp);
 
-    int result = fossil_shark_view("test_audio.mp3", false, false, false, false, 0, 0, false);
+    int result = fossil_shark_view("test_audio.mp3", false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("test_audio.mp3");
@@ -92,7 +92,7 @@ FOSSIL_TEST(c_test_view_binary_file) {
     fwrite(bin_data, 1, sizeof(bin_data), temp);
     fclose(temp);
 
-    int result = fossil_shark_view("test_binary.bin", false, false, false, false, 0, 0, false);
+    int result = fossil_shark_view("test_binary.bin", false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("test_binary.bin");
@@ -105,7 +105,7 @@ FOSSIL_TEST(c_test_view_code_file_c) {
     fprintf(temp, "#include <stdio.h>\nint main() { return 0; }\n");
     fclose(temp);
 
-    int result = fossil_shark_view("test_code.c", false, false, false, true, 0, 0, false);
+    int result = fossil_shark_view("test_code.c", true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("test_code.c");
@@ -118,7 +118,7 @@ FOSSIL_TEST(c_test_view_structured_file_json) {
     fprintf(temp, "{ \"key\": true, \"value\": null }\n");
     fclose(temp);
 
-    int result = fossil_shark_view("test_structured.json", false, false, false, true, 0, 0, false);
+    int result = fossil_shark_view("test_structured.json", true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("test_structured.json");
@@ -131,7 +131,7 @@ FOSSIL_TEST(c_test_view_meson_file) {
     fprintf(temp, "project('demo', 'c')\nexecutable('app', 'main.c')\n");
     fclose(temp);
 
-    int result = fossil_shark_view("meson.build", false, false, false, true, 0, 0, false);
+    int result = fossil_shark_view("meson.build", true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("meson.build");
@@ -144,7 +144,7 @@ FOSSIL_TEST(c_test_view_structured_and_code_file) {
     fprintf(temp, "{ \"main\": \"int main() { return 0; }\" }\n");
     fclose(temp);
 
-    int result = fossil_shark_view("test_structured_code.json", false, false, false, true, 0, 0, false);
+    int result = fossil_shark_view("test_structured_code.json", true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("test_structured_code.json");
@@ -157,7 +157,7 @@ FOSSIL_TEST(c_test_view_structured_and_meson_file) {
     fprintf(temp, "option('feature', type: 'boolean', value: true)\n");
     fclose(temp);
 
-    int result = fossil_shark_view("meson.options", false, false, false, true, 0, 0, false);
+    int result = fossil_shark_view("meson.options", true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("meson.options");
@@ -170,7 +170,7 @@ FOSSIL_TEST(c_test_view_plain_text_no_extension) {
     fprintf(temp, "Just some plain text.\nAnother line.\n");
     fclose(temp);
 
-    int result = fossil_shark_view("plainfile", false, false, false, false, 0, 0, false);
+    int result = fossil_shark_view("plainfile", false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("plainfile");
@@ -183,7 +183,7 @@ FOSSIL_TEST(c_test_view_csv_file) {
     fprintf(temp, "name,age\nAlice,30\nBob,25\n");
     fclose(temp);
 
-    int result = fossil_shark_view("test.csv", false, false, false, false, 0, 0, false);
+    int result = fossil_shark_view("test.csv", false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("test.csv");
@@ -196,7 +196,7 @@ FOSSIL_TEST(c_test_view_html_file) {
     fprintf(temp, "<html><body><h1>Hello</h1></body></html>\n");
     fclose(temp);
 
-    int result = fossil_shark_view("test.html", false, false, false, true, 0, 0, false);
+    int result = fossil_shark_view("test.html", true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("test.html");
@@ -209,7 +209,7 @@ FOSSIL_TEST(c_test_view_yaml_file) {
     fprintf(temp, "key: value\nflag: true\n");
     fclose(temp);
 
-    int result = fossil_shark_view("test.yaml", false, false, false, true, 0, 0, false);
+    int result = fossil_shark_view("test.yaml", true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("test.yaml");
@@ -222,7 +222,7 @@ FOSSIL_TEST(c_test_view_ini_file) {
     fprintf(temp, "[section]\nkey=value\n");
     fclose(temp);
 
-    int result = fossil_shark_view("test.ini", false, false, false, true, 0, 0, false);
+    int result = fossil_shark_view("test.ini", true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("test.ini");
@@ -235,7 +235,7 @@ FOSSIL_TEST(c_test_view_markdown_file) {
     fprintf(temp, "# Heading\n- List item\n`inline code`\n");
     fclose(temp);
 
-    int result = fossil_shark_view("test.md", false, false, false, true, 0, 0, false);
+    int result = fossil_shark_view("test.md", true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("test.md");

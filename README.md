@@ -96,7 +96,7 @@ Ensure you have the following installed before starting:
 | `create` | Create new directories or files. | `-p`, `--parents` (create parent dirs)<br>`-t`, `--type <type>` (file or dir) |
 | `search` | Find files by name or content. | `-r`, `--recursive` (include subdirs)<br>`-n`, `--name <pattern>` (filename match)<br>`-c`, `--content <pattern>` (search contents)<br>`-i`, `--ignore-case` (case-insensitive) |
 | `archive` | Create, extract, or list archives. | `-c`, `--create` (new archive)<br>`-x`, `--extract` (extract)<br>`-l`, `--list` (list archive)<br>`-f <format>` (zip/tar/gz)<br>`-p`, `--password <pw>` (encrypt)<br>`--stdout` (output to stdout) |
-| `view` | Output file contents to terminal. | `-n`, `--number` (number lines)<br>`-b`, `--non-blank` (number non-blank)<br>`-s`, `--squeeze` (remove blank lines)<br>`-h`, `--head <n>` (first n lines)<br>`-t`, `--tail <n>` (last n lines)<br>`--time` (show timestamps)<br>`--format` (adds pretty format) |
+| `view` | Output file contents to terminal. | `--format` (adds pretty format) |
 | `compare` | Compare two files/directories. | `-t`, `--text` (line diff)<br>`-b`, `--binary` (binary diff)<br>`--context <n>` (context lines)<br>`--ignore-case` (ignore case) |
 | `help` | Display help for commands. | `--examples` (usage examples)<br>`--man` (full manual) |
 | `sync` | Synchronize files/directories. | `-r`, `--recursive` (include subdirs)<br>`-u`, `--update` (only newer)<br>`--delete` (remove extraneous files) |
@@ -134,7 +134,7 @@ Ensure you have the following installed before starting:
 | `shark create -p -t dir logs/archive/2024/` | Create a nested directory structure for logs. |
 | `shark search -rc "config"` | Recursively search for the string "config" inside files. |
 | `shark archive -c -f tar project.tar src/` | Create a TAR archive from the `src/` directory. |
-| `shark view -n -t 20 --time notes.txt` | View the last 20 lines of a file with line numbers and timestamps. |
+| `shark view --format notes.txt` | View file contents with pretty formatting, syntax highlighting, and line numbers. |
 | `shark compare -t main_v1.c main_v2.c --context 5` | Show a line-by-line diff of two files with 5 lines of context. |
 | `shark sync -ru src/ dest/` | Synchronize files from `src/` to `dest/`, copying only newer files recursively. |
 | `shark watch -r -e create,delete src/` | Monitor the `src/` directory recursively for file creation and deletion events. |

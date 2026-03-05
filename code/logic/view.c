@@ -71,15 +71,15 @@ static bool fossil_meson_is_dedent_keyword(const char* line) {
 }
 
 static void fossil_meson_colorize_keyword(const char* keyword) {
-    fputs("\033[35m", stdout);
-    fputs(keyword, stdout);
-    fputs("\033[0m", stdout);
+    fossil_io_puts("\033[35m");
+    fossil_io_puts(keyword);
+    fossil_io_puts("\033[0m");
 }
 
 static void fossil_meson_colorize_string(const char* str) {
-    fputs("\033[32m", stdout);
-    fputs(str, stdout);
-    fputs("\033[0m", stdout);
+    fossil_io_puts("\033[32m");
+    fossil_io_puts(str);
+    fossil_io_puts("\033[0m");
 }
 
 static void fossil_meson_format_line(const char* line, int indent_level) {
@@ -87,7 +87,7 @@ static void fossil_meson_format_line(const char* line, int indent_level) {
     
     while (*line && isspace(*line)) line++;
     
-    for (int i = 0; i < indent_level * 2; i++) fputc(' ', stdout);
+    for (int i = 0; i < indent_level * 2; i++) fossil_io_putchar(' ');
     
     bool in_string = false;
     char quote_char = 0;
@@ -102,7 +102,7 @@ static void fossil_meson_format_line(const char* line, int indent_level) {
                 in_string = false;
                 fossil_meson_colorize_string("'");
             } else {
-                fputc(*p, stdout);
+                fossil_io_putchar(*p);
             }
         } else if (!in_string && isalpha(*p)) {
             const char* start = p;
@@ -113,7 +113,7 @@ static void fossil_meson_format_line(const char* line, int indent_level) {
             fossil_meson_colorize_keyword(temp);
             p--;
         } else {
-            fputc(*p, stdout);
+            fossil_io_putchar(*p);
         }
     }
 }
@@ -138,7 +138,7 @@ static int fossil_meson_backend_format(const char* content, bool smart_indent) {
         while (*trimmed && isspace(*trimmed)) trimmed++;
         
         if (!*trimmed) {
-            fputc('\n', stdout);
+            fossil_io_putchar('\n');
             ptr = line_end;
             if (*ptr == '\n') ptr++;
             continue;
@@ -153,13 +153,66 @@ static int fossil_meson_backend_format(const char* content, bool smart_indent) {
                 indent++;
             }
         } else {
-            fputs(trimmed, stdout);
+            fossil_io_puts(trimmed);
         }
         
-        fputc('\n', stdout);
+        fossil_io_putchar('\n');
         ptr = line_end;
         if (*ptr == '\n') ptr++;
     }
+    return 0;
+}
+
+int fossil_shark_view(ccstring path, bool format) {
+    if (!path) return -1;
+    
+    fossil_io_file_t stream = {0};
+    if (fossil_io_file_open(&stream, path, "r") != 0) {
+        return -1;
+    }
+    
+    // Read entire file content
+    fossil_io_file_seek(&stream, 0, SEEK_END);
+    size_t file_size = fossil_io_file_get_size(&stream);
+    fossil_io_file_seek(&stream, 0, SEEK_SET);
+    
+    cstring content = fossil_io_cstring_create("");
+    if (!content) {
+        fossil_io_file_close(&stream);
+        return -1;
+    }
+    
+    char buffer[4096];
+    size_t read_size;
+    while ((read_size = fossil_io_file_read(&stream, buffer, 1, sizeof(buffer) - 1)) > 0) {
+        buffer[read_size] = '\0';
+        content = fossil_io_cstring_append(&content, buffer);
+        if (!content) {
+            fossil_io_file_close(&stream);
+            return -1;
+        }
+    }
+    
+    fossil_io_file_close(&stream);
+    
+    // Apply formatting if requested
+    if (format) {
+        if (fossil_meson_lookup(path) != -1) {
+            fossil_meson_backend_format(content, true);
+        } else if (fossil_source_lookup(path) != -1) {
+            fossil_source_backend_format(content, true);
+        } else if (fossil_data_lookup(path) != -1) {
+            fossil_data_backend_format(content, path, true);
+        } else if (fossil_doc_lookup(path) != -1) {
+            fossil_doc_backend_format(content, path, true);
+        } else {
+            fossil_io_puts(content);
+        }
+    } else {
+        fossil_io_puts(content);
+    }
+    
+    fossil_io_cstring_free(content);
     return 0;
 }
 
@@ -209,9 +262,9 @@ static bool fossil_source_is_block_end(const char* line) {
 }
 
 static void fossil_source_colorize_comment(const char* comment) {
-    fputs("\033[90m", stdout);
-    fputs(comment, stdout);
-    fputs("\033[0m", stdout);
+    fossil_io_puts("\033[90m");
+    fossil_io_puts(comment);
+    fossil_io_puts("\033[0m");
 }
 
 static int fossil_source_backend_format(const char* content, bool smart_indent) {
@@ -240,7 +293,7 @@ static int fossil_source_backend_format(const char* content, bool smart_indent) 
         }
         
         if (!*trimmed) {
-            fputc('\n', stdout);
+            fossil_io_putchar('\n');
             ptr = line_end;
             if (*ptr == '\n') ptr++;
             continue;
@@ -257,18 +310,18 @@ static int fossil_source_backend_format(const char* content, bool smart_indent) 
                 indent = (indent > 0) ? indent - 1 : 0;
             }
             
-            for (int i = 0; i < indent * 4; i++) fputc(' ', stdout);
-            fputs(trimmed, stdout);
+            for (int i = 0; i < indent * 4; i++) fossil_io_putchar(' ');
+            fossil_io_puts(trimmed);
             
             if (fossil_source_is_block_start(trimmed)) {
                 indent++;
             }
         } else {
-            for (int i = 0; i < leading_spaces; i++) fputc(' ', stdout);
-            fputs(trimmed, stdout);
+            for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
+            fossil_io_puts(trimmed);
         }
         
-        fputc('\n', stdout);
+        fossil_io_putchar('\n');
         ptr = line_end;
         if (*ptr == '\n') ptr++;
     }
@@ -332,7 +385,7 @@ static int fossil_json_backend_format(const char* content, bool smart_indent) {
         while (*trimmed && isspace(*trimmed)) trimmed++;
         
         if (!*trimmed) {
-            fputc('\n', stdout);
+            fossil_io_putchar('\n');
             ptr = line_end;
             if (*ptr == '\n') ptr++;
             continue;
@@ -343,17 +396,17 @@ static int fossil_json_backend_format(const char* content, bool smart_indent) {
         }
         
         if (smart_indent) {
-            for (int i = 0; i < indent * 2; i++) fputc(' ', stdout);
+            for (int i = 0; i < indent * 2; i++) fossil_io_putchar(' ');
         }
         
         for (const char* p = trimmed; *p; p++) {
             if (*p == '"' && (p == trimmed || *(p-1) != '\\')) {
                 in_string = !in_string;
-                fputs(in_string ? "\033[32m" : "\033[0m", stdout);
+                fossil_io_puts(in_string ? "\033[32m" : "\033[0m");
             }
-            fputc(*p, stdout);
+            fossil_io_putchar(*p);
         }
-        fputc('\n', stdout);
+        fossil_io_putchar('\n');
         
         if (smart_indent) {
             in_string = false;
@@ -390,7 +443,7 @@ static int fossil_xml_backend_format(const char* content, bool smart_indent) {
         while (*trimmed && isspace(*trimmed)) trimmed++;
         
         if (!*trimmed) {
-            fputc('\n', stdout);
+            fossil_io_putchar('\n');
             ptr = line_end;
             if (*ptr == '\n') ptr++;
             continue;
@@ -403,17 +456,17 @@ static int fossil_xml_backend_format(const char* content, bool smart_indent) {
         }
         
         if (smart_indent) {
-            for (int i = 0; i < indent * 2; i++) fputc(' ', stdout);
+            for (int i = 0; i < indent * 2; i++) fossil_io_putchar(' ');
         }
         
-        if (in_comment) fputs("\033[90m", stdout);
-        else if (strstr(trimmed, "<?") == trimmed) fputs("\033[36m", stdout);
-        else fputs("\033[0m", stdout);
+        if (in_comment) fossil_io_puts("\033[90m");
+        else if (strstr(trimmed, "<?") == trimmed) fossil_io_puts("\033[36m");
+        else fossil_io_puts("\033[0m");
         
-        fputs(trimmed, stdout);
+        fossil_io_puts(trimmed);
         
-        if (in_comment || strstr(trimmed, "<?") == trimmed) fputs("\033[0m", stdout);
-        fputc('\n', stdout);
+        if (in_comment || strstr(trimmed, "<?") == trimmed) fossil_io_puts("\033[0m");
+        fossil_io_putchar('\n');
         
         if (strstr(trimmed, "-->") != NULL) in_comment = false;
         
@@ -452,29 +505,32 @@ static int fossil_yaml_backend_format(const char* content, bool smart_indent) {
         }
         
         if (!*trimmed) {
-            fputc('\n', stdout);
+            fossil_io_putchar('\n');
         } else {
-            if (base_indent == -1 && leading > 0) base_indent = leading;
-            
             if (smart_indent) {
-                for (int i = 0; i < leading; i++) fputc(' ', stdout);
+                if (base_indent == -1 && leading > 0) base_indent = leading;
+                int indent_level = (leading - base_indent) / 2;
+                if (indent_level < 0) indent_level = 0;
+                for (int i = 0; i < indent_level * 2; i++) fossil_io_putchar(' ');
+            } else {
+                for (int i = 0; i < leading; i++) fossil_io_putchar(' ');
             }
             
             for (const char* p = trimmed; *p; p++) {
                 if (*p == ':' && *(p+1) == ' ') {
-                    fputs("\033[33m", stdout);
-                    fputc(*p, stdout);
-                    fputs("\033[0m", stdout);
+                    fossil_io_puts("\033[33m");
+                    fossil_io_putchar(*p);
+                    fossil_io_puts("\033[0m");
                 } else if (*p == '#') {
-                    fputs("\033[90m", stdout);
-                    while (*p) fputc(*(p++), stdout);
-                    fputs("\033[0m", stdout);
+                    fossil_io_puts("\033[90m");
+                    while (*p) fossil_io_putchar(*(p++));
+                    fossil_io_puts("\033[0m");
                     break;
                 } else {
-                    fputc(*p, stdout);
+                    fossil_io_putchar(*p);
                 }
             }
-            fputc('\n', stdout);
+            fossil_io_putchar('\n');
         }
         
         ptr = line_end;
@@ -486,6 +542,7 @@ static int fossil_yaml_backend_format(const char* content, bool smart_indent) {
 static int fossil_toml_backend_format(const char* content, bool smart_indent) {
     if (!content) return -1;
     
+    int indent = 0;
     const char* ptr = content;
     bool in_string = false;
     
@@ -502,28 +559,44 @@ static int fossil_toml_backend_format(const char* content, bool smart_indent) {
         char* trimmed = buffer;
         while (*trimmed && isspace(*trimmed)) trimmed++;
         
+        if (smart_indent && (*trimmed == ']')) {
+            indent = (indent > 0) ? indent - 1 : 0;
+        }
+        
+        if (smart_indent) {
+            for (int i = 0; i < indent * 2; i++) fossil_io_putchar(' ');
+        }
+        
         if (!*trimmed || *trimmed == '#') {
-            fputs("\033[90m", stdout);
-            fputs(buffer, stdout);
-            fputs("\033[0m\n", stdout);
+            fossil_io_puts("\033[90m");
+            fossil_io_puts(trimmed);
+            fossil_io_puts("\033[0m\n");
         } else if (*trimmed == '[') {
-            fputs("\033[1;36m", stdout);
-            fputs(trimmed, stdout);
-            fputs("\033[0m\n", stdout);
+            fossil_io_puts("\033[1;36m");
+            fossil_io_puts(trimmed);
+            fossil_io_puts("\033[0m\n");
         } else {
             for (const char* p = trimmed; *p; p++) {
                 if (*p == '"') {
                     in_string = !in_string;
-                    fputs(in_string ? "\033[32m" : "\033[0m", stdout);
-                    fputc(*p, stdout);
+                    fossil_io_puts(in_string ? "\033[32m" : "\033[0m");
+                    fossil_io_putchar(*p);
                 } else if (*p == '=' && !in_string) {
-                    fputs("\033[0m", stdout);
-                    fputc(*p, stdout);
+                    fossil_io_puts("\033[0m");
+                    fossil_io_putchar(*p);
                 } else {
-                    fputc(*p, stdout);
+                    fossil_io_putchar(*p);
                 }
             }
-            fputs("\033[0m\n", stdout);
+            fossil_io_puts("\033[0m\n");
+        }
+        
+        if (smart_indent) {
+            in_string = false;
+            for (const char* p = trimmed; *p; p++) {
+                if (*p == '"') in_string = !in_string;
+                if (!in_string && *p == '[') indent++;
+            }
         }
         
         ptr = line_end;
@@ -537,32 +610,46 @@ static int fossil_ini_backend_format(const char* content, bool smart_indent) {
     
     char buffer[2048];
     const char* ptr = content;
+    int leading_spaces = 0;
     
     while (sscanf(ptr, "%2047[^\n]", buffer) > 0) {
         char* trimmed = buffer;
-        while (*trimmed && isspace(*trimmed)) trimmed++;
+        leading_spaces = 0;
+        while (*trimmed && isspace(*trimmed)) {
+            trimmed++;
+            leading_spaces++;
+        }
         
         if (!*trimmed) {
-            fputc('\n', stdout);
+            fossil_io_putchar('\n');
         } else if (*trimmed == ';' || *trimmed == '#') {
-            fputs("\033[90m", stdout);
-            fputs(trimmed, stdout);
-            fputs("\033[0m\n", stdout);
+            if (smart_indent) {
+                for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
+            }
+            fossil_io_puts("\033[90m");
+            fossil_io_puts(trimmed);
+            fossil_io_puts("\033[0m\n");
         } else if (*trimmed == '[' && trimmed[strlen(trimmed)-1] == ']') {
-            fputs("\033[1;33m", stdout);
-            fputs(trimmed, stdout);
-            fputs("\033[0m\n", stdout);
+            if (smart_indent) {
+                for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
+            }
+            fossil_io_puts("\033[1;33m");
+            fossil_io_puts(trimmed);
+            fossil_io_puts("\033[0m\n");
         } else {
+            if (smart_indent) {
+                for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
+            }
             char* eq = strchr(trimmed, '=');
             if (eq) {
                 *eq = '\0';
-                fputs(trimmed, stdout);
-                fputs("\033[0m=", stdout);
-                fputs(eq + 1, stdout);
+                fossil_io_puts(trimmed);
+                fossil_io_puts("\033[0m=");
+                fossil_io_puts(eq + 1);
             } else {
-                fputs(trimmed, stdout);
+                fossil_io_puts(trimmed);
             }
-            fputs("\033[0m\n", stdout);
+            fossil_io_puts("\033[0m\n");
         }
         
         ptr = strchr(ptr, '\n');
@@ -580,21 +667,32 @@ static int fossil_csv_backend_format(const char* content, bool smart_indent) {
     bool in_quotes = false;
     
     while (sscanf(ptr, "%4095[^\n]", buffer) > 0) {
-        for (const char* p = buffer; *p; p++) {
+        char* trimmed = buffer;
+        int leading_spaces = 0;
+        while (*trimmed && isspace(*trimmed)) {
+            trimmed++;
+            leading_spaces++;
+        }
+        
+        if (smart_indent) {
+            for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
+        }
+        
+        for (const char* p = trimmed; *p; p++) {
             if (*p == '"') {
                 in_quotes = !in_quotes;
-                fputs("\033[32m", stdout);
-                fputc(*p, stdout);
-                fputs("\033[0m", stdout);
+                fossil_io_puts("\033[32m");
+                fossil_io_putchar(*p);
+                fossil_io_puts("\033[0m");
             } else if (*p == ',' && !in_quotes) {
-                fputs("\033[33m", stdout);
-                fputc(*p, stdout);
-                fputs("\033[0m", stdout);
+                fossil_io_puts("\033[33m");
+                fossil_io_putchar(*p);
+                fossil_io_puts("\033[0m");
             } else {
-                fputc(*p, stdout);
+                fossil_io_putchar(*p);
             }
         }
-        fputc('\n', stdout);
+        fossil_io_putchar('\n');
         
         ptr = strchr(ptr, '\n');
         if (!ptr) break;
@@ -610,16 +708,27 @@ static int fossil_tsv_backend_format(const char* content, bool smart_indent) {
     const char* ptr = content;
     
     while (sscanf(ptr, "%4095[^\n]", buffer) > 0) {
-        for (const char* p = buffer; *p; p++) {
+        char* trimmed = buffer;
+        int leading_spaces = 0;
+        while (*trimmed && isspace(*trimmed)) {
+            trimmed++;
+            leading_spaces++;
+        }
+        
+        if (smart_indent) {
+            for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
+        }
+        
+        for (const char* p = trimmed; *p; p++) {
             if (*p == '\t') {
-                fputs("\033[33m", stdout);
-                fputc(*p, stdout);
-                fputs("\033[0m", stdout);
+                fossil_io_puts("\033[33m");
+                fossil_io_putchar(*p);
+                fossil_io_puts("\033[0m");
             } else {
-                fputc(*p, stdout);
+                fossil_io_putchar(*p);
             }
         }
-        fputc('\n', stdout);
+        fossil_io_putchar('\n');
         
         ptr = strchr(ptr, '\n');
         if (!ptr) break;
@@ -649,7 +758,7 @@ static int fossil_fson_backend_format(const char* content, bool smart_indent) {
         while (*trimmed && isspace(*trimmed)) trimmed++;
         
         if (!*trimmed) {
-            fputc('\n', stdout);
+            fossil_io_putchar('\n');
             ptr = line_end;
             if (*ptr == '\n') ptr++;
             continue;
@@ -660,7 +769,7 @@ static int fossil_fson_backend_format(const char* content, bool smart_indent) {
         }
         
         if (smart_indent) {
-            for (int i = 0; i < indent * 2; i++) fputc(' ', stdout);
+            for (int i = 0; i < indent * 2; i++) fossil_io_putchar(' ');
         }
         
         for (const char* p = trimmed; *p; p++) {
@@ -676,20 +785,20 @@ static int fossil_fson_backend_format(const char* content, bool smart_indent) {
                  strstr(p, "object:") == p || strstr(p, "array:") == p ||
                  strstr(p, "null:") == p || strstr(p, "oct:") == p ||
                  strstr(p, "hex:") == p || strstr(p, "bin:") == p)) {
-                fputs("\033[35m", stdout);
-                while (*p && *p != ':') fputc(*(p++), stdout);
-                fputc(':', stdout);
-                fputs("\033[0m", stdout);
+                fossil_io_puts("\033[35m");
+                while (*p && *p != ':') fossil_io_putchar(*(p++));
+                fossil_io_putchar(':');
+                fossil_io_puts("\033[0m");
                 continue;
             }
             
             if (*p == '"' && (p == trimmed || *(p-1) != '\\')) {
                 in_string = !in_string;
-                fputs(in_string ? "\033[32m" : "\033[0m", stdout);
+                fossil_io_puts(in_string ? "\033[32m" : "\033[0m");
             }
-            fputc(*p, stdout);
+            fossil_io_putchar(*p);
         }
-        fputc('\n', stdout);
+        fossil_io_putchar('\n');
         
         if (smart_indent) {
             in_string = false;
@@ -763,39 +872,43 @@ static void fossil_markdown_apply_emphasis(const char* line) {
     for (const char* p = line; *p; p++) {
         if (*p == '*' && *(p+1) == '*') {
             bold = !bold;
-            fputs(bold ? "\033[1m" : "\033[0m", stdout);
+            fossil_io_puts(bold ? "\033[1m" : "\033[0m");
             p++;
             continue;
         }
         if (*p == '*' || *p == '_') {
             italic = !italic;
-            fputs(italic ? "\033[3m" : "\033[0m", stdout);
+            fossil_io_puts(italic ? "\033[3m" : "\033[0m");
             continue;
         }
         if (*p == '`') {
             code = !code;
-            fputs(code ? "\033[36m" : "\033[0m", stdout);
+            fossil_io_puts(code ? "\033[36m" : "\033[0m");
             continue;
         }
-        fputc(*p, stdout);
+        fossil_io_putchar(*p);
     }
-    fputs("\033[0m", stdout);
+    fossil_io_puts("\033[0m");
 }
 
 static int fossil_markdown_backend_format(const char* content, bool smart_indent) {
     if (!content) return -1;
     
-    int list_indent = 0, heading_level = 0;
+    int heading_level = 0;
     char buffer[2048];
     const char* ptr = content;
     bool in_code_block = false;
     
     while (sscanf(ptr, "%2047[^\n]", buffer) > 0) {
         char* trimmed = buffer;
-        while (*trimmed && isspace(*trimmed)) trimmed++;
+        int leading_spaces = 0;
+        while (*trimmed && isspace(*trimmed)) {
+            trimmed++;
+            leading_spaces++;
+        }
         
         if (!*trimmed) {
-            fputc('\n', stdout);
+            fossil_io_putchar('\n');
             ptr = strchr(ptr, '\n');
             if (!ptr) break;
             ptr++;
@@ -805,8 +918,11 @@ static int fossil_markdown_backend_format(const char* content, bool smart_indent
         // Handle code blocks
         if (strstr(trimmed, "```") != NULL) {
             in_code_block = !in_code_block;
-            fputs(trimmed, stdout);
-            fputc('\n', stdout);
+            if (smart_indent) {
+                for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
+            }
+            fossil_io_puts(trimmed);
+            fossil_io_putchar('\n');
             ptr = strchr(ptr, '\n');
             if (!ptr) break;
             ptr++;
@@ -817,36 +933,35 @@ static int fossil_markdown_backend_format(const char* content, bool smart_indent
         if (*trimmed == '#') {
             heading_level = 0;
             while (heading_level < 6 && *(trimmed + heading_level) == '#') heading_level++;
-            fputs("\033[1m", stdout);
-            fputs(trimmed, stdout);
-            fputs("\033[0m\n", stdout);
+            if (smart_indent) {
+                for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
+            }
+            fossil_io_puts("\033[1m");
+            fossil_io_puts(trimmed);
+            fossil_io_puts("\033[0m\n");
             ptr = strchr(ptr, '\n');
             if (!ptr) break;
             ptr++;
             continue;
         }
         
-        // Handle lists
+        // Handle list indentation
         if (smart_indent) {
             if (*trimmed == '-' || *trimmed == '*' || *trimmed == '+' || 
                 (isdigit(*trimmed) && strchr(trimmed, '.') && *(strchr(trimmed, '.') + 1) == ' ')) {
-                if (list_indent == 0) list_indent = 1;
-            } else if (list_indent > 0 && *trimmed != '-' && *trimmed != '*' && *trimmed != '+') {
-                list_indent = 0;
-            }
-            
-            if (list_indent > 0) {
-                for (int i = 0; i < list_indent * 2; i++) fputc(' ', stdout);
+                for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
+            } else {
+                for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
             }
         }
         
         // Apply formatting if not in code block
         if (in_code_block) {
-            fputs(trimmed, stdout);
+            fossil_io_puts(trimmed);
         } else {
             fossil_markdown_apply_emphasis(trimmed);
         }
-        fputc('\n', stdout);
+        fossil_io_putchar('\n');
         
         ptr = strchr(ptr, '\n');
         if (!ptr) break;
@@ -875,8 +990,11 @@ static int fossil_rst_backend_format(const char* content, bool smart_indent) {
         if (strstr(trimmed, "::") != NULL) {
             in_code_block = true;
             indent_level = leading_spaces;
-            fputs(buffer, stdout);
-            fputc('\n', stdout);
+            if (smart_indent) {
+                for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
+            }
+            fossil_io_puts(trimmed);
+            fossil_io_putchar('\n');
             ptr = strchr(ptr, '\n');
             if (!ptr) break;
             ptr++;
@@ -889,13 +1007,17 @@ static int fossil_rst_backend_format(const char* content, bool smart_indent) {
         }
         
         // Apply formatting
-        if (in_code_block) {
-            fputs("\033[36m", stdout);
+        if (smart_indent) {
+            for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
         }
         
-        fputs(buffer, stdout);
-        if (in_code_block) fputs("\033[0m", stdout);
-        fputc('\n', stdout);
+        if (in_code_block) {
+            fossil_io_puts("\033[36m");
+        }
+        
+        fossil_io_puts(trimmed);
+        if (in_code_block) fossil_io_puts("\033[0m");
+        fossil_io_putchar('\n');
         
         ptr = strchr(ptr, '\n');
         if (!ptr) break;
@@ -913,25 +1035,33 @@ static int fossil_asciidoc_backend_format(const char* content, bool smart_indent
     
     while (sscanf(ptr, "%2047[^\n]", buffer) > 0) {
         char* trimmed = buffer;
-        while (*trimmed && isspace(*trimmed)) trimmed++;
+        int leading_spaces = 0;
+        while (*trimmed && isspace(*trimmed)) {
+            trimmed++;
+            leading_spaces++;
+        }
         
         // Handle code blocks
         if (strstr(trimmed, "----") != NULL || strstr(trimmed, "....") != NULL) {
             in_code = !in_code;
         }
         
-        if (in_code) {
-            fputs("\033[36m", stdout);
-        } else if (*trimmed == '=' && *(trimmed + 1) == ' ') {
-            fputs("\033[1m", stdout);
+        if (smart_indent) {
+            for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
         }
         
-        fputs(buffer, stdout);
+        if (in_code) {
+            fossil_io_puts("\033[36m");
+        } else if (*trimmed == '=' && *(trimmed + 1) == ' ') {
+            fossil_io_puts("\033[1m");
+        }
+        
+        fossil_io_puts(trimmed);
         
         if (in_code || (*trimmed == '=' && *(trimmed + 1) == ' ')) {
-            fputs("\033[0m", stdout);
+            fossil_io_puts("\033[0m");
         }
-        fputc('\n', stdout);
+        fossil_io_putchar('\n');
         
         ptr = strchr(ptr, '\n');
         if (!ptr) break;
@@ -942,7 +1072,31 @@ static int fossil_asciidoc_backend_format(const char* content, bool smart_indent
 
 static int fossil_plaintext_backend_format(const char* content, bool smart_indent) {
     if (!content) return -1;
-    fputs(content, stdout);
+    
+    const char* ptr = content;
+    char buffer[2048];
+    
+    while (sscanf(ptr, "%2047[^\n]", buffer) > 0) {
+        char* trimmed = buffer;
+        int leading_spaces = 0;
+        
+        while (*trimmed && isspace(*trimmed)) {
+            trimmed++;
+            leading_spaces++;
+        }
+        
+        if (smart_indent) {
+            for (int i = 0; i < leading_spaces; i++) fossil_io_putchar(' ');
+        }
+        
+        fossil_io_puts(trimmed);
+        fossil_io_putchar('\n');
+        
+        ptr = strchr(ptr, '\n');
+        if (!ptr) break;
+        ptr++;
+    }
+    
     return 0;
 }
 
@@ -963,28 +1117,28 @@ static int fossil_doc_backend_format(const char* content, const char* filename, 
     }
 }
 
-int fossil_shark_view(ccstring path, bool number_lines,
-                      bool number_non_blank, bool squeeze_blank, bool format,
-                      int head_lines, int tail_lines, bool show_time) {
+int fossil_shark_view(ccstring path, bool format) {
     if (!path) return -1;
     
-    FILE* file = fopen(path, "r");
-    if (!file) return -1;
-    
-    // Read entire file content
-    fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    
-    char* content = malloc(file_size + 1);
-    if (!content) {
-        fclose(file);
+    fossil_io_file_t stream = {0};
+    if (fossil_io_file_open(&stream, path, "r") != 0) {
         return -1;
     }
     
-    size_t read_size = fread(content, 1, file_size, file);
+    // Read entire file content
+    fossil_io_file_seek(&stream, 0, SEEK_END);
+    size_t file_size = fossil_io_file_get_size(&stream);
+    fossil_io_file_seek(&stream, 0, SEEK_SET);
+    
+    char* content = malloc(file_size + 1);
+    if (!content) {
+        fossil_io_file_close(&stream);
+        return -1;
+    }
+    
+    size_t read_size = fossil_io_file_read(&stream, content, 1, file_size);
     content[read_size] = '\0';
-    fclose(file);
+    fossil_io_file_close(&stream);
     
     // Apply formatting if requested
     if (format) {
@@ -997,10 +1151,10 @@ int fossil_shark_view(ccstring path, bool number_lines,
         } else if (fossil_doc_lookup(path) != -1) {
             fossil_doc_backend_format(content, path, true);
         } else {
-            fputs(content, stdout);
+            fossil_io_puts(content);
         }
     } else {
-        fputs(content, stdout);
+        fossil_io_puts(content);
     }
     
     free(content);
