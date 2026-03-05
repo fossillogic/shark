@@ -24,7 +24,16 @@
  */
 #include "fossil/code/commands.h"
 
+// Forward declarations
+static int fossil_meson_lookup(const char* filename);
+static int fossil_source_lookup(const char* filename);
+static int fossil_data_lookup(const char* filename);
 static int fossil_doc_lookup(const char* filename);
+
+static int fossil_meson_backend_format(const char* content, bool smart_indent);
+static int fossil_source_backend_format(const char* content, bool smart_indent);
+static int fossil_data_backend_format(const char* content, const char* filename, bool smart_indent);
+static int fossil_doc_backend_format(const char* content, const char* filename, bool smart_indent);
 
 // =========================================================
 // Meson build files
@@ -162,59 +171,6 @@ static int fossil_meson_backend_format(const char* content, bool smart_indent) {
         ptr = line_end;
         if (*ptr == '\n') ptr++;
     }
-    return 0;
-}
-
-int fossil_shark_view(ccstring path, bool format) {
-    if (!path) return -1;
-    
-    fossil_io_file_t stream = {0};
-    if (fossil_io_file_open(&stream, path, "r") != 0) {
-        return -1;
-    }
-    
-    // Read entire file content
-    fossil_io_file_seek(&stream, 0, SEEK_END);
-    size_t file_size = fossil_io_file_get_size(&stream);
-    fossil_io_file_seek(&stream, 0, SEEK_SET);
-    
-    cstring content = fossil_io_cstring_create("");
-    if (!content) {
-        fossil_io_file_close(&stream);
-        return -1;
-    }
-    
-    char buffer[4096];
-    size_t read_size;
-    while ((read_size = fossil_io_file_read(&stream, buffer, 1, sizeof(buffer) - 1)) > 0) {
-        buffer[read_size] = '\0';
-        content = fossil_io_cstring_append(&content, buffer);
-        if (!content) {
-            fossil_io_file_close(&stream);
-            return -1;
-        }
-    }
-    
-    fossil_io_file_close(&stream);
-    
-    // Apply formatting if requested
-    if (format) {
-        if (fossil_meson_lookup(path) != -1) {
-            fossil_meson_backend_format(content, true);
-        } else if (fossil_source_lookup(path) != -1) {
-            fossil_source_backend_format(content, true);
-        } else if (fossil_data_lookup(path) != -1) {
-            fossil_data_backend_format(content, path, true);
-        } else if (fossil_doc_lookup(path) != -1) {
-            fossil_doc_backend_format(content, path, true);
-        } else {
-            fossil_io_puts(content);
-        }
-    } else {
-        fossil_io_puts(content);
-    }
-    
-    fossil_io_cstring_free(content);
     return 0;
 }
 
