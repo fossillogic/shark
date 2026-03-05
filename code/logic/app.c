@@ -552,6 +552,7 @@ bool app_entry(int argc, char** argv) {
         } else if (fossil_io_cstring_compare(argv[i], "view") == 0) {
             ccstring path = cnull;
             bool number_lines = false, number_non_blank = false, squeeze_blank = false, show_time = false;
+            bool format = false;
             int head_lines = 0, tail_lines = 0;
             
             for (int j = i + 1; j < argc; j++) {
@@ -563,6 +564,8 @@ bool app_entry(int argc, char** argv) {
                     squeeze_blank = true;
                 } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
                     show_time = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--format") == 0) {
+                    format = true;
                 } else if (fossil_io_cstring_compare(argv[j], "-h") == 0 || fossil_io_cstring_compare(argv[j], "--head") == 0) {
                     if (j + 1 < argc) head_lines = atoi(argv[++j]);
                 } else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--tail") == 0) {
@@ -572,7 +575,7 @@ bool app_entry(int argc, char** argv) {
                 }
                 i = j;
             }
-            if (cnotnull(path)) fossil_shark_view(path, number_lines, number_non_blank, squeeze_blank, head_lines, tail_lines, show_time);
+            if (cnotnull(path)) fossil_shark_view(path, number_lines, number_non_blank, squeeze_blank, format, head_lines, tail_lines, show_time);
             
         } else if (fossil_io_cstring_compare(argv[i], "compare") == 0) {
             ccstring path1 = cnull, path2 = cnull;

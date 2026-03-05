@@ -175,10 +175,11 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
  * @param head_lines Number of lines to show from beginning (0 for all)
  * @param tail_lines Number of lines to show from end (0 for all)
  * @param show_time Display file timestamps
+ * @param format Apply formatting based on file type else raw if false
  * @return 0 on success, non-zero on error
  */
 int fossil_shark_view(ccstring path, bool number_lines,
-                      bool number_non_blank, bool squeeze_blank,
+                      bool number_non_blank, bool squeeze_blank, bool format,
                       int head_lines, int tail_lines, bool show_time);
 
 /**
