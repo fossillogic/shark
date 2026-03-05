@@ -120,6 +120,7 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    -h, --head <n>      First n lines\n");
     fossil_io_printf("{bright_black}    -t, --tail <n>      Last n lines\n");
     fossil_io_printf("{bright_black}    --time              Show timestamps\n");
+    fossil_io_printf("{bright_black}    --format            Pretty format\n");
 
     fossil_io_printf("{cyan}  compare          {reset}Compare two files/directories\n");
     fossil_io_printf("{bright_black}    -t, --text          Line diff\n");

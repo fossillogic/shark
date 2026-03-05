@@ -147,6 +147,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}-h, --head <n>{normal}    First n lines\n");
             fossil_io_printf("  {cyan,bold}-t, --tail <n>{normal}    Last n lines\n");
             fossil_io_printf("  {cyan,bold}--time{normal}            Show timestamps\n");
+            fossil_io_printf("  {cyan,bold}--format{normal}          Pretty format\n");
         } else if (fossil_io_cstring_equals(command, "compare")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}compare [options] <path1> <path2>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
