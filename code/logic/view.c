@@ -24,6 +24,8 @@
  */
 #include "fossil/code/commands.h"
 
+static int fossil_doc_lookup(const char* filename);
+
 // =========================================================
 // Meson build files
 // =========================================================
