@@ -40,7 +40,6 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         fossil_io_printf("  {cyan,bold}create{normal}      - Create new directories or files\n");
         fossil_io_printf("  {cyan,bold}search{normal}      - Find files by name or content\n");
         fossil_io_printf("  {cyan,bold}archive{normal}     - Create, extract, or list archives\n");
-        fossil_io_printf("  {cyan,bold}view{normal}        - Output file contents to terminal\n");
         fossil_io_printf("  {cyan,bold}compare{normal}     - Compare files or directories\n");
         fossil_io_printf("  {cyan,bold}help{normal}        - Show help and usage\n");
         fossil_io_printf("  {cyan,bold}sync{normal}        - Synchronize files/directories\n");
@@ -139,9 +138,6 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}--stdout{normal}            Output to stdout\n");
             fossil_io_printf("  {cyan,bold}--compress <n>{normal}      Compression level (0-9)\n");
             fossil_io_printf("  {cyan,bold}--exclude <pat>{normal}     Exclude files\n");
-        } else if (fossil_io_cstring_equals(command, "view")) {
-            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}view [options] <file>{normal}\n");
-            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
             fossil_io_printf("  {cyan,bold}--format{normal}          Pretty format\n");
         } else if (fossil_io_cstring_equals(command, "compare")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}compare [options] <path1> <path2>{normal}\n");
@@ -253,8 +249,6 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}shark search -r -c \"config\"{normal}\n");
             else if (fossil_io_cstring_equals(command, "archive"))
             fossil_io_printf("  {cyan,bold}shark archive -c -f tar project.tar src/{normal}\n");
-            else if (fossil_io_cstring_equals(command, "view"))
-            fossil_io_printf("  {cyan,bold}shark view --format notes.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "compare"))
             fossil_io_printf("  {cyan,bold}shark compare -t main_v1.c main_v2.c --context 5{normal}\n");
             else if (fossil_io_cstring_equals(command, "help"))

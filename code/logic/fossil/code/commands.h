@@ -167,14 +167,6 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
                          ccstring exclude_pattern);
 
 /**
- * View and display file contents with various formatting options
- * @param path Path to file to view
- * @param format Apply formatting based on file type else raw if false
- * @return 0 on success, non-zero on error
- */
-int fossil_shark_view(ccstring path, bool format);
-
-/**
  * Compare two files or directories and show differences
  * @param path1 First file or directory to compare
  * @param path2 Second file or directory to compare

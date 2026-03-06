@@ -114,9 +114,6 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    --compress <n>      Compression level (0-9)\n");
     fossil_io_printf("{bright_black}    --exclude <pat>     Exclude files\n");
 
-    fossil_io_printf("{cyan}  view             {reset}Output file contents to terminal\n");
-    fossil_io_printf("{bright_black}    --format            Pretty format\n");
-
     fossil_io_printf("{cyan}  compare          {reset}Compare two files/directories\n");
     fossil_io_printf("{bright_black}    -t, --text          Line diff\n");
     fossil_io_printf("{bright_black}    -b, --binary        Binary diff\n");
@@ -204,7 +201,7 @@ bool app_entry(int argc, char** argv) {
     // List of supported commands for suggestion
     static ccstring supported_commands[] = {
         "show", "move", "copy", "remove", "delete", "rename", "create", "search",
-        "archive", "view", "compare", "help", "sync", "cryptic",
+        "archive", "compare", "help", "sync", "cryptic",
         "watch", "rewrite", "introspect", "grammar",
         "--help", "--version", "--name", "--verbose", "--color", "--clear"
     };
@@ -267,7 +264,6 @@ bool app_entry(int argc, char** argv) {
             fossil_io_cstring_compare(argv[i], "create") == 0 ||
             fossil_io_cstring_compare(argv[i], "search") == 0 ||
             fossil_io_cstring_compare(argv[i], "archive") == 0 ||
-            fossil_io_cstring_compare(argv[i], "view") == 0 ||
             fossil_io_cstring_compare(argv[i], "compare") == 0 ||
             fossil_io_cstring_compare(argv[i], "sync") == 0 ||
             fossil_io_cstring_compare(argv[i], "watch") == 0 ||
@@ -552,20 +548,6 @@ bool app_entry(int argc, char** argv) {
             }
             if (cnotnull(path)) fossil_shark_archive(path, create, extract, list, format, password, compress_level, stdout_output, exclude_pattern);
             
-        } else if (fossil_io_cstring_compare(argv[i], "view") == 0) {
-            ccstring path = cnull;
-            bool format = false;
-            
-            for (int j = i + 1; j < argc; j++) {
-                if (fossil_io_cstring_compare(argv[j], "--format") == 0) {
-                    format = true;
-                } else if (!cnotnull(path)) {
-                    path = argv[j];
-                }
-                i = j;
-            }
-            if (cnotnull(path)) fossil_shark_view(path, format);
-
         } else if (fossil_io_cstring_compare(argv[i], "compare") == 0) {
             ccstring path1 = cnull, path2 = cnull;
             bool text_diff = false, binary_diff = false, ignore_case = false;
