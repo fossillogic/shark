@@ -241,13 +241,20 @@ int fossil_shark_rewrite(ccstring path, bool in_place, bool append,
  * @param show_head_lines Number of lines from the start to display (0 for none)
  * @param show_tail_lines Number of lines from the end to display (0 for none)
  * @param count_lines_words_bytes Count lines, words, and bytes if true
+ * @param count_lines_only Count total lines only if true
+ * @param show_size Display file size in bytes and human-readable format
+ * @param show_time Display file timestamps (modified, created, accessed)
  * @param show_file_type Determine file type (e.g., MIME or description)
- * @param output_json Output metadata in JSON format
+ * @param find_pattern Search for string or pattern in file
+ * @param output_fson Output metadata in FSON structured format
+ * @param output_json Output metadata in JSON structured format
  * @return 0 on success, non-zero on error
  */
 int fossil_shark_introspect(ccstring path, int show_head_lines,
                              int show_tail_lines, bool count_lines_words_bytes,
-                             bool show_file_type, bool output_json);
+                             bool count_lines_only, bool show_size,
+                             bool show_time, bool show_file_type,
+                             ccstring find_pattern, bool output_fson, bool output_json);
 
 /**
  * Analyze, correct, and assess grammar, style, and readability of text files.
