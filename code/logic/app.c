@@ -102,6 +102,7 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    -n, --name <pat>    Filename match\n");
     fossil_io_printf("{bright_black}    -c, --content <pat> Search contents\n");
     fossil_io_printf("{bright_black}    -i, --ignore-case   Case-insensitive\n");
+    fossil_io_printf("{bright_black}    -p, --path <path>   Search within specific path\n");
 
     fossil_io_printf("{cyan}  archive          {reset}Create, extract, or list archives\n");
     fossil_io_printf("{bright_black}    -c, --create        Create new archive\n");
@@ -512,6 +513,8 @@ bool app_entry(int argc, char** argv) {
                     if (j + 1 < argc) name_pattern = argv[++j];
                 } else if (fossil_io_cstring_compare(argv[j], "-c") == 0 || fossil_io_cstring_compare(argv[j], "--content") == 0) {
                     if (j + 1 < argc) content_pattern = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--path") == 0) {
+                    if (j + 1 < argc) path = argv[++j];
                 } else if (argv[j][0] != '-') {
                     path = argv[j];
                 }

@@ -127,6 +127,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}-n, --name <pattern>{normal} Filename match\n");
             fossil_io_printf("  {cyan,bold}-c, --content <pattern>{normal} Search contents\n");
             fossil_io_printf("  {cyan,bold}-i, --ignore-case{normal} Case-insensitive\n");
+            fossil_io_printf("  {cyan,bold}-p, --path <path>{normal}   Search within specific path\n");
         } else if (fossil_io_cstring_equals(command, "archive")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}archive [options] <path>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
@@ -249,7 +250,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             else if (fossil_io_cstring_equals(command, "create"))
             fossil_io_printf("  {cyan,bold}shark create -p -t dir logs/archive/2024/{normal}\n");
             else if (fossil_io_cstring_equals(command, "search"))
-            fossil_io_printf("  {cyan,bold}shark search -rc \"config\"{normal}\n");
+            fossil_io_printf("  {cyan,bold}shark search -r -c \"config\"{normal}\n");
             else if (fossil_io_cstring_equals(command, "archive"))
             fossil_io_printf("  {cyan,bold}shark archive -c -f tar project.tar src/{normal}\n");
             else if (fossil_io_cstring_equals(command, "view"))
