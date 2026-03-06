@@ -180,8 +180,13 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}--head <n>{normal}            First n lines\n");
             fossil_io_printf("  {cyan,bold}--tail <n>{normal}            Last n lines\n");
             fossil_io_printf("  {cyan,bold}--count{normal}               Count lines/words/bytes\n");
-            fossil_io_printf("  {cyan,bold}--type{normal}                Show type\n");
-            fossil_io_printf("  {cyan,bold}--fson{normal}                FSON output\n");
+            fossil_io_printf("  {cyan,bold}--line{normal}                Total lines only\n");
+            fossil_io_printf("  {cyan,bold}--size{normal}                File size in bytes and human-readable\n");
+            fossil_io_printf("  {cyan,bold}--time{normal}                Timestamps: modified, created, accessed\n");
+            fossil_io_printf("  {cyan,bold}--type{normal}                Detect and display file type\n");
+            fossil_io_printf("  {cyan,bold}--find <pattern>{normal}     Search for string or pattern\n");
+            fossil_io_printf("  {cyan,bold}--fson{normal}                FSON structured format output\n");
+            fossil_io_printf("  {cyan,bold}--json{normal}                JSON structured format output\n");
         } else if (fossil_io_cstring_equals(command, "grammar")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}grammar [options] <file>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
