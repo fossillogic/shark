@@ -25,15 +25,26 @@
 #include "fossil/code/commands.h"
 
 
-// Helper: case-insensitive string match using fossil_io_cstring functions
+// Helper: regex-based string match
 static bool str_match(ccstring str, ccstring pattern, bool ignore_case) {
     if (!pattern) return true; // No pattern means match all
     
-    if (!ignore_case) {
-        return fossil_io_cstring_contains(str, pattern);
-    } else {
-        return fossil_io_cstring_icontains(str, pattern);
+    const char *options[] = {
+        ignore_case ? "icase" : NULL,
+        NULL
+    };
+    
+    char *error = NULL;
+    fossil_io_regex_t *regex = fossil_io_regex_compile(pattern, ignore_case ? options : NULL, &error);
+    if (!regex) {
+        if (error) fossil_sys_memory_free(error);
+        return false;
     }
+    
+    int result = fossil_io_regex_match(regex, str, NULL);
+    fossil_io_regex_free(regex);
+    
+    return result > 0;
 }
 
 // Helper: search within file contents
@@ -51,15 +62,30 @@ static bool content_match(ccstring file_path, ccstring pattern, bool ignore_case
         return false;
     }
     
+    const char *options[] = {
+        ignore_case ? "icase" : NULL,
+        NULL
+    };
+    
+    char *error = NULL;
+    fossil_io_regex_t *regex = fossil_io_regex_compile(pattern, ignore_case ? options : NULL, &error);
+    if (!regex) {
+        if (error) fossil_sys_memory_free(error);
+        fossil_sys_memory_free(line);
+        fossil_io_file_close(&stream);
+        return false;
+    }
+    
     bool found = false;
     while (fossil_io_gets_from_stream(line, 4096, &stream)) {
-        fossil_io_trim(line); // Trim whitespace from line
-        if (str_match(line, pattern, ignore_case)) {
+        fossil_io_trim(line);
+        if (fossil_io_regex_match(regex, line, NULL) > 0) {
             found = true;
             break;
         }
     }
 
+    fossil_io_regex_free(regex);
     fossil_sys_memory_free(line);
     fossil_io_file_close(&stream);
     return found;
@@ -77,7 +103,6 @@ static int search_recursive(ccstring path, bool recursive,
 
     while (fossil_io_dir_iter_next(&it) > 0) {
         fossil_io_dir_entry_t *entry = &it.current;
-        // Skip . and ..
         if (fossil_io_cstring_equals(entry->name, ".") ||
             fossil_io_cstring_equals(entry->name, "..")) continue;
 
@@ -89,7 +114,6 @@ static int search_recursive(ccstring path, bool recursive,
                 fossil_io_printf("{cyan}%s{normal}\n", entry->path);
             }
         }
-        // Ignore symlinks and other types for search
     }
 
     fossil_io_dir_iter_close(&it);
