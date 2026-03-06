@@ -147,8 +147,13 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    --head <n>          First n lines\n");
     fossil_io_printf("{bright_black}    --tail <n>          Last n lines\n");
     fossil_io_printf("{bright_black}    --count             Count lines/words/bytes\n");
-    fossil_io_printf("{bright_black}    --type              Show type\n");
-    fossil_io_printf("{bright_black}    --fson              FSON output\n");
+    fossil_io_printf("{bright_black}    --line              Total lines only\n");
+    fossil_io_printf("{bright_black}    --size              File size in bytes and human-readable\n");
+    fossil_io_printf("{bright_black}    --time              Timestamps: modified, created, accessed\n");
+    fossil_io_printf("{bright_black}    --type              Detect and display file type\n");
+    fossil_io_printf("{bright_black}    --find <pattern>    Search for string or pattern\n");
+    fossil_io_printf("{bright_black}    --fson              FSON structured format output\n");
+    fossil_io_printf("{bright_black}    --json              JSON structured format output\n");
 
     fossil_io_printf("{cyan}  grammar          {reset}Analyze/correct grammar/style\n");
     fossil_io_printf("{bright_black}    --check             Analyze\n");
@@ -668,11 +673,11 @@ bool app_entry(int argc, char** argv) {
             }
 
         } else if (fossil_io_cstring_compare(argv[i], "introspect") == 0) {
-            ccstring path = cnull;
+            ccstring path = cnull, find_pattern = cnull;
             int head_lines = 0, tail_lines = 0;
-            bool count_lwb = false;
-            bool show_type = false; 
-            bool output_fson = false;
+            bool count_lwb = false, count_lines_only = false;
+            bool show_size = false, show_time = false, show_type = false; 
+            bool output_fson = false, output_json = false;
 
             for (int j = i + 1; j < argc; j++) {
                 if (fossil_io_cstring_compare(argv[j], "--head") == 0 && j + 1 < argc) {
@@ -681,10 +686,20 @@ bool app_entry(int argc, char** argv) {
                     tail_lines = atoi(argv[++j]);
                 } else if (fossil_io_cstring_compare(argv[j], "--count") == 0) {
                     count_lwb = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--line") == 0) {
+                    count_lines_only = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--size") == 0) {
+                    show_size = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--time") == 0) {
+                    show_time = true;
                 } else if (fossil_io_cstring_compare(argv[j], "--type") == 0) {
                     show_type = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--find") == 0 && j + 1 < argc) {
+                    find_pattern = argv[++j];
                 } else if (fossil_io_cstring_compare(argv[j], "--fson") == 0) {
                     output_fson = true;
+                } else if (fossil_io_cstring_compare(argv[j], "--json") == 0) {
+                    output_json = true;
                 } else if (!cnotnull(path)) {
                     path = argv[j];
                 }
@@ -692,7 +707,7 @@ bool app_entry(int argc, char** argv) {
             }
 
             if (cnotnull(path)) {
-                int rc = fossil_shark_introspect(path, head_lines, tail_lines, count_lwb, show_type, output_fson);
+                int rc = fossil_shark_introspect(path, head_lines, tail_lines, count_lwb, count_lines_only, show_size, show_time, show_type, find_pattern, output_fson, output_json);
                 if (rc != 0) {
                     fossil_io_printf("{red}Introspect failed: %s{reset}\n", path);
                 }
