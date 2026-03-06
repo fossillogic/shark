@@ -69,13 +69,13 @@ static bool check_file_size(ccstring file_path, uint64_t min_size, uint64_t max_
     int32_t size = fossil_io_file_get_size(&f);
     fossil_io_file_close(&f);
     
-    if (min_size > 0 && size < min_size) return false;
-    if (max_size > 0 && size > max_size) return false;
+    if (min_size > 0 && (uint64_t)size < min_size) return false;
+    if (max_size > 0 && (uint64_t)size > max_size) return false;
     return true;
 }
 
 // Helper: search within file contents with context
-static bool content_match(ccstring file_path, fossil_io_regex_t *regex, int *line_num, int context_lines) {
+static bool content_match(ccstring file_path, fossil_io_regex_t *regex, int *line_num) {
     if (!regex) return true;
     
     if (is_binary_file(file_path)) return false;
@@ -137,7 +137,7 @@ static int search_recursive(ccstring path, bool recursive,
             
             if (has_content_pattern) {
                 int line_num = 0;
-                if (content_match(entry->path, content_regex, &line_num, 0)) {
+                if (content_match(entry->path, content_regex, &line_num)) {
                     fossil_io_printf("{cyan}%s:%d{normal}\n", entry->path, line_num);
                 }
             } else {
