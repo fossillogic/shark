@@ -167,13 +167,6 @@ Below is a comparison between **Shark commands** and their traditional equivalen
 
 ---
 
-## Why Use Shark Instead of Multiple Tools?
-
-Traditional Unix workflows often require chaining several tools together:
-
-```bash
-find . -name "*.c" | xargs grep "config"
-
 ## **Contributing**
 
 Interested in contributing? Please open pull requests or create issues on the [GitHub repository](https://github.com/fossillogic/shark).
