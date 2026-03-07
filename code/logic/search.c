@@ -25,6 +25,16 @@
 #include "fossil/code/commands.h"
 
 
+// Helper: find character in string: soon to be added to Fossil Io
+static ccstring fossil_io_cstring_find_char(ccstring str, char ch) {
+    if (!str) return NULL;
+    while (*str) {
+        if (*str == ch) return str;
+        str++;
+    }
+    return NULL;
+}
+
 // Helper: detect if file is binary
 static bool is_binary_file(ccstring file_path) {
     fossil_io_file_t f;
@@ -44,11 +54,9 @@ static bool is_binary_file(ccstring file_path) {
 // Helper: check if pattern contains regex metacharacters
 static bool has_regex_chars(ccstring pattern) {
     if (!pattern) return false;
+    const char *metacharacters = ".*+?[](){}|^$\\";
     for (size_t i = 0; pattern[i]; i++) {
-        char c = pattern[i];
-        if (c == '.' || c == '*' || c == '+' || c == '?' || 
-            c == '[' || c == ']' || c == '(' || c == ')' || 
-            c == '{' || c == '}' || c == '|' || c == '^' || c == '$')
+        if (fossil_io_cstring_find_char(metacharacters, pattern[i]) != NULL)
             return true;
     }
     return false;
@@ -56,12 +64,14 @@ static bool has_regex_chars(ccstring pattern) {
 
 // Helper: regex-based string match
 static bool str_match(ccstring str, fossil_io_regex_t *regex) {
-    if (!regex) return true;
+    if (!str || !regex) return !regex;
     return fossil_io_regex_match(regex, str, NULL) > 0;
 }
 
 // Helper: check file size filter
 static bool check_file_size(ccstring file_path, uint64_t min_size, uint64_t max_size) {
+    if (!file_path) return false;
+    
     fossil_io_file_t f;
     if (fossil_io_file_open(&f, file_path, "rb") != 0)
         return false;
@@ -69,6 +79,7 @@ static bool check_file_size(ccstring file_path, uint64_t min_size, uint64_t max_
     int32_t size = fossil_io_file_get_size(&f);
     fossil_io_file_close(&f);
     
+    if (size < 0) return false;
     if (min_size > 0 && (uint64_t)size < min_size) return false;
     if (max_size > 0 && (uint64_t)size > max_size) return false;
     return true;
@@ -92,13 +103,17 @@ static bool content_match(ccstring file_path, fossil_io_regex_t *regex, int *lin
 
     bool found = false;
     int current_line = 0;
+    size_t matches = 0;
+    
     while (fossil_io_gets_from_stream(line, 4096, &stream)) {
         current_line++;
-        fossil_io_trim(line);
         if (fossil_io_regex_match(regex, line, NULL) > 0) {
-            found = true;
-            *line_num = current_line;
-            break;
+            if (!found) {
+                *line_num = current_line;
+                found = true;
+            }
+            matches++;
+            if (matches >= 100) break; // Limit matches to prevent excessive output
         }
     }
 

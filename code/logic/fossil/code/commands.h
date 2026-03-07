@@ -131,6 +131,10 @@ int fossil_shark_rename(ccstring old_name, ccstring new_name,
  * @param create_parents Create parent directories if they don't exist
  * @param type Type of item to create ("file" or "dir")
  * @return 0 on success, non-zero on error
+ * 
+ * Sample usage:
+ *   fossil_shark_create("/path/to/newfile.txt", false, "file")
+ *   fossil_shark_create("/path/to/nested/dir", true, "dir")
  */
 int fossil_shark_create(ccstring path, bool create_parents,
                         ccstring type);  // "file" or "dir"
@@ -139,8 +143,8 @@ int fossil_shark_create(ccstring path, bool create_parents,
  * Search for files by name patterns or content matching
  * @param path Root path to start searching from
  * @param recursive Search subdirectories recursively
- * @param name_pattern Pattern to match against file names
- * @param content_pattern Pattern to search within file contents
+ * @param name_pattern Pattern to match against file names (supports regex)
+ * @param content_pattern Pattern to search within file contents (supports regex)
  * @param ignore_case Perform case-insensitive matching
  * @return 0 on success, non-zero on error
  */

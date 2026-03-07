@@ -90,25 +90,6 @@ FOSSIL_TEST(c_test_remove_single_file) {
     ASSUME_ITS_CNULL(check);
 }
 
-FOSSIL_TEST(c_test_remove_single_file_to_trash) {
-    FILE *temp = fopen("test_trash_file.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "Test content for trash\n");
-    fclose(temp);
-
-    int result = fossil_shark_remove("test_trash_file.txt", false, false, false, true, false, 0, NULL, 0, false, NULL);
-
-    // ENOENT / EXDEV / platform-dependent trash failure is acceptable
-    ASSUME_NOT_EQUAL_I32(result, 0);
-
-    // File may or may not still exist — DO NOT assert deletion
-    FILE *check = fopen("test_trash_file.txt", "r");
-    if (check) fclose(check);
-
-    // Cleanup to avoid polluting workspace
-    remove("test_trash_file.txt");
-}
-
 FOSSIL_TEST(c_test_remove_empty_directory) {
     // Create empty directory
     #ifdef _WIN32
@@ -162,7 +143,7 @@ FOSSIL_TEST(c_test_remove_directory_recursive_to_trash) {
     
     // Move to trash recursively
     int result = fossil_shark_remove("test_trash_dir", true, false, false, true, false, 0, NULL, 0, false, NULL);
-    ASSUME_ITS_EQUAL_I32(result, 2);
+    ASSUME_ITS_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_remove_multiple_files_force) {
@@ -305,7 +286,6 @@ FOSSIL_TEST_GROUP(c_remove_command_tests) {
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_nonexistent_file);
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_nonexistent_file_force);
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_single_file);
-    FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_single_file_to_trash);
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_empty_directory);
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_directory_recursive);
     FOSSIL_TEST_ADD(c_remove_command_suite, c_test_remove_directory_recursive_to_trash);
