@@ -162,7 +162,7 @@ Below is a comparison between **Shark commands** and their traditional equivalen
 | `shark rewrite` | `sed`, `truncate`, `touch` | Modify file contents or metadata. |
 | `shark introspect` | `head`, `tail`, `wc`, `file`, `stat` | Inspect file contents and metadata. |
 | `shark grammar` | *(no direct CLI equivalent)* | AI-assisted grammar and writing analysis. |
-| `shark cryptic` | `base64`, `openssl`, cipher utilities | Encode or decode text using classic ciphers. |
+| `shark cryptic` | *(no direct CLI equivalent)* | Encode or decode text using classic ciphers. |
 | `shark help` | `man`, `--help` | Display command help and documentation. |
 
 ---
