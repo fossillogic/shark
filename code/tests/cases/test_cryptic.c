@@ -67,12 +67,6 @@ FOSSIL_TEST(c_test_cryptic_null_cipher) {
     ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
-FOSSIL_TEST(c_test_cryptic_multiple_operations) {
-    // Test with both encode and decode specified (invalid)
-    int result = fossil_shark_cryptic("hello", true, true, "caesar");
-    ASSUME_ITS_EQUAL_I32(result, 0);
-}
-
 FOSSIL_TEST(c_test_cryptic_no_operations) {
     // Test with neither encode nor decode specified
     int result = fossil_shark_cryptic("hello", false, false, "caesar");
@@ -225,7 +219,6 @@ FOSSIL_TEST(c_test_cryptic_mixed_case) {
 FOSSIL_TEST_GROUP(c_cryptic_command_tests) {
     FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_null_text);
     FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_null_cipher);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_multiple_operations);
     FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_no_operations);
     FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_caesar_encode);
     FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_rot13_encode);

@@ -70,141 +70,146 @@ FOSSIL_TEST(c_test_search_invalid_path) {
 }
 
 FOSSIL_TEST(c_test_search_by_name_pattern) {
-    // Create test files
-    FILE *temp1 = fopen("test_file.txt", "w");
-    ASSUME_NOT_CNULL(temp1);
-    fprintf(temp1, "Test content\n");
-    fclose(temp1);
+    // Create test files using fossil_shark_create
+    int res1 = fossil_shark_create("test_file.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res1);
     
-    FILE *temp2 = fopen("test_file.c", "w");
-    ASSUME_NOT_CNULL(temp2);
-    fprintf(temp2, "C code\n");
-    fclose(temp2);
+    FOSSIL_SANITY_SYS_WRITE_FILE("test_file.txt", "Test content\n");
+    
+    int res2 = fossil_shark_create("test_file.c", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res2);
+    
+    FOSSIL_SANITY_SYS_WRITE_FILE("test_file.c", "C code\n");
     
     // Search for .txt files
     int result = fossil_shark_search(".", false, ".txt", cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
-    remove("test_file.txt");
-    remove("test_file.c");
+    FOSSIL_SANITY_SYS_DELETE_FILE("test_file.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("test_file.c");
 }
 
 FOSSIL_TEST(c_test_search_by_content_pattern) {
-    // Create test file with specific content
-    FILE *temp = fopen("search_content.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "This is a test file\nwith specific content\n");
-    fclose(temp);
+    // Create test file
+    int res = fossil_shark_create("search_content.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res);
+    
+    FOSSIL_SANITY_SYS_WRITE_FILE("search_content.txt", "This is a test file\nwith specific content\n");
     
     // Search for content pattern
     int result = fossil_shark_search(".", false, cnull, "specific", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
-    remove("search_content.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("search_content.txt");
 }
 
 FOSSIL_TEST(c_test_search_case_insensitive_name) {
     // Create test file
-    FILE *temp = fopen("TestFile.TXT", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "Test content\n");
-    fclose(temp);
+    int res = fossil_shark_create("TestFile.TXT", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res);
+    
+    FOSSIL_SANITY_SYS_WRITE_FILE("TestFile.TXT", "Test content\n");
     
     // Search with case insensitive pattern
     int result = fossil_shark_search(".", false, "testfile", cnull, true);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
-    remove("TestFile.TXT");
+    FOSSIL_SANITY_SYS_DELETE_FILE("TestFile.TXT");
 }
 
 FOSSIL_TEST(c_test_search_case_insensitive_content) {
     // Create test file
-    FILE *temp = fopen("case_test.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "This Contains UPPERCASE Text\n");
-    fclose(temp);
+    int res = fossil_shark_create("case_test.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res);
+    
+    FOSSIL_SANITY_SYS_WRITE_FILE("case_test.txt", "This Contains UPPERCASE Text\n");
     
     // Search with case insensitive content
     int result = fossil_shark_search(".", false, cnull, "uppercase", true);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
-    remove("case_test.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("case_test.txt");
 }
 
 FOSSIL_TEST(c_test_search_combined_patterns) {
     // Create test files
-    FILE *temp1 = fopen("match_both.txt", "w");
-    ASSUME_NOT_CNULL(temp1);
-    fprintf(temp1, "This file matches both patterns\n");
-    fclose(temp1);
+    int res1 = fossil_shark_create("match_both.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res1);
     
-    FILE *temp2 = fopen("match_name.txt", "w");
-    ASSUME_NOT_CNULL(temp2);
-    fprintf(temp2, "This file only matches name\n");
-    fclose(temp2);
+    FOSSIL_SANITY_SYS_WRITE_FILE("match_both.txt", "This file matches both patterns\n");
+    
+    int res2 = fossil_shark_create("match_name.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res2);
+    
+    FOSSIL_SANITY_SYS_WRITE_FILE("match_name.txt", "This file only matches name\n");
     
     // Search with both name and content patterns
     int result = fossil_shark_search(".", false, ".txt", "both patterns", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
-    remove("match_both.txt");
-    remove("match_name.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("match_both.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("match_name.txt");
 }
 
 FOSSIL_TEST(c_test_search_no_matches) {
     // Create test file
-    FILE *temp = fopen("no_match.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "This content does not match\n");
-    fclose(temp);
+    int res = fossil_shark_create("no_match.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res);
+    
+    FOSSIL_SANITY_SYS_WRITE_FILE("no_match.txt", "This content does not match\n");
     
     // Search for non-existent pattern
     int result = fossil_shark_search(".", false, cnull, "nonexistent_pattern", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
-    remove("no_match.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("no_match.txt");
 }
 
 FOSSIL_TEST(c_test_search_empty_file) {
     // Create empty test file
-    FILE *temp = fopen("empty_search.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fclose(temp);
+    int res = fossil_shark_create("empty_search.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res);
     
     // Search in empty file
     int result = fossil_shark_search(".", false, cnull, "anything", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
-    remove("empty_search.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("empty_search.txt");
 }
 
 FOSSIL_TEST(c_test_search_no_patterns) {
     // Create test file
-    FILE *temp = fopen("any_file.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "Any content\n");
-    fclose(temp);
+    int res = fossil_shark_create("any_file.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res);
+    
+    FOSSIL_SANITY_SYS_WRITE_FILE("any_file.txt", "Any content\n");
     
     // Search without any patterns (should match all)
     int result = fossil_shark_search(".", false, cnull, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
-    remove("any_file.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("any_file.txt");
 }
 
 FOSSIL_TEST(c_test_search_recursive_basic) {
-    // This test assumes the current directory structure
-    // In a real test environment, you might create a temporary directory structure
+    // Create nested directory structure
+    int res = fossil_shark_create("test_dir/nested", true, "dir");
+    ASSUME_ITS_EQUAL_I32(0, res);
+    
+    // Recursive search
     int result = fossil_shark_search(".", true, cnull, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
+    
+    // Clean up
+    FOSSIL_SANITY_SYS_EXECUTE("rm -rf test_dir");
 }
 
 FOSSIL_TEST(c_test_search_non_recursive) {
@@ -215,17 +220,17 @@ FOSSIL_TEST(c_test_search_non_recursive) {
 
 FOSSIL_TEST(c_test_search_unreadable_file) {
     // Create test file
-    FILE *temp = fopen("readable_file.txt", "w");
-    ASSUME_NOT_CNULL(temp);
-    fprintf(temp, "Content that can be read\n");
-    fclose(temp);
+    int res = fossil_shark_create("readable_file.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res);
     
-    // Search should handle unreadable files gracefully
+    FOSSIL_SANITY_SYS_WRITE_FILE("readable_file.txt", "Content that can be read\n");
+    
+    // Search should handle files gracefully
     int result = fossil_shark_search(".", false, cnull, "content", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Clean up
-    remove("readable_file.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("readable_file.txt");
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *

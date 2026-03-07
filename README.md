@@ -141,6 +141,32 @@ Ensure you have the following installed before starting:
 | `shark grammar --check --tone --score notes.txt` | Run grammar check, detect tone, and display readability scores. |
 | `shark cryptic -e -c caesar "hello"` | Encode text using a Caesar cipher. |
 
+## Command Comparison (Shark vs Traditional Tools)
+
+Shark Tool consolidates many common command-line utilities into a **single consistent interface**.  
+Below is a comparison between **Shark commands** and their traditional equivalents.
+
+| **Shark Command** | **Traditional Commands** | **Purpose** |
+|-------------------|-------------------------|-------------|
+| `shark show` | `ls`, `tree`, `stat` | Display files, directories, metadata, and structures. |
+| `shark move` | `mv` | Move or rename files/directories. |
+| `shark copy` | `cp` | Copy files or directories. |
+| `shark remove` / `delete` | `rm`, `trash`, `shred` | Remove files with optional trash, secure wipe, or filtering. |
+| `shark rename` | `mv`, `rename` | Rename files with safer overwrite controls. |
+| `shark create` | `mkdir`, `touch` | Create directories or files. |
+| `shark search` | `find`, `grep`, `locate` | Search files by name, path, or contents. |
+| `shark archive` | `tar`, `zip`, `unzip`, `gzip` | Create, extract, or inspect archives. |
+| `shark compare` | `diff`, `cmp` | Compare text or binary files. |
+| `shark sync` | `rsync` | Synchronize directories. |
+| `shark watch` | `inotifywait`, `fswatch` | Monitor filesystem changes. |
+| `shark rewrite` | `sed`, `truncate`, `touch` | Modify file contents or metadata. |
+| `shark introspect` | `head`, `tail`, `wc`, `file`, `stat` | Inspect file contents and metadata. |
+| `shark grammar` | *(no direct CLI equivalent)* | AI-assisted grammar and writing analysis. |
+| `shark cryptic` | *(no direct CLI equivalent)* | Encode or decode text using classic ciphers. |
+| `shark help` | `man`, `--help` | Display command help and documentation. |
+
+---
+
 ## **Contributing**
 
 Interested in contributing? Please open pull requests or create issues on the [GitHub repository](https://github.com/fossillogic/shark).
