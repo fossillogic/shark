@@ -125,13 +125,13 @@ Ensure you have the following installed before starting:
 
 | **Example** | **Description** |
 |--------------|-----------------|
-| `shark show -alh --as=tree --time` | List all files (including hidden) in long, human-readable format as a tree, with timestamps. |
+| `shark show -a -l -h --as=tree --time` | List all files (including hidden) in long, human-readable format as a tree, with timestamps. |
 | `shark move -i -b old.txt archive/old.txt` | Move a file interactively, creating a backup before moving. |
-| `shark copy -rp src/ backup/` | Recursively copy the `src/` directory to `backup/`, preserving permissions and timestamps. |
+| `shark copy -r -p src/ backup/` | Recursively copy the `src/` directory to `backup/`, preserving permissions and timestamps. |
 | `shark remove -r --trash temp/` | Recursively move the `temp/` directory and its contents to the system trash. |
 | `shark rename -i draft.md final.md` | Rename a file with confirmation before overwriting the target. |
 | `shark create -p -t dir logs/archive/2024/` | Create a nested directory structure for logs. |
-| `shark search -rc "config"` | Recursively search for the string "config" inside files. |
+| `shark search -r -c "config"` | Recursively search for the string "config" inside files. |
 | `shark archive -c -f tar project.tar src/` | Create a TAR archive from the `src/` directory. |
 | `shark compare -t main_v1.c main_v2.c --context 5` | Show a line-by-line diff of two files with 5 lines of context. |
 | `shark sync -ru src/ dest/` | Synchronize files from `src/` to `dest/`, copying only newer files recursively. |
