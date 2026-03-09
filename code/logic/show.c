@@ -86,17 +86,6 @@ static bool matches_filters(fossil_io_dir_entry_t *entry, ccstring match_pattern
     return true;
 }
 
-static int compare_entries(const void *a, const void *b, ccstring sort_key) {
-    fossil_io_dir_entry_t *e1 = (fossil_io_dir_entry_t *)a;
-    fossil_io_dir_entry_t *e2 = (fossil_io_dir_entry_t *)b;
-    int result = strcmp(e1->name, e2->name);
-    
-    if (sort_key && strcmp(sort_key, "desc") == 0) {
-        result = -result;
-    }
-    return result;
-}
-
 static int show_list(ccstring path, bool show_all, bool long_format,
                       bool human_readable, bool recursive, ccstring format,
                       bool show_time, int depth, ccstring sort_key,
