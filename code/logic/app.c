@@ -53,6 +53,10 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    -d, --depth <n>     Limit recursion\n");
     fossil_io_printf("{bright_black}    --as <mode>         Format: list/tree/graph\n");
     fossil_io_printf("{bright_black}    --time              Show timestamps\n");
+    fossil_io_printf("{bright_black}    --sort <key>        Sort by: desc/asc\n");
+    fossil_io_printf("{bright_black}    --match <pattern>   Filter by name pattern\n");
+    fossil_io_printf("{bright_black}    --size <n>          Filter by size (e.g. >1MB)\n");
+    fossil_io_printf("{bright_black}    --type <type>       Filter by type: file/dir/link\n");
 
     fossil_io_printf("{cyan}  move             {reset}Move or rename files/directories\n");
     fossil_io_printf("{bright_black}    -f, --force         Overwrite\n");
@@ -329,6 +333,8 @@ bool app_entry(int argc, char** argv) {
             bool recursive = false, show_time = false;
             ccstring format = "list";
             int depth = -1;
+            ccstring sort_key = cnull, match_pattern = cnull;
+            ccstring size_filter = cnull, type_filter = cnull;
             
             // Parse flags
             for (int j = i + 1; j < argc && argv[j][0] == '-'; j++) {
@@ -346,13 +352,21 @@ bool app_entry(int argc, char** argv) {
                     format = argv[++j];
                 } else if (fossil_io_cstring_compare(argv[j], "-d") == 0 || fossil_io_cstring_compare(argv[j], "--depth") == 0) {
                     if (j + 1 < argc) depth = atoi(argv[++j]);
+                } else if (fossil_io_cstring_compare(argv[j], "--sort") == 0 && j + 1 < argc) {
+                    sort_key = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--match") == 0 && j + 1 < argc) {
+                    match_pattern = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--size") == 0 && j + 1 < argc) {
+                    size_filter = argv[++j];
+                } else if (fossil_io_cstring_compare(argv[j], "--type") == 0 && j + 1 < argc) {
+                    type_filter = argv[++j];
                 } else {
                     path = argv[j];
                 }
                 i = j;
             }
             if (i + 1 < argc && argv[i + 1][0] != '-') path = argv[++i];
-            fossil_shark_show(path, show_all, long_format, human_readable, recursive, format, show_time, depth);
+            fossil_shark_show(path, show_all, long_format, human_readable, recursive, format, show_time, depth, sort_key, match_pattern, size_filter, type_filter);
             
         } else if (fossil_io_cstring_compare(argv[i], "move") == 0) {
             ccstring src = cnull, dest = cnull;
