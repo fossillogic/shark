@@ -71,6 +71,11 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}-d, --depth <n>{normal}  Limit recursion depth\n");
             fossil_io_printf("  {cyan,bold}--as <mode>{normal}      Output format: list, tree, graph\n");
             fossil_io_printf("  {cyan,bold}--time{normal}           Show timestamps\n");
+            fossil_io_printf("  {cyan,bold}-s, --sort <key>{normal} Sort by: asc/desc\n");
+            fossil_io_printf("  {cyan,bold}-m, --match <pattern>{normal} Filter by name\n");
+            fossil_io_printf("  {cyan,bold}--size <filter>{normal}  Filter by size (e.g., >1MB)\n");
+            fossil_io_printf("  {cyan,bold}-t, --type <filter>{normal} Filter by type: file/dir/link\n");
+            //
         } else if (fossil_io_cstring_equals(command, "move")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}move [options] <src> <dest>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");

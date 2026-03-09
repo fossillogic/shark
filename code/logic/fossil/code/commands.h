@@ -45,11 +45,17 @@ extern "C" {
  * @param format Output format specification
  * @param show_time Display timestamps
  * @param depth Current depth in recursive listing
+ * @param sort_key Sort by: "desc" or "asc"
+ * @param match_pattern Filter by name pattern
+ * @param size_filter Filter by size (e.g. ">1MB")
+ * @param type_filter Filter by type: "file", "dir", "link"
  * @return 0 on success, non-zero on error
  */
 int fossil_shark_show(ccstring path, bool show_all, bool long_format,
                       bool human_readable, bool recursive,
-                      ccstring format, bool show_time, int depth);
+                      ccstring format, bool show_time, int depth,
+                      ccstring sort_key, ccstring match_pattern,
+                      ccstring size_filter, ccstring type_filter);
 
 /**
  * Move or rename files and directories

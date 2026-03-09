@@ -53,6 +53,10 @@ void show_commands(char* app_name) {
     fossil_io_printf("{bright_black}    -d, --depth <n>     Limit recursion\n");
     fossil_io_printf("{bright_black}    --as <mode>         Format: list/tree/graph\n");
     fossil_io_printf("{bright_black}    --time              Show timestamps\n");
+    fossil_io_printf("{bright_black}    --sort <key>        Sort by: desc/asc\n");
+    fossil_io_printf("{bright_black}    --match <pattern>   Filter by name pattern\n");
+    fossil_io_printf("{bright_black}    --size <n>          Filter by size (e.g. >1MB)\n");
+    fossil_io_printf("{bright_black}    --type <type>       Filter by type: file/dir/link\n");
 
     fossil_io_printf("{cyan}  move             {reset}Move or rename files/directories\n");
     fossil_io_printf("{bright_black}    -f, --force         Overwrite\n");
