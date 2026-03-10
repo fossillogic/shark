@@ -24,7 +24,7 @@
  */
 #include "fossil/code/commands.h"
 
-#define PATH_MAX 4096
+#define SWAP_PATH_MAX 4096
 
 // Utility function to check if paths are on the same filesystem
 static bool _is_same_filesystem(ccstring path1, ccstring path2) {
@@ -94,7 +94,7 @@ int fossil_shark_swap(ccstring path1, ccstring path2,
     }
     
     // Use temporary path for atomic swap
-    char temp[PATH_MAX];
+    char temp[SWAP_PATH_MAX];
     if (atomic && temp_path) {
         snprintf(temp, sizeof(temp), "%s", temp_path);
     } else {
