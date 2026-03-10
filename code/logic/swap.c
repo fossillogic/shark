@@ -54,6 +54,48 @@ static int create_backup(ccstring path) {
     return result;
 }
 
+// To be added in Fossil Io 0.2.12
+static cstring fossil_io_file_path_normalize(ccstring path) {
+    if (!cnotnull(path)) {
+        return NULL;
+    }
+    
+    cstring normalized = fossil_io_cstring_duplicate(path);
+    if (!cnotnull(normalized)) {
+        return NULL;
+    }
+    
+    // Convert backslashes to forward slashes for cross-platform consistency
+    for (size_t i = 0; normalized[i] != '\0'; i++) {
+        if (normalized[i] == '\\') {
+            normalized[i] = '/';
+        }
+    }
+    
+    return normalized;
+}
+
+static int swap_with_temp(ccstring path1, ccstring path2, ccstring temp_path) {
+    if (!cnotnull(temp_path)) {
+        return fossil_io_file_swap(path1, path2);
+    }
+    
+    if (fossil_io_file_copy(path1, temp_path) != 0) {
+        return 1;
+    }
+    
+    if (fossil_io_file_copy(path2, path1) != 0) {
+        fossil_io_file_remove(temp_path);
+        return 1;
+    }
+    
+    if (fossil_io_file_copy(temp_path, path2) != 0) {
+        return 1;
+    }
+    
+    return fossil_io_file_remove(temp_path);
+}
+
 int fossil_shark_swap(ccstring path1, ccstring path2,
                       bool force, bool interactive, bool backup,
                       bool atomic, bool progress, bool dry_run,
@@ -117,8 +159,9 @@ int fossil_shark_swap(ccstring path1, ccstring path2,
         fossil_io_printf("{cyan}[PROGRESS] Starting swap operation...{normal}\n");
     }
 
-    // Use fossil_io_file_swap function for atomic swap
-    int result = fossil_io_file_swap(norm_path1, norm_path2);
+    // Use fossil_io_file_swap function with temp_path for atomic swap
+    int result = atomic ? swap_with_temp(norm_path1, norm_path2, temp_path) 
+                        : fossil_io_file_swap(norm_path1, norm_path2);
     
     if (result != 0) {
         fossil_io_printf("{red}Failed to swap '%s' with '%s': %s{normal}\n", norm_path1, norm_path2, strerror(errno));
