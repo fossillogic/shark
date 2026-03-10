@@ -127,7 +127,16 @@ int fossil_shark_merge(const char **paths, int num_paths, ccstring dest,
         
         if (backup && fossil_io_file_file_exists(dest_path)) {
             char backup_path[1024];
-            snprintf(backup_path, sizeof(backup_path), "%s.bak", dest_path);
+
+            size_t len = strlen(dest_path);
+            if (len + 4 >= sizeof(backup_path)) {
+                fossil_io_printf("{red}Path too long for backup:{reset} %s\n", dest_path);
+                continue;
+            }
+            
+            memcpy(backup_path, dest_path, len);
+            memcpy(backup_path + len, ".bak", 5); // includes null terminator
+            
             copy_file(dest_path, backup_path, true);
         }
         
