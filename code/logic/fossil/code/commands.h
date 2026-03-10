@@ -58,6 +58,25 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
                       ccstring size_filter, ccstring type_filter);
 
 /**
+ * Exchange the locations of two files or directories
+ * @param path1 First file or directory path
+ * @param path2 Second file or directory path
+ * @param force Overwrite if needed (--force)
+ * @param interactive Confirm swap before proceeding (--interactive)
+ * @param backup Create backups before swap (--backup)
+ * @param atomic Guarantee atomic swap if supported (--atomic)
+ * @param progress Show progress during swap (--progress)
+ * @param dry_run Preview swap without executing (--dry-run)
+ * @param temp_path Temporary staging location (--temp)
+ * @param no_cross_device Fail if paths are on different filesystems (--no-cross-device)
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_swap(ccstring path1, ccstring path2,
+                      bool force, bool interactive, bool backup,
+                      bool atomic, bool progress, bool dry_run,
+                      ccstring temp_path, bool no_cross_device);
+
+/**
  * Move or rename files and directories
  * @param src Source path of the file or directory
  * @param dest Destination path
