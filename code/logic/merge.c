@@ -67,28 +67,34 @@ static int copy_file(const char *src, const char *dest, bool force) {
     return 0;
 }
 
-//
-static int merge_file(const char *src, const char *dest) {
+static int merge_file(const char *src, const char *dest, bool force) {
     fossil_io_file_t src_stream = {0};
     fossil_io_file_t dest_stream = {0};
-    
+
     if (fossil_io_file_open(&src_stream, src, "rb") != 0) {
         return 1;
     }
-    
+
+    if (!force && fossil_io_file_file_exists(dest)) {
+        fossil_io_file_close(&src_stream);
+        return 2;
+    }
+
     if (fossil_io_file_open(&dest_stream, dest, "ab") != 0) {
         fossil_io_file_close(&src_stream);
         return 1;
     }
-    
+
     char buffer[8192];
     size_t bytes;
+
     while ((bytes = fossil_io_file_read(&src_stream, buffer, 1, sizeof(buffer))) > 0) {
         fossil_io_file_write(&dest_stream, buffer, 1, bytes);
     }
-    
+
     fossil_io_file_close(&src_stream);
     fossil_io_file_close(&dest_stream);
+
     return 0;
 }
 
