@@ -35,11 +35,6 @@ static bool _is_same_filesystem(ccstring path1, ccstring path2) {
     return stat1.st_dev == stat2.st_dev;
 }
 
-// Utility function to create backup using fossil_io_file_backup
-static int _create_backup(ccstring path, ccstring suffix) {
-    return fossil_io_file_backup(path, suffix);
-}
-
 // Utility function to display progress
 static void _show_progress(ccstring message) {
     fossil_io_printf("[PROGRESS] %s\n", message);
