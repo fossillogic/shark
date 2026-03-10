@@ -81,8 +81,8 @@ FOSSIL_TEST(c_test_swap_simple_files) {
     fprintf(file2, "Content of file 2\n");
     fclose(file2);
     
-    // Swap files
-    int result = fossil_shark_swap("swap_file1.txt", "swap_file2.txt", false, false, false, false, false, false, cnull, false);
+    // Swap files with temp file in current directory
+    int result = fossil_shark_swap("swap_file1.txt", "swap_file2.txt", false, false, false, false, false, false, "./swap_temp.tmp", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify swap occurred by checking content
@@ -125,8 +125,8 @@ FOSSIL_TEST(c_test_swap_dry_run_no_actual_swap) {
     fprintf(file2, "Original file 2\n");
     fclose(file2);
     
-    // Perform dry run swap
-    int result = fossil_shark_swap("dryrun_swap1.txt", "dryrun_swap2.txt", false, false, false, false, false, true, cnull, false);
+    // Perform dry run swap with temp file
+    int result = fossil_shark_swap("dryrun_swap1.txt", "dryrun_swap2.txt", false, false, false, false, false, true, "./dryrun_temp.tmp", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify files were NOT swapped (content unchanged)
@@ -154,8 +154,8 @@ FOSSIL_TEST(c_test_swap_with_backup) {
     fprintf(file2, "File 2 content\n");
     fclose(file2);
     
-    // Swap with backup
-    int result = fossil_shark_swap("backup_swap1.txt", "backup_swap2.txt", false, false, true, false, false, false, cnull, false);
+    // Swap with backup and temp file
+    int result = fossil_shark_swap("backup_swap1.txt", "backup_swap2.txt", false, false, true, false, false, false, "./backup_temp.tmp", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify backups exist
@@ -199,8 +199,8 @@ FOSSIL_TEST(c_test_swap_with_atomic_operation) {
     fprintf(file2, "Atomic swap 2\n");
     fclose(file2);
     
-    // Perform atomic swap
-    int result = fossil_shark_swap("atomic_swap1.txt", "atomic_swap2.txt", false, false, false, true, false, false, cnull, false);
+    // Perform atomic swap with temp file
+    int result = fossil_shark_swap("atomic_swap1.txt", "atomic_swap2.txt", false, false, false, true, false, false, "./atomic_temp.tmp", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify swap completed
@@ -224,8 +224,8 @@ FOSSIL_TEST(c_test_swap_with_progress_reporting) {
     fprintf(file2, "Progress swap 2\n");
     fclose(file2);
     
-    // Perform swap with progress
-    int result = fossil_shark_swap("progress_swap1.txt", "progress_swap2.txt", false, false, false, false, true, false, cnull, false);
+    // Perform swap with progress and temp file
+    int result = fossil_shark_swap("progress_swap1.txt", "progress_swap2.txt", false, false, false, false, true, false, "./progress_temp.tmp", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify swap completed
@@ -247,8 +247,8 @@ FOSSIL_TEST(c_test_swap_empty_files) {
     ASSUME_NOT_CNULL(file2);
     fclose(file2);
     
-    // Swap empty files
-    int result = fossil_shark_swap("empty_swap1.txt", "empty_swap2.txt", false, false, false, false, false, false, cnull, false);
+    // Swap empty files with temp file
+    int result = fossil_shark_swap("empty_swap1.txt", "empty_swap2.txt", false, false, false, false, false, false, "./empty_temp.tmp", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify both still exist
@@ -276,8 +276,8 @@ FOSSIL_TEST(c_test_swap_large_files) {
     }
     fclose(file2);
     
-    // Swap large files
-    int result = fossil_shark_swap("large_swap1.txt", "large_swap2.txt", false, false, false, false, false, false, cnull, false);
+    // Swap large files with temp file
+    int result = fossil_shark_swap("large_swap1.txt", "large_swap2.txt", false, false, false, false, false, false, "./large_temp.tmp", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify swap occurred
@@ -301,8 +301,8 @@ FOSSIL_TEST(c_test_swap_force_with_backup) {
     fprintf(file2, "Force backup 2\n");
     fclose(file2);
     
-    // Swap with both force and backup
-    int result = fossil_shark_swap("force_backup_swap1.txt", "force_backup_swap2.txt", true, false, true, false, false, false, cnull, false);
+    // Swap with both force and backup and temp file
+    int result = fossil_shark_swap("force_backup_swap1.txt", "force_backup_swap2.txt", true, false, true, false, false, false, "./force_backup_temp.tmp", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify backups exist
@@ -328,8 +328,8 @@ FOSSIL_TEST(c_test_swap_atomic_with_progress) {
     fprintf(file2, "Atomic progress 2\n");
     fclose(file2);
     
-    // Swap with both atomic and progress
-    int result = fossil_shark_swap("atomic_progress_swap1.txt", "atomic_progress_swap2.txt", false, false, false, true, true, false, cnull, false);
+    // Swap with both atomic and progress and temp file
+    int result = fossil_shark_swap("atomic_progress_swap1.txt", "atomic_progress_swap2.txt", false, false, false, true, true, false, "./atomic_progress_temp.tmp", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify swap completed
@@ -353,8 +353,8 @@ FOSSIL_TEST(c_test_swap_path_normalization) {
     fprintf(file2, "Normalization 2\n");
     fclose(file2);
     
-    // Swap with path normalization
-    int result = fossil_shark_swap("norm_swap1.txt", "norm_swap2.txt", false, false, false, false, false, false, cnull, false);
+    // Swap with path normalization and temp file
+    int result = fossil_shark_swap("norm_swap1.txt", "norm_swap2.txt", false, false, false, false, false, false, "./norm_temp.tmp", false);
     ASSUME_ITS_EQUAL_I32(0, result);
     
     // Verify swap occurred
