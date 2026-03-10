@@ -127,6 +127,7 @@ Ensure you have the following installed before starting:
 | **Example** | **Description** |
 |--------------|-----------------|
 | `shark show -a -l -h --as=tree --time` | List all files (including hidden) in long, human-readable format as a tree, with timestamps. |
+| `shark swap -f -b file1.txt file2.txt` | Exchange the locations of two files, forcing the operation and creating backups before swapping. |
 | `shark move -i -b old.txt archive/old.txt` | Move a file interactively, creating a backup before moving. |
 | `shark copy -r -p src/ backup/` | Recursively copy the `src/` directory to `backup/`, preserving permissions and timestamps. |
 | `shark remove -r --trash temp/` | Recursively move the `temp/` directory and its contents to the system trash. |
@@ -150,6 +151,7 @@ Below is a comparison between **Shark commands** and their traditional equivalen
 | **Shark Command** | **Traditional Commands** | **Purpose** |
 |-------------------|-------------------------|-------------|
 | `shark show` | `ls`, `tree`, `stat` | Display files, directories, metadata, and structures. |
+| `shark swap` | `mv` (with custom logic) | Exchange the locations of two files or directories. |
 | `shark move` | `mv` | Move or rename files/directories. |
 | `shark copy` | `cp` | Copy files or directories. |
 | `shark remove` / `delete` | `rm`, `trash`, `shred` | Remove files with optional trash, secure wipe, or filtering. |
