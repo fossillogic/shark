@@ -4,6 +4,7 @@ app_lib = static_library('app-code',
     files(
         'app.c',
         'magic.c',
+        'merge.c',
         'show.c',
         'swap.c',
         'move.c',
