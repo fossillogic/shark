@@ -60,7 +60,7 @@ static cstring fossil_io_file_path_normalize(ccstring path) {
         return NULL;
     }
     
-    cstring normalized = fossil_io_cstring_duplicate(path);
+    cstring normalized = fossil_io_cstring_dup(path);
     if (!cnotnull(normalized)) {
         return NULL;
     }
