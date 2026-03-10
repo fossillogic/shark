@@ -177,7 +177,7 @@ FOSSIL_TEST(c_test_swap_same_source_and_dest) {
     fclose(file);
     
     // Try to swap file with itself
-    int result = fossil_shark_swap("same_swap.txt", "same_swap.txt", false, false, false, false, false, false, cnull, false);
+    fossil_shark_swap("same_swap.txt", "same_swap.txt", false, false, false, false, false, false, cnull, false);
     // This might succeed (no-op) or fail - behavior may vary
     
     // File should still exist
