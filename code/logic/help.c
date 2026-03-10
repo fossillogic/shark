@@ -218,6 +218,17 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}--format{normal}            Pretty-print\n");
             fossil_io_printf("  {cyan,bold}--declutter{normal}         Repair whitespace\n");
             fossil_io_printf("  {cyan,bold}--punctuate{normal}         Normalize punctuation\n");
+        } else if (fossil_io_cstring_equals(command, "split")) {
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}split [options] <file>{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
+            fossil_io_printf("  {cyan,bold}-l, --lines <n>{normal}     Split by line count\n");
+            fossil_io_printf("  {cyan,bold}-b, --bytes <n>{normal}     Split by byte size\n");
+            fossil_io_printf("  {cyan,bold}-n, --number <n>{normal}    Number of segments\n");
+            fossil_io_printf("  {cyan,bold}-p, --prefix <name>{normal} Output prefix\n");
+            fossil_io_printf("  {cyan,bold}-s, --suffix <n>{normal}    Suffix digits\n");
+            fossil_io_printf("  {cyan,bold}--numeric-suffix{normal}    Use numeric suffix\n");
+            fossil_io_printf("  {cyan,bold}-d, --delimiter <c>{normal} Custom delimiter\n");
+            fossil_io_printf("  {cyan,bold}--dry-run{normal}           Preview split\n");
         } else if (fossil_io_cstring_equals(command, "cryptic")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}cryptic [options] <text>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
@@ -285,6 +296,8 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}shark grammar --check --tone notes.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "cryptic"))
             fossil_io_printf("  {cyan,bold}shark cryptic --encode --cipher caesar \"Hello, World!\"{normal}\n");
+            else if (fossil_io_cstring_equals(command, "split"))
+            fossil_io_printf("  {cyan,bold}shark split -l 1000 --prefix part_ bigfile.txt{normal}\n");
         }
 
         // Manual page output omitted for brevity, but should be updated similarly.

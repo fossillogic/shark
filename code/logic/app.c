@@ -190,6 +190,16 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}                        binary, morse, baconian, railfence, haxor,\n");
     fossil_io_printf("{bright_black}                        leet, rot13, atbash\n");
 
+    fossil_io_printf("{cyan}  split             {reset}Split files into smaller segments\n");
+    fossil_io_printf("{bright_black}    -l, --lines <n>     Split by line count\n");
+    fossil_io_printf("{bright_black}    -b, --bytes <n>     Split by byte size\n");
+    fossil_io_printf("{bright_black}    -n, --number <n>    Number of segments\n");
+    fossil_io_printf("{bright_black}    -p, --prefix <name> Output prefix\n");
+    fossil_io_printf("{bright_black}    -s, --suffix <n>    Suffix digits\n");
+    fossil_io_printf("{bright_black}    --numeric-suffix    Use numeric suffix\n");
+    fossil_io_printf("{bright_black}    -d, --delimiter <c> Custom delimiter\n");
+    fossil_io_printf("{bright_black}    --dry-run           Preview split\n");
+
     fossil_io_printf("\n{blue}Global Flags:{reset}\n");
     fossil_io_printf("{bright_black}  --help                Show command help\n");
     fossil_io_printf("{bright_black}  --version             Display Shark Tool version\n");
@@ -217,7 +227,7 @@ bool app_entry(int argc, char **argv)
 {
     // List of supported commands for suggestion
     static ccstring supported_commands[] = {
-        "show", "move", "copy", "remove", "delete", "rename", "create", "search",
+        "show", "move", "copy", "remove", "delete", "rename", "create", "search", "split",
         "archive", "compare", "help", "sync", "cryptic",
         "watch", "rewrite", "introspect", "grammar",
         "--help", "--version", "--name", "--verbose", "--color", "--clear"};
@@ -1178,7 +1188,75 @@ bool app_entry(int argc, char **argv)
                     fossil_io_printf("{red}Cryptic operation failed{reset}\n");
                 }
             }
-        } //
+        } else if (fossil_io_cstring_compare(argv[i], "split") == 0)
+        {
+            ccstring file_path = cnull, output_prefix = "part_", delimiter = cnull;
+            size_t lines_per_file = 0, bytes_per_file = 0, num_segments = 0;
+            int suffix_digits = 0;
+            bool numeric_suffix = false, dry_run = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "-l") == 0 || fossil_io_cstring_compare(argv[j], "--lines") == 0)
+                {
+                    if (j + 1 < argc)
+                        lines_per_file = (size_t)atoi(argv[++j]);
+                }
+                else if (fossil_io_cstring_compare(argv[j], "-b") == 0 || fossil_io_cstring_compare(argv[j], "--bytes") == 0)
+                {
+                    if (j + 1 < argc)
+                        bytes_per_file = (size_t)atoi(argv[++j]);
+                }
+                else if (fossil_io_cstring_compare(argv[j], "-n") == 0 || fossil_io_cstring_compare(argv[j], "--number") == 0)
+                {
+                    if (j + 1 < argc)
+                        num_segments = (size_t)atoi(argv[++j]);
+                }
+                else if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--prefix") == 0)
+                {
+                    if (j + 1 < argc)
+                        output_prefix = argv[++j];
+                }
+                else if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--suffix") == 0)
+                {
+                    if (j + 1 < argc)
+                        suffix_digits = atoi(argv[++j]);
+                }
+                else if (fossil_io_cstring_compare(argv[j], "--numeric-suffix") == 0)
+                {
+                    numeric_suffix = true;
+                }
+                else if (fossil_io_cstring_compare(argv[j], "-d") == 0 || fossil_io_cstring_compare(argv[j], "--delimiter") == 0)
+                {
+                    if (j + 1 < argc)
+                        delimiter = argv[++j];
+                }
+                else if (fossil_io_cstring_compare(argv[j], "--dry-run") == 0)
+                {
+                    dry_run = true;
+                }
+                else if (!cnotnull(file_path))
+                {
+                    file_path = argv[j];
+                }
+                i = j;
+            }
+
+            if (cnotnull(file_path))
+            {
+                int rc = fossil_shark_split(file_path, lines_per_file, bytes_per_file, num_segments, output_prefix, suffix_digits, numeric_suffix, delimiter, dry_run);
+                if (rc != 0)
+                {
+                    fossil_io_printf("{red}Split operation failed: %s{reset}\n", file_path);
+                }
+            }
+        }
+        else
+        {
+            fossil_io_printf("{red}Unknown command: %s{reset}\n", argv[i]);
+            fossil_shark_help(cnull, false, false);
+            return 1;
+        }
     }
     return 0;
 }
