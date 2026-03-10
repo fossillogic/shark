@@ -32,6 +32,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
         fossil_io_printf("{black,italic}------------------------------------------------------------{normal}\n");
         fossil_io_printf("{blue,bold,underline}Core File Commands:{normal}\n");
         fossil_io_printf("  {cyan,bold}show{normal}        - Display files and directories\n");
+        fossil_io_printf("  {cyan,bold}swap{normal}        - Exchange locations of two files/directories\n");
         fossil_io_printf("  {cyan,bold}move{normal}        - Move or rename files/directories\n");
         fossil_io_printf("  {cyan,bold}copy{normal}        - Copy files or directories\n");
         fossil_io_printf("  {cyan,bold}remove{normal}      - Delete files or directories\n");
@@ -75,7 +76,19 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("  {cyan,bold}-m, --match <pattern>{normal} Filter by name\n");
             fossil_io_printf("  {cyan,bold}--size <filter>{normal}  Filter by size (e.g., >1MB)\n");
             fossil_io_printf("  {cyan,bold}-t, --type <filter>{normal} Filter by type: file/dir/link\n");
-            //
+
+        } else if (fossil_io_cstring_equals(command, "swap")) {
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}swap [options] <path1> <path2>{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
+            fossil_io_printf("  {cyan,bold}-f, --force{normal}           Overwrite if needed\n");
+            fossil_io_printf("  {cyan,bold}-i, --interactive{normal}    Confirm swap\n");
+            fossil_io_printf("  {cyan,bold}-b, --backup{normal}         Create backups before swap\n");
+            fossil_io_printf("  {cyan,bold}--atomic{normal}              Guarantee atomic swap if supported\n");
+            fossil_io_printf("  {cyan,bold}--progress{normal}            Show progress\n");
+            fossil_io_printf("  {cyan,bold}--dry-run{normal}             Preview swap\n");
+            fossil_io_printf("  {cyan,bold}--temp <path>{normal}         Temporary staging location\n");
+            fossil_io_printf("  {cyan,bold}--no-cross-device{normal}     Fail if paths on different filesystems\n");
+
         } else if (fossil_io_cstring_equals(command, "move")) {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}move [options] <src> <dest>{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
@@ -240,6 +253,8 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual) {
             fossil_io_printf("\n{blue,bold,underline}Example usage:{normal}\n");
             if (fossil_io_cstring_equals(command, "show"))
             fossil_io_printf("  {cyan,bold}shark show -alh --as=tree --time{normal}\n");
+            else if (fossil_io_cstring_equals(command, "swap"))
+            fossil_io_printf("  {cyan,bold}shark swap -f -b file1.txt file2.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "move"))
             fossil_io_printf("  {cyan,bold}shark move -i -b old.txt archive/old.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "copy"))
