@@ -89,6 +89,7 @@ Ensure you have the following installed before starting:
 | **Command** | **Description** | **Flags** |
 |-------------|-----------------|-----------|
 | `show` | Display files and directories. | `-a`, `--all` (show hidden)<br>`-l`, `--long` (detailed info)<br>`-h`, `--human` (human-readable sizes)<br>`-r`, `--recursive` (include subdirs)<br>`-d`, `--depth <n>` (limit recursion)<br>`--as <mode>` (format: list/tree/graph)<br>`--time` (show timestamps)<br>`-s`, `--sort <key>` (sort by: asc/desc)<br>`-m`, `--match <pattern>` (filter by name)<br>`--size <filter>` (filter by size: e.g., >1MB)<br>`-t`, `--type <filter>` (filter by type: file/dir/link) |
+| `swap` | Exchange the locations of two files or directories. | `-f`, `--force` (overwrite if needed)<br>`-i`, `--interactive` (confirm swap)<br>`-b`, `--backup` (create backups before swap)<br>`--atomic` (guarantee atomic swap if supported)<br>`--progress` (show progress)<br>`--dry-run` (preview swap)<br>`--temp <path>` (temporary staging location)<br>`--no-cross-device` (fail if paths are on different filesystems) |
 | `move` | Move or rename files/directories. | `-f`, `--force` (overwrite)<br>`-i`, `--interactive` (confirm overwrite)<br>`-b`, `--backup` (backup before move)<br>`--atomic` (atomic operation)<br>`--progress` (show progress)<br>`--dry-run` (preview changes)<br>`--exclude <pattern>` (exclude files)<br>`--include <pattern>` (include files) |
 | `copy` | Copy files or directories. | `-r`, `--recursive` (copy subdirs)<br>`-u`, `--update` (only newer)<br>`-p`, `--preserve` (keep permissions/timestamps)<br>`--checksum` (verify after copy)<br>`--sparse` (preserve sparse files)<br>`--link` (hardlink instead)<br>`--reflink` (copy-on-write)<br>`--progress` (show progress)<br>`--dry-run` (simulate)<br>`--exclude <pat>` (exclude files)<br>`--include <pat>` (include files) |
 | `remove` / `delete` | Delete files or directories. | `-r`, `--recursive` (delete contents)<br>`-f`, `--force` (no confirmation)<br>`-i`, `--interactive` (confirm per file)<br>`--trash` (move to trash)<br>`--wipe` (secure overwrite before delete)<br>`--shred <passes>` (multi-pass secure deletion)<br>`--older-than <time>` (delete files older than)<br>`--larger-than <size>` (delete files larger than)<br>`--empty` (delete only empty dirs)<br>`--log <file>` (write deletion log) |
@@ -126,6 +127,7 @@ Ensure you have the following installed before starting:
 | **Example** | **Description** |
 |--------------|-----------------|
 | `shark show -a -l -h --as=tree --time` | List all files (including hidden) in long, human-readable format as a tree, with timestamps. |
+| `shark swap -f -b file1.txt file2.txt` | Exchange the locations of two files, forcing the operation and creating backups before swapping. |
 | `shark move -i -b old.txt archive/old.txt` | Move a file interactively, creating a backup before moving. |
 | `shark copy -r -p src/ backup/` | Recursively copy the `src/` directory to `backup/`, preserving permissions and timestamps. |
 | `shark remove -r --trash temp/` | Recursively move the `temp/` directory and its contents to the system trash. |
@@ -149,6 +151,7 @@ Below is a comparison between **Shark commands** and their traditional equivalen
 | **Shark Command** | **Traditional Commands** | **Purpose** |
 |-------------------|-------------------------|-------------|
 | `shark show` | `ls`, `tree`, `stat` | Display files, directories, metadata, and structures. |
+| `shark swap` | `mv` (with custom logic) | Exchange the locations of two files or directories. |
 | `shark move` | `mv` | Move or rename files/directories. |
 | `shark copy` | `cp` | Copy files or directories. |
 | `shark remove` / `delete` | `rm`, `trash`, `shred` | Remove files with optional trash, secure wipe, or filtering. |

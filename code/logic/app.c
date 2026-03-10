@@ -59,6 +59,16 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    --size <n>          Filter by size (e.g. >1MB)\n");
     fossil_io_printf("{bright_black}    --type <type>       Filter by type: file/dir/link\n");
 
+    fossil_io_printf("{cyan}  swap             {reset}Exchange locations of two files/directories\n");
+    fossil_io_printf("{bright_black}    -f, --force         Overwrite if needed\n");
+    fossil_io_printf("{bright_black}    -i, --interactive   Confirm swap\n");
+    fossil_io_printf("{bright_black}    -b, --backup        Create backups before swap\n");
+    fossil_io_printf("{bright_black}    --atomic            Guarantee atomic swap\n");
+    fossil_io_printf("{bright_black}    --progress          Show progress\n");
+    fossil_io_printf("{bright_black}    --dry-run           Preview swap\n");
+    fossil_io_printf("{bright_black}    --temp <path>       Temporary staging location\n");
+    fossil_io_printf("{bright_black}    --no-cross-device   Fail if paths on different filesystems\n");
+
     fossil_io_printf("{cyan}  move             {reset}Move or rename files/directories\n");
     fossil_io_printf("{bright_black}    -f, --force         Overwrite\n");
     fossil_io_printf("{bright_black}    -i, --interactive   Confirm overwrite\n");
@@ -422,6 +432,61 @@ bool app_entry(int argc, char **argv)
             if (i + 1 < argc && argv[i + 1][0] != '-')
                 path = argv[++i];
             fossil_shark_show(path, show_all, long_format, human_readable, recursive, format, show_time, depth, sort_key, match_pattern, size_filter, type_filter);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "swap") == 0)
+        {
+            ccstring path1 = cnull, path2 = cnull;
+            bool force = false, interactive = false, backup = false;
+            bool atomic = false, progress = false, dry_run = false;
+            bool no_cross_device = false;
+            ccstring temp_path = cnull;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0)
+                {
+                    force = true;
+                }
+                else if (fossil_io_cstring_compare(argv[j], "-i") == 0 || fossil_io_cstring_compare(argv[j], "--interactive") == 0)
+                {
+                    interactive = true;
+                }
+                else if (fossil_io_cstring_compare(argv[j], "-b") == 0 || fossil_io_cstring_compare(argv[j], "--backup") == 0)
+                {
+                    backup = true;
+                }
+                else if (fossil_io_cstring_compare(argv[j], "--atomic") == 0)
+                {
+                    atomic = true;
+                }
+                else if (fossil_io_cstring_compare(argv[j], "--progress") == 0)
+                {
+                    progress = true;
+                }
+                else if (fossil_io_cstring_compare(argv[j], "--dry-run") == 0)
+                {
+                    dry_run = true;
+                }
+                else if (fossil_io_cstring_compare(argv[j], "--temp") == 0 && j + 1 < argc)
+                {
+                    temp_path = argv[++j];
+                }
+                else if (fossil_io_cstring_compare(argv[j], "--no-cross-device") == 0)
+                {
+                    no_cross_device = true;
+                }
+                else if (!cnotnull(path1))
+                {
+                    path1 = argv[j];
+                }
+                else if (!cnotnull(path2))
+                {
+                    path2 = argv[j];
+                }
+                i = j;
+            }
+            if (cnotnull(path1) && cnotnull(path2))
+                fossil_shark_swap(path1, path2, force, interactive, backup, atomic, progress, dry_run, temp_path, no_cross_device);
         }
         else if (fossil_io_cstring_compare(argv[i], "move") == 0)
         {
