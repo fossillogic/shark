@@ -25,6 +25,35 @@
 #include "fossil/code/commands.h"
 
 
+static bool fossil_io_device_differs(ccstring path1, ccstring path2) {
+    struct stat stat1, stat2;
+    
+    if (stat(path1, &stat1) != 0 || stat(path2, &stat2) != 0) {
+        return false;
+    }
+    
+    return stat1.st_dev != stat2.st_dev;
+}
+
+//
+static bool confirm_overwrite(ccstring path) {
+    fossil_io_printf("Overwrite '%s'? (y/n): ", path);
+    int ch = getchar();
+    while (getchar() != '\n');
+    return ch == 'y' || ch == 'Y';
+}
+
+static int create_backup(ccstring path) {
+    cstring backup_path = fossil_io_cstring_format("%s.bak", path);
+    if (!cnotnull(backup_path)) {
+        return 1;
+    }
+    
+    int result = fossil_io_file_copy(path, backup_path);
+    fossil_io_cstring_free(backup_path);
+    return result;
+}
+
 int fossil_shark_swap(ccstring path1, ccstring path2,
                       bool force, bool interactive, bool backup,
                       bool atomic, bool progress, bool dry_run,
@@ -74,65 +103,32 @@ int fossil_shark_swap(ccstring path1, ccstring path2,
         }
     }
 
-    // Use temp path for atomic swap if provided
-    cstring temp_file = temp_path ? (cstring)temp_path : 
-                        fossil_io_cstring_format("%s.swap", norm_path1);
-    
-    if (!cnotnull(temp_file)) {
-        fossil_io_printf("{red}Error: Failed to create temporary path.{normal}\n");
-        fossil_io_cstring_free(norm_path1);
-        fossil_io_cstring_free(norm_path2);
-        return 1;
-    }
-
     // Check cross-device constraint if enabled
     if (no_cross_device) {
         if (fossil_io_device_differs(norm_path1, norm_path2)) {
             fossil_io_printf("{red}Error: Paths are on different devices.{normal}\n");
-            if (!temp_path) fossil_io_cstring_free(temp_file);
             fossil_io_cstring_free(norm_path1);
             fossil_io_cstring_free(norm_path2);
             return 1;
         }
     }
 
-    // Show progress if enabled
     if (progress) {
         fossil_io_printf("{cyan}[PROGRESS] Starting swap operation...{normal}\n");
     }
 
-    // Move path1 to temp
-    if (fossil_io_file_move(norm_path1, temp_file) != 0) {
-        fossil_io_printf("{red}Failed to move '%s' to temp: %s{normal}\n", norm_path1, strerror(errno));
-        if (!temp_path) fossil_io_cstring_free(temp_file);
+    // Use fossil_io_file_swap function for atomic swap
+    int result = fossil_io_file_swap(norm_path1, norm_path2);
+    
+    if (result != 0) {
+        fossil_io_printf("{red}Failed to swap '%s' with '%s': %s{normal}\n", norm_path1, norm_path2, strerror(errno));
         fossil_io_cstring_free(norm_path1);
         fossil_io_cstring_free(norm_path2);
         return errno;
     }
 
-    if (progress) fossil_io_printf("{cyan}[PROGRESS] Moved source to temp...{normal}\n");
-
-    // Move path2 to path1
-    if (fossil_io_file_move(norm_path2, norm_path1) != 0) {
-        fossil_io_printf("{red}Failed to move '%s' to '%s': %s{normal}\n", norm_path2, norm_path1, strerror(errno));
-        fossil_io_file_move(temp_file, norm_path1); // Rollback
-        if (!temp_path) fossil_io_cstring_free(temp_file);
-        fossil_io_cstring_free(norm_path1);
-        fossil_io_cstring_free(norm_path2);
-        return errno;
-    }
-
-    if (progress) fossil_io_printf("{cyan}[PROGRESS] Moved destination to source...{normal}\n");
-
-    // Move temp to path2
-    if (fossil_io_file_move(temp_file, norm_path2) != 0) {
-        fossil_io_printf("{red}Failed to move temp to '%s': %s{normal}\n", norm_path2, strerror(errno));
-        fossil_io_file_move(norm_path1, norm_path2); // Rollback
-        fossil_io_file_move(temp_file, norm_path1); // Rollback
-        if (!temp_path) fossil_io_cstring_free(temp_file);
-        fossil_io_cstring_free(norm_path1);
-        fossil_io_cstring_free(norm_path2);
-        return errno;
+    if (progress) {
+        fossil_io_printf("{cyan}[PROGRESS] Swap operation completed...{normal}\n");
     }
 
     if (atomic) {
@@ -141,7 +137,6 @@ int fossil_shark_swap(ccstring path1, ccstring path2,
 
     fossil_io_printf("{cyan}Successfully swapped '%s' <-> '%s'{normal}\n", norm_path1, norm_path2);
     
-    if (!temp_path) fossil_io_cstring_free(temp_file);
     fossil_io_cstring_free(norm_path1);
     fossil_io_cstring_free(norm_path2);
     return 0;
