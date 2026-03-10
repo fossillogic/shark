@@ -63,6 +63,26 @@ static int create_backup(ccstring dest) {
     return 0;
 }
 
+static bool confirm_overwrite(ccstring dest) {
+    char *answer = (char *)fossil_sys_memory_alloc(8);
+    if (!cnotnull(answer)) {
+        return false;
+    }
+    
+    fossil_io_printf("{blue}Overwrite '%s'? [y/N]: {normal}", dest);
+    
+    if (fossil_io_gets(answer, 8) != 0) {
+        fossil_sys_memory_free(answer);
+        return false;
+    }
+    
+    fossil_io_trim(answer);
+    bool result = (answer[0] == 'y' || answer[0] == 'Y');
+    fossil_sys_memory_free(answer);
+    cdrop(answer);
+    return result;
+}
+
 static bool confirm_swap(ccstring path1, ccstring path2) {
     char *answer = (char *)fossil_sys_memory_alloc(8);
     if (!cnotnull(answer)) {
@@ -83,7 +103,7 @@ static bool confirm_swap(ccstring path1, ccstring path2) {
     return result;
 }
 
-static bool are_on_same_device(ccstring path1, ccstring path2) {
+static bool check_same_device(ccstring path1, ccstring path2) {
     struct stat stat1, stat2;
     if (stat(path1, &stat1) != 0 || stat(path2, &stat2) != 0) {
         return false;
@@ -100,6 +120,7 @@ int fossil_shark_swap(ccstring path1, ccstring path2,
         return 1;
     }
 
+    // Normalize paths
     cstring norm_path1 = fossil_io_file_path_normalize(path1);
     cstring norm_path2 = fossil_io_file_path_normalize(path2);
     
@@ -110,7 +131,8 @@ int fossil_shark_swap(ccstring path1, ccstring path2,
         return 1;
     }
 
-    if (no_cross_device && !are_on_same_device(norm_path1, norm_path2)) {
+    // Check cross-device constraint
+    if (no_cross_device && !check_same_device(norm_path1, norm_path2)) {
         fossil_io_printf("{red}Error: Paths are on different filesystems.{normal}\n");
         fossil_io_cstring_free(norm_path1);
         fossil_io_cstring_free(norm_path2);
@@ -124,6 +146,7 @@ int fossil_shark_swap(ccstring path1, ccstring path2,
         return 0;
     }
 
+    // Interactive confirmation
     if (interactive && !force) {
         if (!confirm_swap(norm_path1, norm_path2)) {
             fossil_io_printf("{cyan}Swap cancelled by user.{normal}\n");
@@ -133,6 +156,7 @@ int fossil_shark_swap(ccstring path1, ccstring path2,
         }
     }
 
+    // Create backups if requested
     if (backup) {
         if (create_backup(norm_path1) != 0 || create_backup(norm_path2) != 0) {
             fossil_io_cstring_free(norm_path1);
@@ -141,44 +165,60 @@ int fossil_shark_swap(ccstring path1, ccstring path2,
         }
     }
 
-    cstring temp = temp_path ? fossil_io_file_path_normalize(temp_path) : 
-                   fossil_io_cstring_format("%s.swap.tmp", norm_path1);
+    // Determine temp directory
+    cstring swap_temp = cnotnull(temp_path) ? (cstring)temp_path : (cstring)".";
+    cstring temp_file = fossil_io_cstring_format("%s/.fossil_swap_temp_XXXXXX", swap_temp);
     
-    if (!cnotnull(temp)) {
-        fossil_io_printf("{red}Error: Failed to create temporary path.{normal}\n");
+    if (!cnotnull(temp_file)) {
+        fossil_io_printf("{red}Error: Failed to allocate temp path.{normal}\n");
         fossil_io_cstring_free(norm_path1);
         fossil_io_cstring_free(norm_path2);
         return 1;
     }
 
-    if (fossil_io_file_rename(norm_path1, temp) != 0) {
-        fossil_io_printf("{red}Error: Failed to move first file to temporary location: %s{normal}\n", strerror(errno));
+    // Perform swap using temporary file
+    if (progress) {
+        fossil_io_printf("{cyan}Swapping files: 33%%{normal}\n");
+    }
+
+    if (fossil_io_file_rename(norm_path1, temp_file) != 0) {
+        fossil_io_printf("{red}Failed to move '%s' to temp: %s{normal}\n", norm_path1, strerror(errno));
         fossil_io_cstring_free(norm_path1);
         fossil_io_cstring_free(norm_path2);
-        fossil_io_cstring_free(temp);
+        fossil_io_cstring_free(temp_file);
         return errno;
+    }
+
+    if (progress) {
+        fossil_io_printf("{cyan}Swapping files: 66%%{normal}\n");
     }
 
     if (fossil_io_file_rename(norm_path2, norm_path1) != 0) {
-        fossil_io_printf("{red}Error: Failed to move second file: %s{normal}\n", strerror(errno));
-        fossil_io_file_rename(temp, norm_path1);
+        fossil_io_printf("{red}Failed to move '%s' to '%s': %s{normal}\n", norm_path2, norm_path1, strerror(errno));
+        fossil_io_file_rename(temp_file, norm_path1);
         fossil_io_cstring_free(norm_path1);
         fossil_io_cstring_free(norm_path2);
-        fossil_io_cstring_free(temp);
+        fossil_io_cstring_free(temp_file);
         return errno;
     }
 
-    if (fossil_io_file_rename(temp, norm_path2) != 0) {
-        fossil_io_printf("{red}Error: Failed to move temporary file to second location: %s{normal}\n", strerror(errno));
+    if (fossil_io_file_rename(temp_file, norm_path2) != 0) {
+        fossil_io_printf("{red}Failed to move temp to '%s': %s{normal}\n", norm_path2, strerror(errno));
+        fossil_io_file_rename(norm_path1, norm_path2);
+        fossil_io_file_rename(temp_file, norm_path1);
         fossil_io_cstring_free(norm_path1);
         fossil_io_cstring_free(norm_path2);
-        fossil_io_cstring_free(temp);
+        fossil_io_cstring_free(temp_file);
         return errno;
+    }
+
+    if (progress) {
+        fossil_io_printf("{cyan}Swapping files: 100%%{normal}\n");
     }
 
     fossil_io_printf("{cyan}Successfully swapped '%s' and '%s'{normal}\n", norm_path1, norm_path2);
     fossil_io_cstring_free(norm_path1);
     fossil_io_cstring_free(norm_path2);
-    fossil_io_cstring_free(temp);
+    fossil_io_cstring_free(temp_file);
     return 0;
 }
