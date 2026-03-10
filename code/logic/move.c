@@ -84,7 +84,7 @@ static bool confirm_overwrite(ccstring dest) {
 }
 
 static int handle_atomic_move(ccstring src, ccstring dest) {
-    if (fossil_io_file_rename(src, dest) != 0) {
+    if (fossil_io_file_move(src, dest) != 0) {
         fossil_io_printf("{red}Atomic move failed: %s{normal}\n", strerror(errno));
         return errno;
     }
@@ -95,7 +95,7 @@ static int handle_atomic_move(ccstring src, ccstring dest) {
 static int handle_move_with_progress(ccstring src, ccstring dest) {
     fossil_io_printf("{cyan}Moving '%s' to '%s'{normal}\n", src, dest);
     
-    if (fossil_io_file_rename(src, dest) != 0) {
+    if (fossil_io_file_move(src, dest) != 0) {
         fossil_io_printf("{red}Move with progress failed: %s{normal}\n", strerror(errno));
         return errno;
     }
@@ -115,7 +115,7 @@ static int filter_by_patterns(ccstring src, ccstring dest, ccstring exclude, ccs
         return 0;
     }
     
-    if (fossil_io_file_rename(src, dest) != 0) {
+    if (fossil_io_file_move(src, dest) != 0) {
         fossil_io_printf("{red}Pattern-filtered move failed: %s{normal}\n", strerror(errno));
         return errno;
     }
@@ -215,8 +215,8 @@ int fossil_shark_move(ccstring src, ccstring dest,
         return 0;
     }
 
-    if (fossil_io_file_rename(norm_src, norm_dest) != 0) {
-        fossil_io_printf("{red}Failed to move/rename: %s{normal}\n", strerror(errno));
+    if (fossil_io_file_move(norm_src, norm_dest) != 0) {
+        fossil_io_printf("{red}Failed to move: %s{normal}\n", strerror(errno));
         fossil_io_cstring_free(norm_src);
         fossil_io_cstring_free(norm_dest);
         return errno;
