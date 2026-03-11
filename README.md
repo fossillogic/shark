@@ -4,22 +4,23 @@
 
 ### A Command-Line Power Utility by **Fossil Logic**
 
-Shark Tool is the ultimate **all-in-one file and system administration utility**. Built for admins, developers, and power users, Shark unifies essential file management, automation, and analysis tasks into a single, powerful command-line interface—eliminating the need for multiple separate tools. Its unique commands, such as `grammar` for advanced text analysis, `summary` for structured file summaries, and `introspect` for deep file inspection, set Shark apart by providing capabilities rarely found in traditional CLI utilities.
+Shark Tool is the ultimate **all-in-one file and system administration utility** for admins, developers, and power users. It consolidates essential file management, automation, and analysis into a single command-line interface—eliminating tool fragmentation. Unique commands like `grammar` for text analysis, `introspect` for file inspection, and `cryptic` for encoding/decoding provide capabilities rarely found in traditional utilities, delivering the precision and flexibility professionals demand.
 
 ---
 
 ## Features
 
-- Comprehensive file and directory operations (`show`, `copy`, `move`, `delete`, `rename`, `create`)
-- Powerful archive creation, extraction, and listing (zip, tar, gz)
-- Advanced recursive search by name or content with filtering options
-- Smart file timestamp and metadata management
-- Cross-platform compatibility (Linux, macOS, Windows)
-- Command palette for quick access to all features
-- Grammar analysis, correction, and tone detection via SOAP API
-- Structured file summaries and statistics (keywords, topics, entropy)
-- File synchronization and backup with flexible options
-- Real-time file monitoring and change detection
+- **Comprehensive file and directory operations** — `show`, `copy`, `move`, `delete`, `rename`, `create`, and more
+- **Archive management** — Create, extract, and list archives (zip, tar, gz) with encryption support
+- **Advanced search capabilities** — Recursive file search by name or content with intelligent filtering
+- **Metadata and timestamp control** — Smart handling of file permissions, timestamps, and attributes
+- **Cross-platform support** — Seamless operation on Linux, macOS, and Windows
+- **AI-powered analysis** — Grammar checking, tone detection, and text improvement via SOAP API
+- **File synchronization** — Intelligent sync and backup with selective updates and deletion options
+- **Real-time monitoring** — Watch files and directories for changes with event filtering
+- **Text encoding/decoding** — Multiple cipher support (Caesar, Vigenere, Base64, etc.)
+- **File comparison and inspection** — Diff analysis, introspection, and structured summaries
+
 
 ## **Why Choose Shark Tool?**
 
