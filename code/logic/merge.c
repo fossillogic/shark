@@ -118,9 +118,9 @@ int fossil_shark_merge(const char **paths, int num_paths, ccstring dest,
             if (c != 'y' && c != 'Y') continue;
         }
         
-        if (progress) fossil_io_printf("{green}✓ Processing:{reset} %s\n", paths[i]);
+        if (progress) fossil_io_printf("{green}Processing:{reset} %s\n", paths[i]);
         
-        if (dry_run) fossil_io_printf("{yellow}⚠ Dry run:{reset} would merge '%s' into '%s'\n", paths[i], dest);
+        if (dry_run) fossil_io_printf("{yellow}Dry run:{reset} would merge '%s' into '%s'\n", paths[i], dest);
         
         char dest_path[1024];
         fossil_io_dir_join(dest, paths[i], dest_path, sizeof(dest_path));
@@ -144,16 +144,16 @@ int fossil_shark_merge(const char **paths, int num_paths, ccstring dest,
         
         if (result != 0) {
             if (fossil_io_cstring_iequals(strategy, "skip")) {
-                fossil_io_printf("{yellow}⊘ Skipped:{reset} %s\n", paths[i]);
+                fossil_io_printf("{yellow}Skipped:{reset} %s\n", paths[i]);
                 continue;
             } else if (fossil_io_cstring_iequals(strategy, "overwrite")) {
-                fossil_io_printf("{bold}↻ Overwriting:{reset} %s\n", paths[i]);
+                fossil_io_printf("{bold}Overwriting:{reset} %s\n", paths[i]);
                 copy_file(paths[i], dest_path, true);
             } else if (fossil_io_cstring_iequals(strategy, "merge")) {
-                fossil_io_printf("{blue}⇄ Merging:{reset} %s\n", paths[i]);
+                fossil_io_printf("{blue}Merging:{reset} %s\n", paths[i]);
                 merge_file(paths[i], dest_path, true);
             } else if (fossil_io_cstring_iequals(strategy, "abort")) {
-                fossil_io_printf("{red,bold}✗ Error:{reset} Merge aborted at %s\n", paths[i]);
+                fossil_io_printf("{red,bold}Error:{reset} Merge aborted at %s\n", paths[i]);
                 return 1;
             }
         }
