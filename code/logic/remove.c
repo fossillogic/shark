@@ -24,87 +24,101 @@
  */
 #include "fossil/code/commands.h"
 
-
 // Helper: ask user for confirmation
-static bool confirm_removal(ccstring path) {
+static bool confirm_removal(ccstring path)
+{
     char answer[8];
     fossil_io_printf("{cyan}Remove '{bold}%s{normal}{cyan}'? [y/N]: {normal}", path);
-    
-    if (fossil_io_gets(answer, sizeof(answer)) != 0) {
+
+    if (fossil_io_gets(answer, sizeof(answer)) != 0)
+    {
         return false;
     }
-    
+
     fossil_io_trim(answer);
     return (answer[0] == 'y' || answer[0] == 'Y');
 }
 
 // Helper: write deletion log entry
-static void log_deletion(ccstring log_file, ccstring path, bool success) {
-    if (log_file == cnull) return;
-    
+static void log_deletion(ccstring log_file, ccstring path, bool success)
+{
+    if (log_file == cnull)
+        return;
+
     FILE *f = fopen(log_file, "a");
-    if (f == cnull) return;
-    
-        time_t now = time(cnull);
-        char time_str[26];
-    #ifdef _WIN32
-        ctime_s(time_str, sizeof(time_str), &now);
-    #else
-        ctime_r(&now, time_str);
-    #endif
-        time_str[24] = '\0'; // Remove newline
-    
+    if (f == cnull)
+        return;
+
+    time_t now = time(cnull);
+    char time_str[26];
+#ifdef _WIN32
+    ctime_s(time_str, sizeof(time_str), &now);
+#else
+    ctime_r(&now, time_str);
+#endif
+    time_str[24] = '\0'; // Remove newline
+
     fprintf(f, "[%s] %s: %s\n", time_str, success ? "OK" : "FAIL", path);
     fclose(f);
 }
 
 // Helper: securely wipe file before deletion
-static int wipe_file(ccstring path, int passes) {
+static int wipe_file(ccstring path, int passes)
+{
     FILE *f = fopen(path, "r+b");
-    if (f == cnull) return errno;
-    
+    if (f == cnull)
+        return errno;
+
     fseek(f, 0, SEEK_END);
     size_t size = ftell(f);
     rewind(f);
-    
-    unsigned char *buffer = (unsigned char*)fossil_sys_memory_alloc(size);
-    if (buffer == cnull) {
+
+    unsigned char *buffer = (unsigned char *)fossil_sys_memory_alloc(size);
+    if (buffer == cnull)
+    {
         fclose(f);
         return ENOMEM;
     }
-    
-    for (int i = 0; i < passes; i++) {
+
+    for (int i = 0; i < passes; i++)
+    {
         memset(buffer, (i % 256), size);
         rewind(f);
         fwrite(buffer, 1, size, f);
     }
-    
+
     fossil_sys_memory_free(buffer);
     fclose(f);
     return 0;
 }
 
 // Helper: move file to system trash (cross-platform)
-static int move_to_trash(ccstring path) {
-    char *trash_path = (char*)fossil_sys_memory_alloc(4096);
-    if (cunlikely(trash_path == cnull)) {
+static int move_to_trash(ccstring path)
+{
+    char *trash_path = (char *)fossil_sys_memory_alloc(4096);
+    if (cunlikely(trash_path == cnull))
+    {
         fossil_io_printf("{red}Failed to allocate memory for trash path{normal}\n");
         return ENOMEM;
     }
-    
+
     ccstring filename = strrchr(path, '/') ? strrchr(path, '/') + 1 : path;
 #ifdef _WIN32
     ccstring home = getenv("USERPROFILE");
-    if (home == cnull) home = getenv("TEMP");
-    if (home == cnull) home = ".";
+    if (home == cnull)
+        home = getenv("TEMP");
+    if (home == cnull)
+        home = ".";
     snprintf(trash_path, 4096, "%s\\AppData\\Local\\Trash\\%s", home, filename);
 #else
     ccstring home = getenv("HOME");
-    if (home == cnull) home = ".";
+    if (home == cnull)
+        home = ".";
     snprintf(trash_path, 4096, "%s/.local/share/Trash/files/%s", home, filename);
 #endif
 
-    if (fossil_io_file_rename(path, trash_path) != 0) {
+    if (fossil_io_file_rename(path, trash_path) != 0)
+    {
         fossil_io_printf("{red}Failed to move to trash: %s{normal}\n", strerror(errno));
         fossil_sys_memory_free(trash_path);
         cnullify(trash_path);
@@ -117,17 +131,22 @@ static int move_to_trash(ccstring path) {
 }
 
 // Helper: check if file matches criteria
-static bool matches_criteria(ccstring path, ccstring older_than, size_t larger_than) {
+static bool matches_criteria(ccstring path, ccstring older_than, size_t larger_than)
+{
     struct stat st;
-    if (stat(path, &st) != 0) return false;
-    
-    if (larger_than > 0 && (size_t)st.st_size <= larger_than) return false;
-    
-    if (older_than != cnull) {
+    if (stat(path, &st) != 0)
+        return false;
+
+    if (larger_than > 0 && (size_t)st.st_size <= larger_than)
+        return false;
+
+    if (older_than != cnull)
+    {
         time_t cutoff = atol(older_than);
-        if (st.st_mtime > cutoff) return false;
+        if (st.st_mtime > cutoff)
+            return false;
     }
-    
+
     return true;
 }
 
@@ -136,68 +155,93 @@ static int remove_recursive(ccstring path, bool recursive, bool force,
                             bool interactive, bool use_trash, bool wipe,
                             int shred_passes, ccstring older_than,
                             size_t larger_than, bool empty_only,
-                            ccstring log_file) {
-    if (cunlikely(path == cnull)) {
+                            ccstring log_file)
+{
+    if (cunlikely(path == cnull))
+    {
         fossil_io_printf("{red}Error: Path cannot be null{normal}\n");
         return EINVAL;
     }
 
     int32_t is_dir = fossil_io_dir_is_directory(path);
-    if (is_dir < 0) {
-        if (force) return 0;
+    if (is_dir < 0)
+    {
+        if (force)
+            return 0;
         fossil_io_printf("{red}Error accessing '%s': %s{normal}\n", path, strerror(errno));
         return errno;
     }
 
-    if (is_dir == 1) {
+    if (is_dir == 1)
+    {
         fossil_io_dir_iter_t it;
         int32_t open_res = fossil_io_dir_iter_open(&it, path);
-        if (open_res < 0) {
-            if (force) return 0;
+        if (open_res < 0)
+        {
+            if (force)
+                return 0;
             fossil_io_printf("{red}Error opening directory '%s': %s{normal}\n", path, strerror(errno));
             return errno;
         }
 
-        while (fossil_io_dir_iter_next(&it) > 0) {
+        while (fossil_io_dir_iter_next(&it) > 0)
+        {
             fossil_io_dir_entry_t *entry = &it.current;
             if (fossil_io_cstring_equals(entry->name, ".") || fossil_io_cstring_equals(entry->name, ".."))
                 continue;
 
-            if (entry->type == 1) { // Directory
-                if (recursive) {
-                    if (remove_recursive(entry->path, recursive, force, interactive, use_trash, wipe, shred_passes, older_than, larger_than, empty_only, log_file) != 0 && !force) {
+            if (entry->type == 1)
+            { // Directory
+                if (recursive)
+                {
+                    if (remove_recursive(entry->path, recursive, force, interactive, use_trash, wipe, shred_passes, older_than, larger_than, empty_only, log_file) != 0 && !force)
+                    {
                         fossil_io_dir_iter_close(&it);
                         return 1;
                     }
-                } else {
+                }
+                else
+                {
                     if (!force)
                         fossil_io_printf("{red}Cannot remove directory '%s' without recursive flag.{normal}\n", entry->path);
                     continue;
                 }
-            } else {
+            }
+            else
+            {
                 if (!matches_criteria(entry->path, older_than, larger_than))
                     continue;
 
-                if (interactive && !force) {
-                    if (!confirm_removal(entry->path)) {
+                if (interactive && !force)
+                {
+                    if (!confirm_removal(entry->path))
+                    {
                         continue;
                     }
                 }
 
-                if (wipe && shred_passes > 0) {
+                if (wipe && shred_passes > 0)
+                {
                     wipe_file(entry->path, shred_passes);
                 }
 
-                if (use_trash) {
-                    if (move_to_trash(entry->path) != 0 && !force) {
+                if (use_trash)
+                {
+                    if (move_to_trash(entry->path) != 0 && !force)
+                    {
                         log_deletion(log_file, entry->path, false);
                         continue;
                     }
-                } else {
-                    if (fossil_io_file_delete(entry->path) != 0 && !force) {
+                }
+                else
+                {
+                    if (fossil_io_file_delete(entry->path) != 0 && !force)
+                    {
                         fossil_io_printf("{red}Failed to remove '%s': %s{normal}\n", entry->path, strerror(errno));
                         log_deletion(log_file, entry->path, false);
-                    } else {
+                    }
+                    else
+                    {
                         fossil_io_printf("{blue}Removed file: %s{normal}\n", entry->path);
                         log_deletion(log_file, entry->path, true);
                     }
@@ -206,41 +250,59 @@ static int remove_recursive(ccstring path, bool recursive, bool force,
         }
         fossil_io_dir_iter_close(&it);
 
-        if (empty_only) {
+        if (empty_only)
+        {
             struct stat st;
-            if (stat(path, &st) == 0 && st.st_size > 0) return 0;
+            if (stat(path, &st) == 0 && st.st_size > 0)
+                return 0;
         }
 
-        if (interactive && !force) {
-            if (!confirm_removal(path)) return 0;
+        if (interactive && !force)
+        {
+            if (!confirm_removal(path))
+                return 0;
         }
 
-        if (use_trash) return move_to_trash(path);
-        if (fossil_io_dir_remove(path) != 0 && !force) {
+        if (use_trash)
+            return move_to_trash(path);
+        if (fossil_io_dir_remove(path) != 0 && !force)
+        {
             fossil_io_printf("{red}Failed to remove directory '%s': %s{normal}\n", path, strerror(errno));
             log_deletion(log_file, path, false);
             return errno;
-        } else {
+        }
+        else
+        {
             fossil_io_printf("{blue}Removed directory: %s{normal}\n", path);
             log_deletion(log_file, path, true);
         }
-    } else {
-        if (!matches_criteria(path, older_than, larger_than)) return 0;
+    }
+    else
+    {
+        if (!matches_criteria(path, older_than, larger_than))
+            return 0;
 
-        if (interactive && !force) {
-            if (!confirm_removal(path)) return 0;
+        if (interactive && !force)
+        {
+            if (!confirm_removal(path))
+                return 0;
         }
 
-        if (wipe && shred_passes > 0) {
+        if (wipe && shred_passes > 0)
+        {
             wipe_file(path, shred_passes);
         }
 
-        if (use_trash) return move_to_trash(path);
-        if (fossil_io_file_delete(path) != 0 && !force) {
+        if (use_trash)
+            return move_to_trash(path);
+        if (fossil_io_file_delete(path) != 0 && !force)
+        {
             fossil_io_printf("{red}Failed to remove '%s': %s{normal}\n", path, strerror(errno));
             log_deletion(log_file, path, false);
             return errno;
-        } else {
+        }
+        else
+        {
             fossil_io_printf("{blue}Removed file: %s{normal}\n", path);
             log_deletion(log_file, path, true);
         }
@@ -253,8 +315,10 @@ int fossil_shark_remove(ccstring path, bool recursive, bool force,
                         bool interactive, bool use_trash, bool wipe,
                         int shred_passes, ccstring older_than,
                         size_t larger_than, bool empty_only,
-                        ccstring log_file) {
-    if (cunlikely(path == cnull)) {
+                        ccstring log_file)
+{
+    if (cunlikely(path == cnull))
+    {
         fossil_io_printf("{red}Error: Path must be specified.{normal}\n");
         return 1;
     }

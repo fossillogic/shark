@@ -26,8 +26,6 @@
 
 #include "fossil/code/app.h"
 
-
-
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Fossil Logic Test Utilites
 // * * * * * * * * * * * * * * * * * * * * * * * *
@@ -39,12 +37,14 @@
 FOSSIL_SUITE(c_sync_command_suite);
 
 // Setup function for the test suite
-FOSSIL_SETUP(c_sync_command_suite) {
+FOSSIL_SETUP(c_sync_command_suite)
+{
     // Setup code here
 }
 
 // Teardown function for the test suite
-FOSSIL_TEARDOWN(c_sync_command_suite) {
+FOSSIL_TEARDOWN(c_sync_command_suite)
+{
     // Teardown code here
 }
 
@@ -56,80 +56,94 @@ FOSSIL_TEARDOWN(c_sync_command_suite) {
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-FOSSIL_TEST(c_test_sync_null_source) {
+FOSSIL_TEST(c_test_sync_null_source)
+{
     int result = fossil_shark_sync(cnull, "dest", false, false, false);
     ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
-FOSSIL_TEST(c_test_sync_null_destination) {
+FOSSIL_TEST(c_test_sync_null_destination)
+{
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_src.txt");
     int result = fossil_shark_sync("test_sync_src.txt", cnull, false, false, false);
     ASSUME_NOT_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_src.txt");
 }
 
-FOSSIL_TEST(c_test_sync_nonexistent_source) {
+FOSSIL_TEST(c_test_sync_nonexistent_source)
+{
     int result = fossil_shark_sync("nonexistent_sync_src.txt", "sync_dest.txt", false, false, false);
     ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
-FOSSIL_TEST(c_test_sync_single_file) {
+FOSSIL_TEST(c_test_sync_single_file)
+{
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_file_src.txt");
     int result = fossil_shark_sync("test_sync_file_src.txt", "test_sync_file_dest.txt", false, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_file_src.txt");
-    if (FOSSIL_SANITY_SYS_FILE_EXISTS("test_sync_file_dest.txt")) {
+    if (FOSSIL_SANITY_SYS_FILE_EXISTS("test_sync_file_dest.txt"))
+    {
         FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_file_dest.txt");
     }
 }
 
-FOSSIL_TEST(c_test_sync_directory_non_recursive) {
+FOSSIL_TEST(c_test_sync_directory_non_recursive)
+{
     FOSSIL_SANITY_SYS_CREATE_DIR("test_sync_src_dir");
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_src_dir/file1.txt");
     int result = fossil_shark_sync("test_sync_src_dir", "test_sync_dest_dir", false, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_src_dir/file1.txt");
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_src_dir");
-    if (FOSSIL_SANITY_SYS_DIR_EXISTS("test_sync_dest_dir")) {
+    if (FOSSIL_SANITY_SYS_DIR_EXISTS("test_sync_dest_dir"))
+    {
         FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_dest_dir");
     }
 }
 
-FOSSIL_TEST(c_test_sync_directory_recursive) {
+FOSSIL_TEST(c_test_sync_directory_recursive)
+{
     FOSSIL_SANITY_SYS_CREATE_DIR("test_sync_rec_src");
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_rec_src/file1.txt");
     int result = fossil_shark_sync("test_sync_rec_src", "test_sync_rec_dest", true, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_rec_src/file1.txt");
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_rec_src");
-    if (FOSSIL_SANITY_SYS_DIR_EXISTS("test_sync_rec_dest")) {
+    if (FOSSIL_SANITY_SYS_DIR_EXISTS("test_sync_rec_dest"))
+    {
         FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_rec_dest");
     }
 }
 
-FOSSIL_TEST(c_test_sync_update_flag) {
+FOSSIL_TEST(c_test_sync_update_flag)
+{
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_update_src.txt");
     int result = fossil_shark_sync("test_sync_update_src.txt", "test_sync_update_dest.txt", false, true, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_update_src.txt");
-    if (FOSSIL_SANITY_SYS_FILE_EXISTS("test_sync_update_dest.txt")) {
+    if (FOSSIL_SANITY_SYS_FILE_EXISTS("test_sync_update_dest.txt"))
+    {
         FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_update_dest.txt");
     }
 }
 
-FOSSIL_TEST(c_test_sync_delete_flag) {
+FOSSIL_TEST(c_test_sync_delete_flag)
+{
     FOSSIL_SANITY_SYS_CREATE_DIR("test_sync_del_src");
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_del_src/file1.txt");
     int result = fossil_shark_sync("test_sync_del_src", "test_sync_del_dest", true, false, true);
     ASSUME_ITS_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_del_src/file1.txt");
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_del_src");
-    if (FOSSIL_SANITY_SYS_DIR_EXISTS("test_sync_del_dest")) {
+    if (FOSSIL_SANITY_SYS_DIR_EXISTS("test_sync_del_dest"))
+    {
         FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_del_dest");
     }
 }
 
-FOSSIL_TEST(c_test_sync_identical_files) {
+FOSSIL_TEST(c_test_sync_identical_files)
+{
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_identical_src.txt");
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_identical_dest.txt");
     int result = fossil_shark_sync("test_sync_identical_src.txt", "test_sync_identical_dest.txt", false, false, false);
@@ -142,7 +156,8 @@ FOSSIL_TEST(c_test_sync_identical_files) {
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-FOSSIL_TEST_GROUP(c_sync_command_tests) {
+FOSSIL_TEST_GROUP(c_sync_command_tests)
+{
     FOSSIL_TEST_ADD(c_sync_command_suite, c_test_sync_null_source);
     FOSSIL_TEST_ADD(c_sync_command_suite, c_test_sync_null_destination);
     FOSSIL_TEST_ADD(c_sync_command_suite, c_test_sync_nonexistent_source);

@@ -24,17 +24,20 @@
  */
 #include "fossil/code/commands.h"
 
-
-cstring fossil_io_file_path_normalize(ccstring path) {
-    if (!cnotnull(path)) return cnull;
+cstring fossil_io_file_path_normalize(ccstring path)
+{
+    if (!cnotnull(path))
+        return cnull;
 
     cstring norm_path = (cstring)fossil_sys_memory_alloc(strlen(path) + 1);
-    if (cunlikely(!cnotnull(norm_path))) {
+    if (cunlikely(!cnotnull(norm_path)))
+    {
         return cnull;
     }
 
     size_t len = strlen(path);
-    for (size_t i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++)
+    {
 #ifdef _WIN32
         norm_path[i] = (path[i] == '/') ? '\\' : path[i];
 #else
@@ -45,37 +48,43 @@ cstring fossil_io_file_path_normalize(ccstring path) {
     return norm_path;
 }
 
-static int create_backup(ccstring dest) {
+static int create_backup(ccstring dest)
+{
     cstring backup_path = fossil_io_cstring_format("%s.bak", dest);
-    if (!cnotnull(backup_path)) {
+    if (!cnotnull(backup_path))
+    {
         fossil_io_printf("{red}Failed to create backup path{normal}\n");
         return -1;
     }
-    
-    if (fossil_io_file_backup(dest, ".bak") != 0) {
+
+    if (fossil_io_file_backup(dest, ".bak") != 0)
+    {
         fossil_io_printf("{red}Failed to create backup: %s{normal}\n", strerror(errno));
         fossil_io_cstring_free(backup_path);
         return errno;
     }
-    
+
     fossil_io_printf("{cyan}Backup created: %s{normal}\n", backup_path);
     fossil_io_cstring_free(backup_path);
     return 0;
 }
 
-static bool confirm_overwrite(ccstring dest) {
+static bool confirm_overwrite(ccstring dest)
+{
     char *answer = (char *)fossil_sys_memory_alloc(8);
-    if (!cnotnull(answer)) {
+    if (!cnotnull(answer))
+    {
         return false;
     }
-    
+
     fossil_io_printf("{blue}Overwrite '%s'? [y/N]: {normal}", dest);
-    
-    if (fossil_io_gets(answer, 8) != 0) {
+
+    if (fossil_io_gets(answer, 8) != 0)
+    {
         fossil_sys_memory_free(answer);
         return false;
     }
-    
+
     fossil_io_trim(answer);
     bool result = (answer[0] == 'y' || answer[0] == 'Y');
     fossil_sys_memory_free(answer);
@@ -83,8 +92,10 @@ static bool confirm_overwrite(ccstring dest) {
     return result;
 }
 
-static int handle_atomic_move(ccstring src, ccstring dest) {
-    if (fossil_io_file_move(src, dest) != 0) {
+static int handle_atomic_move(ccstring src, ccstring dest)
+{
+    if (fossil_io_file_move(src, dest) != 0)
+    {
         fossil_io_printf("{red}Atomic move failed: %s{normal}\n", strerror(errno));
         return errno;
     }
@@ -92,34 +103,40 @@ static int handle_atomic_move(ccstring src, ccstring dest) {
     return 0;
 }
 
-static int handle_move_with_progress(ccstring src, ccstring dest) {
+static int handle_move_with_progress(ccstring src, ccstring dest)
+{
     fossil_io_printf("{cyan}Moving '%s' to '%s'{normal}\n", src, dest);
-    
-    if (fossil_io_file_move(src, dest) != 0) {
+
+    if (fossil_io_file_move(src, dest) != 0)
+    {
         fossil_io_printf("{red}Move with progress failed: %s{normal}\n", strerror(errno));
         return errno;
     }
-    
+
     fossil_io_printf("{cyan}Move completed: 100%%{normal}\n");
     return 0;
 }
 
-static int filter_by_patterns(ccstring src, ccstring dest, ccstring exclude, ccstring include) {
-    if (include && !fossil_io_cstring_contains(src, include)) {
+static int filter_by_patterns(ccstring src, ccstring dest, ccstring exclude, ccstring include)
+{
+    if (include && !fossil_io_cstring_contains(src, include))
+    {
         fossil_io_printf("{yellow}Skipped (include pattern): %s{normal}\n", src);
         return 0;
     }
-    
-    if (exclude && fossil_io_cstring_contains(src, exclude)) {
+
+    if (exclude && fossil_io_cstring_contains(src, exclude))
+    {
         fossil_io_printf("{yellow}Skipped (exclude pattern): %s{normal}\n", src);
         return 0;
     }
-    
-    if (fossil_io_file_move(src, dest) != 0) {
+
+    if (fossil_io_file_move(src, dest) != 0)
+    {
         fossil_io_printf("{red}Pattern-filtered move failed: %s{normal}\n", strerror(errno));
         return errno;
     }
-    
+
     fossil_io_printf("{cyan}Moved: '%s' -> '%s'{normal}\n", src, dest);
     return 0;
 }
@@ -127,8 +144,10 @@ static int filter_by_patterns(ccstring src, ccstring dest, ccstring exclude, ccs
 int fossil_shark_move(ccstring src, ccstring dest,
                       bool force, bool interactive, bool backup,
                       bool atomic, bool progress, bool dry_run,
-                      ccstring exclude_pattern, ccstring include_pattern) {
-    if (!cnotnull(src) || !cnotnull(dest)) {
+                      ccstring exclude_pattern, ccstring include_pattern)
+{
+    if (!cnotnull(src) || !cnotnull(dest))
+    {
         fossil_io_printf("{red}Error: Source and destination paths must be specified.{normal}\n");
         return 1;
     }
@@ -136,15 +155,19 @@ int fossil_shark_move(ccstring src, ccstring dest,
     // Normalize paths for cross-platform compatibility
     cstring norm_src = fossil_io_file_path_normalize(src);
     cstring norm_dest = fossil_io_file_path_normalize(dest);
-    
-    if (!cnotnull(norm_src) || !cnotnull(norm_dest)) {
+
+    if (!cnotnull(norm_src) || !cnotnull(norm_dest))
+    {
         fossil_io_printf("{red}Error: Failed to normalize paths.{normal}\n");
-        if (norm_src) fossil_io_cstring_free(norm_src);
-        if (norm_dest) fossil_io_cstring_free(norm_dest);
+        if (norm_src)
+            fossil_io_cstring_free(norm_src);
+        if (norm_dest)
+            fossil_io_cstring_free(norm_dest);
         return 1;
     }
 
-    if (dry_run) {
+    if (dry_run)
+    {
         fossil_io_printf("{cyan}[DRY RUN] Would move '%s' to '%s'{normal}\n", norm_src, norm_dest);
         fossil_io_cstring_free(norm_src);
         fossil_io_cstring_free(norm_dest);
@@ -153,17 +176,22 @@ int fossil_shark_move(ccstring src, ccstring dest,
 
     bool dest_exists = fossil_io_file_file_exists(norm_dest);
 
-    if (clikely(dest_exists)) {
-        if (backup) {
-            if (create_backup(norm_dest) != 0) {
+    if (clikely(dest_exists))
+    {
+        if (backup)
+        {
+            if (create_backup(norm_dest) != 0)
+            {
                 fossil_io_cstring_free(norm_src);
                 fossil_io_cstring_free(norm_dest);
                 return 1;
             }
         }
 
-        if (interactive && !force) {
-            if (!confirm_overwrite(norm_dest)) {
+        if (interactive && !force)
+        {
+            if (!confirm_overwrite(norm_dest))
+            {
                 fossil_io_printf("{cyan}Move cancelled by user.{normal}\n");
                 fossil_io_cstring_free(norm_src);
                 fossil_io_cstring_free(norm_dest);
@@ -171,7 +199,8 @@ int fossil_shark_move(ccstring src, ccstring dest,
             }
         }
 
-        if (cunlikely(!force && !interactive && !backup)) {
+        if (cunlikely(!force && !interactive && !backup))
+        {
             fossil_io_printf("{red}Error: Destination exists. Use --force, --interactive, or --backup.{normal}\n");
             fossil_io_cstring_free(norm_src);
             fossil_io_cstring_free(norm_dest);
@@ -180,8 +209,10 @@ int fossil_shark_move(ccstring src, ccstring dest,
     }
 
     // Handle atomic operation
-    if (atomic) {
-        if (handle_atomic_move(norm_src, norm_dest) != 0) {
+    if (atomic)
+    {
+        if (handle_atomic_move(norm_src, norm_dest) != 0)
+        {
             fossil_io_cstring_free(norm_src);
             fossil_io_cstring_free(norm_dest);
             return 1;
@@ -192,8 +223,10 @@ int fossil_shark_move(ccstring src, ccstring dest,
     }
 
     // Handle progress reporting
-    if (progress) {
-        if (handle_move_with_progress(norm_src, norm_dest) != 0) {
+    if (progress)
+    {
+        if (handle_move_with_progress(norm_src, norm_dest) != 0)
+        {
             fossil_io_cstring_free(norm_src);
             fossil_io_cstring_free(norm_dest);
             return 1;
@@ -204,8 +237,10 @@ int fossil_shark_move(ccstring src, ccstring dest,
     }
 
     // Handle pattern filtering
-    if (cnotnull(exclude_pattern) || cnotnull(include_pattern)) {
-        if (filter_by_patterns(norm_src, norm_dest, exclude_pattern, include_pattern) != 0) {
+    if (cnotnull(exclude_pattern) || cnotnull(include_pattern))
+    {
+        if (filter_by_patterns(norm_src, norm_dest, exclude_pattern, include_pattern) != 0)
+        {
             fossil_io_cstring_free(norm_src);
             fossil_io_cstring_free(norm_dest);
             return 1;
@@ -215,7 +250,8 @@ int fossil_shark_move(ccstring src, ccstring dest,
         return 0;
     }
 
-    if (fossil_io_file_move(norm_src, norm_dest) != 0) {
+    if (fossil_io_file_move(norm_src, norm_dest) != 0)
+    {
         fossil_io_printf("{red}Failed to move: %s{normal}\n", strerror(errno));
         fossil_io_cstring_free(norm_src);
         fossil_io_cstring_free(norm_dest);

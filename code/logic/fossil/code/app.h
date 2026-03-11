@@ -30,10 +30,11 @@
 #include "magic.h"
 
 #define FOSSIL_APP_NAME "Shark Tool"
-#define FOSSIL_APP_VERSION "0.1.7"
+#define FOSSIL_APP_VERSION "0.1.8"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 extern int FOSSIL_IO_VERBOSE; // Verbose output flag
@@ -41,12 +42,12 @@ extern int FOSSIL_IO_VERBOSE; // Verbose output flag
 /**
  * @brief Custom application entry point.
  * This function is the main entry point for the custom application.
- * 
+ *
  * @param argc The number of command-line arguments.
  * @param argv The array of command-line arguments.
  * @return 0 if the application runs successfully, non-zero otherwise.
  */
-bool app_entry(int argc, char** argv);
+bool app_entry(int argc, char **argv);
 
 #ifdef __cplusplus
 }

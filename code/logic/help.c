@@ -263,7 +263,6 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual)
             fossil_io_printf("  {cyan,bold}--format{normal}            Pretty-print\n");
             fossil_io_printf("  {cyan,bold}--declutter{normal}         Repair whitespace\n");
             fossil_io_printf("  {cyan,bold}--punctuate{normal}         Normalize punctuation\n");
-
         }
         else if (fossil_io_cstring_equals(command, "split"))
         {

@@ -1262,7 +1262,8 @@ bool app_entry(int argc, char **argv)
                     fossil_io_printf("{red}Cryptic operation failed{reset}\n");
                 }
             }
-        } else if (fossil_io_cstring_compare(argv[i], "split") == 0)
+        }
+        else if (fossil_io_cstring_compare(argv[i], "split") == 0)
         {
             ccstring file_path = cnull, output_prefix = "part_", delimiter = cnull;
             size_t lines_per_file = 0, bytes_per_file = 0, num_segments = 0;
