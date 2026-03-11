@@ -24,80 +24,99 @@
  */
 #include "fossil/code/commands.h"
 
-
-static int create_parent_dirs(ccstring path) {
+static int create_parent_dirs(ccstring path)
+{
     cstring tmp = fossil_io_cstring_create_safe(path, 4096);
-    if (!tmp) return 1;
+    if (!tmp)
+        return 1;
 
     cstring dir_path = fossil_io_cstring_create_safe(dirname(tmp), 4096);
     fossil_io_cstring_free_safe(&tmp);
-    
-    if (!dir_path) return 1;
+
+    if (!dir_path)
+        return 1;
 
     struct stat st;
-    if (stat(dir_path, &st) == 0) {
+    if (stat(dir_path, &st) == 0)
+    {
         fossil_io_cstring_free_safe(&dir_path);
         return 0; // already exists
     }
 
     // Recursively create parent directories
-    if (create_parent_dirs(dir_path) != 0) {
+    if (create_parent_dirs(dir_path) != 0)
+    {
         fossil_io_cstring_free_safe(&dir_path);
         return 1;
     }
 
 #ifdef _WIN32
-    if (_mkdir(dir_path) != 0) {
+    if (_mkdir(dir_path) != 0)
+    {
 #else
-    if (mkdir(dir_path, 0755) != 0) {
+    if (mkdir(dir_path, 0755) != 0)
+    {
 #endif
-        if (errno != EEXIST) {
+        if (errno != EEXIST)
+        {
             fossil_io_printf("{red}Error creating directory '%s': %s{normal}\n", dir_path, strerror(errno));
             fossil_io_cstring_free_safe(&dir_path);
             return errno;
         }
     }
-    
+
     fossil_io_cstring_free_safe(&dir_path);
     return 0;
 }
 
-
 int fossil_shark_create(ccstring path, bool create_parents,
-                        ccstring type) {
-    if (cunlikely(!path || !type)) {
+                        ccstring type)
+{
+    if (cunlikely(!path || !type))
+    {
         fossil_io_printf("{red}Error: Path and type must be specified.{normal}\n");
         return 1;
     }
 
-    if (create_parents) {
-        if (cunlikely(create_parent_dirs(path) != 0)) return 1;
+    if (create_parents)
+    {
+        if (cunlikely(create_parent_dirs(path) != 0))
+            return 1;
     }
 
-    if (fossil_io_file_file_exists(path)) {
+    if (fossil_io_file_file_exists(path))
+    {
         fossil_io_printf("{red}Error: '%s' already exists.{normal}\n", path);
         return 1;
     }
 
-    if (fossil_io_cstring_equals(type, "file")) {
+    if (fossil_io_cstring_equals(type, "file"))
+    {
         fossil_io_file_t stream;
-        if (cunlikely(fossil_io_file_open(&stream, path, "w") != 0)) {
+        if (cunlikely(fossil_io_file_open(&stream, path, "w") != 0))
+        {
             fossil_io_printf("{red}Error creating file '%s': %s{normal}\n", path, strerror(errno));
             return errno;
         }
         fossil_io_file_close(&stream);
         fossil_io_printf("{cyan}File '%s' created successfully.{normal}\n", path);
-    } else if (fossil_io_cstring_equals(type, "dir")) {
+    }
+    else if (fossil_io_cstring_equals(type, "dir"))
+    {
 #ifdef _WIN32
-        if (cunlikely(_mkdir(path) != 0)) {
+        if (cunlikely(_mkdir(path) != 0))
+        {
 #else
-        if (cunlikely(mkdir(path, 0755) != 0)) {
+        if (cunlikely(mkdir(path, 0755) != 0))
+        {
 #endif
             fossil_io_printf("{red}Error creating directory '%s': %s{normal}\n", path, strerror(errno));
             return errno;
         }
         fossil_io_printf("{blue}Directory '%s' created successfully.{normal}\n", path);
-    } else {
+    }
+    else
+    {
         fossil_io_printf("{red}Error: Invalid type '%s'. Must be 'file' or 'dir'.{normal}\n", type);
         return 1;
     }

@@ -28,26 +28,29 @@
 #include "common.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 /* ==========================================================================
- * Path Suggestion Types
- * ========================================================================== */
+    * Path Suggestion Types
+    * ========================================================================== */
 
 /**
  * @brief A scored path suggestion result.
  */
-typedef struct fossil_ti_path_suggestion_s {
-    char  candidate_path[512];   /**< Valid filesystem path */
-    f32   similarity_score;      /**< 0.0 - 1.0 ("edit distance" ↔ "semantic similarity") */
-    i32   exists;                /**< Non-zero if path exists on disk */
+typedef struct fossil_ti_path_suggestion_s
+{
+    char candidate_path[512]; /**< Valid filesystem path */
+    f32 similarity_score;     /**< 0.0 - 1.0 ("edit distance" ↔ "semantic similarity") */
+    i32 exists;               /**< Non-zero if path exists on disk */
 } fossil_ti_path_suggestion_t;
 
 /**
  * @brief Ranked list of possible auto-corrections for a single incorrect path.
  */
-typedef struct fossil_ti_path_suggestion_set_s {
+typedef struct fossil_ti_path_suggestion_set_s
+{
     fossil_ti_path_suggestion_t list[16]; /**< Up to 16 ranked matches */
     i32 count;                            /**< Number of valid entries in list */
 } fossil_ti_path_suggestion_set_t;
@@ -55,99 +58,105 @@ typedef struct fossil_ti_path_suggestion_set_s {
 /**
  * @brief High-level wrapper containing path suggestions for all arguments.
  */
-typedef struct fossil_ti_path_ai_report_s {
+typedef struct fossil_ti_path_ai_report_s
+{
     fossil_ti_path_suggestion_set_t sets[8]; /**< Up to 8 tokens needing help */
     i32 set_count;                           /**< Number of valid sets */
 } fossil_ti_path_ai_report_t;
 
 /* ==========================================================================
- * Auto-Recovery Types
- * ========================================================================== */
+    * Auto-Recovery Types
+    * ========================================================================== */
 
 /**
  * @brief Represents an automatically recovered or suggested token.
  */
-typedef struct fossil_ti_autorecovery_s {
-    char  original_token[256];        /**< Input token */
-    char  recovered_token[256];       /**< Suggested correction */
-    f32   confidence;                 /**< 0.0 - 1.0 confidence score */
-    i32   applied;                    /**< 1 = auto-applied, 0 = manual review */
-    char  first_best_token[256];      /**< Best suggestion */
-    f32   first_best_confidence;      /**< Confidence score for best suggestion */
-    char  second_best_token[256];     /**< Second-best suggestion */
-    f32   second_best_confidence;     /**< Confidence score for second-best */
+typedef struct fossil_ti_autorecovery_s
+{
+    char original_token[256];    /**< Input token */
+    char recovered_token[256];   /**< Suggested correction */
+    f32 confidence;              /**< 0.0 - 1.0 confidence score */
+    i32 applied;                 /**< 1 = auto-applied, 0 = manual review */
+    char first_best_token[256];  /**< Best suggestion */
+    f32 first_best_confidence;   /**< Confidence score for best suggestion */
+    char second_best_token[256]; /**< Second-best suggestion */
+    f32 second_best_confidence;  /**< Confidence score for second-best */
 } fossil_ti_autorecovery_t;
 
 /* ==========================================================================
- * Danger Detection Types
- * ========================================================================== */
+    * Danger Detection Types
+    * ========================================================================== */
 
 /**
  * @brief Enumerated danger levels for filesystem operations.
  */
-typedef enum {
-    FOSSIL_TI_DANGER_NONE = 0,     /**< Safe */
-    FOSSIL_TI_DANGER_LOW,          /**< Mild (overwrites small file) */
-    FOSSIL_TI_DANGER_MEDIUM,       /**< Questionable (move large tree) */
-    FOSSIL_TI_DANGER_HIGH,         /**< Risky but reversible */
-    FOSSIL_TI_DANGER_CRITICAL      /**< Destructive (rm -r, wiping codebase) */
+typedef enum
+{
+    FOSSIL_TI_DANGER_NONE = 0, /**< Safe */
+    FOSSIL_TI_DANGER_LOW,      /**< Mild (overwrites small file) */
+    FOSSIL_TI_DANGER_MEDIUM,   /**< Questionable (move large tree) */
+    FOSSIL_TI_DANGER_HIGH,     /**< Risky but reversible */
+    FOSSIL_TI_DANGER_CRITICAL  /**< Destructive (rm -r, wiping codebase) */
 } fossil_ti_danger_level_t;
 
 /**
  * @brief Structured danger analysis results for a single path or target.
  */
-typedef struct fossil_ti_danger_item_s {
-    char target_path[512];              /**< Path being analyzed */
-    fossil_ti_danger_level_t level;     /**< Danger level */
+typedef struct fossil_ti_danger_item_s
+{
+    char target_path[512];          /**< Path being analyzed */
+    fossil_ti_danger_level_t level; /**< Danger level */
 
-    i32 is_directory;                   /**< Non-zero if directory */
-    i32 contains_code;                  /**< Non-zero if contains code files (.c, .h, .cpp, .py, etc.) */
-    i32 contains_vcs;                   /**< Non-zero if VCS detected (.git, .svn) */
-    i32 contains_secrets;               /**< Non-zero if secret files detected (.env, .key, .pem) */
-    i32 large_size;                     /**< Non-zero if large (> threshold) */
-    i32 writable;                       /**< Non-zero if writable */
-    i32 world_writable;                 /**< Non-zero if world-writable */
-    i32 is_symlink;                     /**< Non-zero if symlink */
-    i32 suspicious_extension;           /**< Non-zero if file has suspicious extension (.exe, .dll, etc.) */
-    i32 recently_modified;              /**< Non-zero if modified in last 24 hours */
-    i32 contains_suspicious_files;      /**< Non-zero if directory contains suspicious files */
+    i32 is_directory;              /**< Non-zero if directory */
+    i32 contains_code;             /**< Non-zero if contains code files (.c, .h, .cpp, .py, etc.) */
+    i32 contains_vcs;              /**< Non-zero if VCS detected (.git, .svn) */
+    i32 contains_secrets;          /**< Non-zero if secret files detected (.env, .key, .pem) */
+    i32 large_size;                /**< Non-zero if large (> threshold) */
+    i32 writable;                  /**< Non-zero if writable */
+    i32 world_writable;            /**< Non-zero if world-writable */
+    i32 is_symlink;                /**< Non-zero if symlink */
+    i32 suspicious_extension;      /**< Non-zero if file has suspicious extension (.exe, .dll, etc.) */
+    i32 recently_modified;         /**< Non-zero if modified in last 24 hours */
+    i32 contains_suspicious_files; /**< Non-zero if directory contains suspicious files */
 } fossil_ti_danger_item_t;
 
 /**
  * @brief Combined safety analysis for multi-target command operations.
  */
-typedef struct fossil_ti_danger_report_s {
-    fossil_ti_danger_item_t items[8];   /**< Individual path analyses */
-    i32 item_count;                     /**< Number of valid items */
+typedef struct fossil_ti_danger_report_s
+{
+    fossil_ti_danger_item_t items[8]; /**< Individual path analyses */
+    i32 item_count;                   /**< Number of valid items */
 
     fossil_ti_danger_level_t overall_level; /**< Max level across all items */
 
-    i32 block_recommended;              /**< Non-zero = halt unless --force present */
-    i32 warning_required;               /**< Non-zero = display multi-line warning */
+    i32 block_recommended; /**< Non-zero = halt unless --force present */
+    i32 warning_required;  /**< Non-zero = display multi-line warning */
 } fossil_ti_danger_report_t;
 
 /* ==========================================================================
- * TI Reasoning / AI Metadata
- * ========================================================================== */
+    * TI Reasoning / AI Metadata
+    * ========================================================================== */
 
 /**
  * @brief Advanced metadata for reasoning, audit, and debug.
  */
-typedef struct fossil_ti_reason_s {
-    const char *input;                 /**< Original input */
-    const char *suggested;             /**< Suggested correction */
-    i32         edit_distance;         /**< Levenshtein distance */
-    f32         confidence_score;      /**< 0.0 - 1.0 confidence */
-    i32         jaccard_index;         /**< 0-100 token overlap similarity */
-    i32         prefix_match;          /**< 1 if input is prefix of suggested */
-    i32         suffix_match;          /**< 1 if input is suffix of suggested */
-    i32         case_insensitive;      /**< 1 if match is case-insensitive */
-    const char *reason;                /**< Human-readable explanation */
+typedef struct fossil_ti_reason_s
+{
+    const char *input;     /**< Original input */
+    const char *suggested; /**< Suggested correction */
+    i32 edit_distance;     /**< Levenshtein distance */
+    f32 confidence_score;  /**< 0.0 - 1.0 confidence */
+    i32 jaccard_index;     /**< 0-100 token overlap similarity */
+    i32 prefix_match;      /**< 1 if input is prefix of suggested */
+    i32 suffix_match;      /**< 1 if input is suffix of suggested */
+    i32 case_insensitive;  /**< 1 if match is case-insensitive */
+    const char *reason;    /**< Human-readable explanation */
 } fossil_ti_reason_t;
 
 /* ==========================================================================
- * Similarity Utilities
- * ========================================================================== */
+    * Similarity Utilities
+    * ========================================================================== */
 
 /**
  * @brief Compute Jaccard Index (token overlap) between two strings.
@@ -180,8 +189,8 @@ i32 fossil_it_magic_levenshtein_distance(const char *s1, const char *s2);
 f32 fossil_it_magic_similarity(const char *a, const char *b);
 
 /* ==========================================================================
- * Command Suggestion
- * ========================================================================== */
+    * Command Suggestion
+    * ========================================================================== */
 
 /**
  * @brief Suggest the closest matching command from a list of candidates.
@@ -201,12 +210,11 @@ const char *fossil_it_magic_suggest_command(
     const char *input,
     const char **commands,
     i32 num_commands,
-    fossil_ti_reason_t *out_reason
-);
+    fossil_ti_reason_t *out_reason);
 
 /* ==========================================================================
- * Path Auto-Correction
- * ========================================================================== */
+    * Path Auto-Correction
+    * ========================================================================== */
 
 /**
  * @brief Suggest paths based on similarity to a “bad” path.
@@ -223,8 +231,7 @@ const char *fossil_it_magic_suggest_command(
 void fossil_it_magic_path_suggest(
     const char *bad_path,
     const char *base_dir,
-    fossil_ti_path_suggestion_set_t *out
-);
+    fossil_ti_path_suggestion_set_t *out);
 
 /**
  * @brief Recover a token from a list of candidates.
@@ -243,12 +250,11 @@ void fossil_it_magic_autorecovery_token(
     const char *token,
     const char *candidates[],
     i32 candidate_count,
-    fossil_ti_autorecovery_t *out
-);
+    fossil_ti_autorecovery_t *out);
 
 /* ==========================================================================
- * Danger Detection
- * ========================================================================== */
+    * Danger Detection
+    * ========================================================================== */
 
 /**
  * @brief Analyze a single path for potential danger.
@@ -263,8 +269,7 @@ void fossil_it_magic_autorecovery_token(
  */
 void fossil_it_magic_danger_analyze(
     const char *path,
-    fossil_ti_danger_item_t *out
-);
+    fossil_ti_danger_item_t *out);
 
 /**
  * @brief Analyze multiple paths for potential danger and summarize.
@@ -280,11 +285,10 @@ void fossil_it_magic_danger_analyze(
 void fossil_it_magic_danger_report(
     const char *paths[],
     i32 path_count,
-    fossil_ti_danger_report_t *report
-);
+    fossil_ti_danger_report_t *report);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* FOSSIL_APP_CODE_H */
+#endif /* FOSSIL_MAGIC_H */

@@ -24,94 +24,115 @@
  */
 #include "fossil/code/commands.h"
 
-
 static int copy_file(ccstring src, ccstring dest, bool update, bool preserve,
-                     bool checksum, bool dry_run) {
-    if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
+                     bool checksum, bool dry_run)
+{
+    if (cunlikely(!cnotnull(src) || !cnotnull(dest)))
+    {
         fossil_io_printf("{red}Error: Source and destination paths cannot be null{normal}\n");
         return 1;
     }
 
     struct stat st_src, st_dest;
-    if (stat(src, &st_src) != 0) {
+    if (stat(src, &st_src) != 0)
+    {
         fossil_io_printf("{red}Error: Cannot stat source file '%s': %s{normal}\n", src, strerror(errno));
         return errno;
     }
 
-    if (dry_run) {
+    if (dry_run)
+    {
         fossil_io_printf("{cyan}[DRY RUN] Would copy file: %s -> %s{normal}\n", src, dest);
         return 0;
     }
 
     bool dest_exists = (stat(dest, &st_dest) == 0);
 
-    if (update && dest_exists) {
+    if (update && dest_exists)
+    {
         char src_hash[128], dest_hash[128];
         int src_hash_res = 0, dest_hash_res = 0;
         {
             fossil_io_file_t src_stream;
-            if (fossil_io_file_open(&src_stream, src, "rb") == 0) {
+            if (fossil_io_file_open(&src_stream, src, "rb") == 0)
+            {
                 size_t total = 0;
-                char* file_data = malloc(st_src.st_size);
-                if (file_data) {
+                char *file_data = malloc(st_src.st_size);
+                if (file_data)
+                {
                     size_t n;
-                    while ((n = fossil_io_file_read(&src_stream, file_data + total, 1, (size_t)st_src.st_size - total)) > 0) {
+                    while ((n = fossil_io_file_read(&src_stream, file_data + total, 1, (size_t)st_src.st_size - total)) > 0)
+                    {
                         total += n;
-                        if (total >= (size_t)st_src.st_size) break;
+                        if (total >= (size_t)st_src.st_size)
+                            break;
                     }
                     src_hash_res = fossil_cryptic_hash_compute(
                         "xxhash64", "auto", "hex",
                         src_hash, sizeof(src_hash),
-                        file_data, total
-                    );
+                        file_data, total);
                     free(file_data);
-                } else {
+                }
+                else
+                {
                     src_hash_res = 1;
                 }
                 fossil_io_file_close(&src_stream);
-            } else {
+            }
+            else
+            {
                 src_hash_res = 1;
             }
         }
         {
             fossil_io_file_t dest_stream;
-            if (fossil_io_file_open(&dest_stream, dest, "rb") == 0) {
-                char* file_data = malloc(st_dest.st_size);
+            if (fossil_io_file_open(&dest_stream, dest, "rb") == 0)
+            {
+                char *file_data = malloc(st_dest.st_size);
                 size_t total = 0;
-                if (file_data) {
+                if (file_data)
+                {
                     size_t n;
-                    while ((n = fossil_io_file_read(&dest_stream, file_data + total, 1, (size_t)st_dest.st_size - total)) > 0) {
+                    while ((n = fossil_io_file_read(&dest_stream, file_data + total, 1, (size_t)st_dest.st_size - total)) > 0)
+                    {
                         total += n;
-                        if (total >= (size_t)st_dest.st_size) break;
+                        if (total >= (size_t)st_dest.st_size)
+                            break;
                     }
                     dest_hash_res = fossil_cryptic_hash_compute(
                         "xxhash64", "auto", "hex",
                         dest_hash, sizeof(dest_hash),
-                        file_data, total
-                    );
+                        file_data, total);
                     free(file_data);
-                } else {
+                }
+                else
+                {
                     dest_hash_res = 1;
                 }
                 fossil_io_file_close(&dest_stream);
-            } else {
+            }
+            else
+            {
                 dest_hash_res = 1;
             }
         }
-        if (src_hash_res == 0 && dest_hash_res == 0 && strcmp(src_hash, dest_hash) == 0) {
+        if (src_hash_res == 0 && dest_hash_res == 0 && strcmp(src_hash, dest_hash) == 0)
+        {
             fossil_io_printf("{cyan}Skipping '%s' - destination is up to date (hash match){normal}\n", src);
             return 0;
         }
     }
 
     fossil_io_file_t src_stream, dest_stream;
-    
-    if (fossil_io_file_open(&src_stream, src, "rb") != 0) {
+
+    if (fossil_io_file_open(&src_stream, src, "rb") != 0)
+    {
         fossil_io_printf("{red}Error: Cannot open source file '%s': %s{normal}\n", src, strerror(errno));
         return errno;
     }
 
-    if (fossil_io_file_open(&dest_stream, dest, "wb") != 0) {
+    if (fossil_io_file_open(&dest_stream, dest, "wb") != 0)
+    {
         fossil_io_printf("{red}Error: Cannot create destination file '%s': %s{normal}\n", dest, strerror(errno));
         fossil_io_file_close(&src_stream);
         return errno;
@@ -121,8 +142,10 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve,
 
     char buffer[8192];
     size_t n;
-    while ((n = fossil_io_file_read(&src_stream, buffer, 1, sizeof(buffer))) > 0) {
-        if (cunlikely(fossil_io_file_write(&dest_stream, buffer, 1, n) != n)) {
+    while ((n = fossil_io_file_read(&src_stream, buffer, 1, sizeof(buffer))) > 0)
+    {
+        if (cunlikely(fossil_io_file_write(&dest_stream, buffer, 1, n) != n))
+        {
             fossil_io_printf("{red}Error: Write failed for '%s': %s{normal}\n", dest, strerror(errno));
             fossil_io_file_close(&src_stream);
             fossil_io_file_close(&dest_stream);
@@ -133,21 +156,25 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve,
     fossil_io_file_close(&src_stream);
     fossil_io_file_close(&dest_stream);
 
-    if (checksum) {
+    if (checksum)
+    {
         char src_hash[128], dest_hash[128];
         fossil_cryptic_hash_compute("xxhash64", "auto", "hex", src_hash, sizeof(src_hash), NULL, 0);
         fossil_cryptic_hash_compute("xxhash64", "auto", "hex", dest_hash, sizeof(dest_hash), NULL, 0);
-        if (strcmp(src_hash, dest_hash) != 0) {
+        if (strcmp(src_hash, dest_hash) != 0)
+        {
             fossil_io_printf("{red}Error: Checksum verification failed for '%s'{normal}\n", dest);
             return 1;
         }
         fossil_io_printf("{cyan}Checksum verified for '%s'{normal}\n", dest);
     }
 
-    if (preserve) {
+    if (preserve)
+    {
 #ifdef _WIN32
         HANDLE hFile = CreateFileA(dest, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-        if (hFile != INVALID_HANDLE_VALUE) {
+        if (hFile != INVALID_HANDLE_VALUE)
+        {
             FILETIME ft;
             LONGLONG ll = Int32x32To64(st_src.st_mtime, 10000000) + 116444736000000000;
             ft.dwLowDateTime = (DWORD)ll;
@@ -170,60 +197,74 @@ static int copy_directory(ccstring src, ccstring dest,
                           bool recursive, bool update, bool preserve,
                           bool checksum, bool sparse, bool link, bool reflink,
                           bool progress, bool dry_run,
-                          ccstring exclude_pattern, ccstring include_pattern) {
-    if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
+                          ccstring exclude_pattern, ccstring include_pattern)
+{
+    if (cunlikely(!cnotnull(src) || !cnotnull(dest)))
+    {
         fossil_io_printf("{red}Error: Source and destination paths cannot be null{normal}\n");
         return 1;
     }
 
     struct stat st;
-    if (stat(src, &st) != 0) { 
+    if (stat(src, &st) != 0)
+    {
         fossil_io_printf("{red}Error: Cannot stat source directory '%s': %s{normal}\n", src, strerror(errno));
-        return errno; 
+        return errno;
     }
 
-    if (dry_run) {
+    if (dry_run)
+    {
         fossil_io_printf("{cyan}[DRY RUN] Would create directory: %s{normal}\n", dest);
         return 0;
     }
 
     fossil_io_printf("{cyan}Creating directory: %s{normal}\n", dest);
     int32_t dir_create_result = fossil_io_dir_create(dest);
-    if (dir_create_result < 0 && dir_create_result != -EEXIST) {
+    if (dir_create_result < 0 && dir_create_result != -EEXIST)
+    {
         fossil_io_printf("{red}Error: Cannot create directory '%s'{normal}\n", dest);
         return 1;
     }
 
     fossil_io_dir_iter_t it;
-    if (fossil_io_dir_iter_open(&it, src) < 0) {
+    if (fossil_io_dir_iter_open(&it, src) < 0)
+    {
         fossil_io_printf("{red}Error: Cannot open directory '%s'{normal}\n", src);
         return 1;
     }
 
-    while (fossil_io_dir_iter_next(&it) > 0) {
+    while (fossil_io_dir_iter_next(&it) > 0)
+    {
         fossil_io_dir_entry_t *entry = &it.current;
         if (strcmp(entry->name, ".") == 0 || strcmp(entry->name, "..") == 0)
             continue;
 
         char dest_path[1024];
-        if (fossil_io_dir_join(dest, entry->name, dest_path, sizeof(dest_path)) < 0) {
+        if (fossil_io_dir_join(dest, entry->name, dest_path, sizeof(dest_path)) < 0)
+        {
             fossil_io_printf("{red}Error: Path join failed for '%s'{normal}\n", entry->name);
             fossil_io_dir_iter_close(&it);
             return 1;
         }
 
-        if (entry->type == 1) {
-            if (recursive) {
+        if (entry->type == 1)
+        {
+            if (recursive)
+            {
                 if (copy_directory(entry->path, dest_path, recursive, update, preserve,
-                                 checksum, sparse, link, reflink, progress, dry_run,
-                                 exclude_pattern, include_pattern) != 0) {
+                                   checksum, sparse, link, reflink, progress, dry_run,
+                                   exclude_pattern, include_pattern) != 0)
+                {
                     fossil_io_dir_iter_close(&it);
                     return 1;
                 }
             }
-        } else if (entry->type == 0) {
+        }
+        else if (entry->type == 0)
+        {
             if (copy_file(entry->path, dest_path, update, preserve,
-                         checksum, dry_run) != 0) {
+                          checksum, dry_run) != 0)
+            {
                 fossil_io_dir_iter_close(&it);
                 return 1;
             }
@@ -231,11 +272,13 @@ static int copy_directory(ccstring src, ccstring dest,
     }
     fossil_io_dir_iter_close(&it);
 
-    if (preserve) {
+    if (preserve)
+    {
 #ifdef _WIN32
-        HANDLE hDir = CreateFileA(dest, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, 
+        HANDLE hDir = CreateFileA(dest, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
                                   OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
-        if (hDir != INVALID_HANDLE_VALUE) {
+        if (hDir != INVALID_HANDLE_VALUE)
+        {
             FILETIME ft;
             LONGLONG ll = Int32x32To64(st.st_mtime, 10000000) + 116444736000000000;
             ft.dwLowDateTime = (DWORD)ll;
@@ -256,31 +299,40 @@ int fossil_shark_copy(ccstring src, ccstring dest,
                       bool recursive, bool update, bool preserve,
                       bool checksum, bool sparse, bool link, bool reflink,
                       bool progress, bool dry_run,
-                      ccstring exclude_pattern, ccstring include_pattern) {
-    if (cunlikely(!cnotnull(src) || !cnotnull(dest))) {
+                      ccstring exclude_pattern, ccstring include_pattern)
+{
+    if (cunlikely(!cnotnull(src) || !cnotnull(dest)))
+    {
         fossil_io_printf("{red}Error: Source and destination must be specified{normal}\n");
         return 1;
     }
 
     struct stat st;
-    if (stat(src, &st) != 0) {
+    if (stat(src, &st) != 0)
+    {
         fossil_io_printf("{red}Error: Cannot access source '%s': %s{normal}\n", src, strerror(errno));
         return errno;
     }
 
-    if (S_ISDIR(st.st_mode)) {
-        if (!recursive) {
+    if (S_ISDIR(st.st_mode))
+    {
+        if (!recursive)
+        {
             fossil_io_printf("{red}Error: Source is a directory. Use recursive flag to copy directories{normal}\n");
             return 1;
         }
         fossil_io_printf("{cyan}Starting recursive copy of directory: %s -> %s{normal}\n", src, dest);
         return copy_directory(src, dest, recursive, update, preserve,
-                            checksum, sparse, link, reflink, progress, dry_run,
-                            exclude_pattern, include_pattern);
-    } else if (S_ISREG(st.st_mode)) {
+                              checksum, sparse, link, reflink, progress, dry_run,
+                              exclude_pattern, include_pattern);
+    }
+    else if (S_ISREG(st.st_mode))
+    {
         return copy_file(src, dest, update, preserve,
-                        checksum, dry_run);
-    } else {
+                         checksum, dry_run);
+    }
+    else
+    {
         fossil_io_printf("{red}Error: Unsupported file type for '%s'{normal}\n", src);
         return 1;
     }

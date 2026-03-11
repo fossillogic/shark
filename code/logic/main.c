@@ -29,13 +29,14 @@
  * This function initializes the application and starts the main execution loop.
  * It processes command-line arguments and passes them to the application entry
  * function defined in the fossil/app.h header.
- * 
+ *
  * @param argc The number of command-line arguments passed to the program.
  * @param argv The array of command-line arguments passed to the program.
  *
  * @return Returns 0 if the application runs successfully. If an error occurs,
  *         a non-zero value is returned to indicate the type of error.
  */
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     return app_entry(argc, argv);
 }

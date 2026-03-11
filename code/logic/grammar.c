@@ -24,12 +24,14 @@
  */
 #include "fossil/code/commands.h"
 
-static char *read_file(const char *path) {
+static char *read_file(const char *path)
+{
     fossil_io_file_t stream;
     if (fossil_io_file_open(&stream, path, "rb") != 0)
         return cnull;
 
-    if (fossil_io_file_seek(&stream, 0, SEEK_END) != 0) {
+    if (fossil_io_file_seek(&stream, 0, SEEK_END) != 0)
+    {
         fossil_io_file_close(&stream);
         return cnull;
     }
@@ -37,13 +39,15 @@ static char *read_file(const char *path) {
     fossil_io_file_rewind(&stream);
 
     char *buf = malloc(size + 1);
-    if (!buf) {
+    if (!buf)
+    {
         fossil_io_file_close(&stream);
         return cnull;
     }
 
     size_t read = fossil_io_file_read(&stream, buf, 1, size);
-    if (read != (size_t)size) {
+    if (read != (size_t)size)
+    {
         free(buf);
         fossil_io_file_close(&stream);
         return cnull;
@@ -68,22 +72,26 @@ int fossil_shark_grammar(ccstring file_path,
                          bool declutter,
                          bool punctuate)
 {
-    if (!file_path) {
+    if (!file_path)
+    {
         fossil_io_printf("{red,bold}[error]{normal} grammar: invalid NULL path\n");
         return 1;
     }
 
     cstring input = read_file(file_path);
-    if (!input) {
+    if (!input)
+    {
         input = fossil_io_cstring_dup(file_path);
-        if (!input) {
+        if (!input)
+        {
             fossil_io_printf("{red,bold}[error]{normal} grammar: memory allocation failed\n");
             return 1;
         }
     }
 
     cstring work = fossil_io_cstring_dup(input);
-    if (!work) {
+    if (!work)
+    {
         fossil_io_cstring_free(input);
         return 1;
     }
@@ -91,9 +99,11 @@ int fossil_shark_grammar(ccstring file_path,
     fossil_io_printf("{cyan,bold}=== Grammar Analysis ==={normal}\n");
 
     // Declutter
-    if (declutter) {
+    if (declutter)
+    {
         cstring decluttered = fossil_io_soap_declutter(work);
-        if (decluttered) {
+        if (decluttered)
+        {
             fossil_io_printf("{green}[declutter]{normal} Decluttered text.\n");
             fossil_io_cstring_free(work);
             work = decluttered;
@@ -101,9 +111,11 @@ int fossil_shark_grammar(ccstring file_path,
     }
 
     // Sanitize
-    if (sanitize) {
+    if (sanitize)
+    {
         cstring clean = fossil_io_soap_sanitize(work);
-        if (clean) {
+        if (clean)
+        {
             fossil_io_printf("{green}[sanitize]{normal} Applied sanitization.\n");
             fossil_io_cstring_free(work);
             work = clean;
@@ -111,9 +123,11 @@ int fossil_shark_grammar(ccstring file_path,
     }
 
     // Normalize punctuation
-    if (punctuate) {
+    if (punctuate)
+    {
         cstring punct = fossil_io_soap_punctuate(work);
-        if (punct) {
+        if (punct)
+        {
             fossil_io_printf("{green}[punctuate]{normal} Normalized punctuation.\n");
             fossil_io_cstring_free(work);
             work = punct;
@@ -121,14 +135,16 @@ int fossil_shark_grammar(ccstring file_path,
     }
 
     // Capitalize
-    if (capitalize_mode) {
+    if (capitalize_mode)
+    {
         int mode = 0;
         if (strcmp(capitalize_mode, "sentence") == 0)
             mode = 0;
         else if (strcmp(capitalize_mode, "title") == 0)
             mode = 1;
         cstring cap = fossil_io_soap_capitalize(work, mode);
-        if (cap) {
+        if (cap)
+        {
             fossil_io_printf("{green}[capitalize]{normal} Applied capitalization (%s-case).\n", capitalize_mode);
             fossil_io_cstring_free(work);
             work = cap;
@@ -136,9 +152,11 @@ int fossil_shark_grammar(ccstring file_path,
     }
 
     // Reflow
-    if (reflow_width > 0) {
+    if (reflow_width > 0)
+    {
         cstring reflowed = fossil_io_soap_reflow(work, reflow_width);
-        if (reflowed) {
+        if (reflowed)
+        {
             fossil_io_printf("{green}[reflow]{normal} Reflowed text to width %d.\n", reflow_width);
             fossil_io_cstring_free(work);
             work = reflowed;
@@ -146,9 +164,11 @@ int fossil_shark_grammar(ccstring file_path,
     }
 
     // Format
-    if (format) {
+    if (format)
+    {
         cstring formatted = fossil_io_soap_format(work);
-        if (formatted) {
+        if (formatted)
+        {
             fossil_io_printf("{green}[format]{normal} Pretty-printed text.\n");
             fossil_io_cstring_free(work);
             work = formatted;
@@ -156,18 +176,21 @@ int fossil_shark_grammar(ccstring file_path,
     }
 
     // Grammar/style check
-    if (check) {
+    if (check)
+    {
         fossil_io_soap_grammar_style_t style = fossil_io_soap_analyze_grammar_style(work);
         fossil_io_printf("{green}[check]{normal} Grammar OK: %s, Passive voice: %d%%, Style: %s\n",
-            style.grammar_ok ? "yes" : "no",
-            style.passive_voice_pct,
-            style.style ? style.style : "unknown");
+                         style.grammar_ok ? "yes" : "no",
+                         style.passive_voice_pct,
+                         style.style ? style.style : "unknown");
     }
 
     // Correct grammar
-    if (correct) {
+    if (correct)
+    {
         cstring fixed = fossil_io_soap_correct_grammar(work);
-        if (fixed) {
+        if (fixed)
+        {
             fossil_io_printf("{green}[correct]{normal} Auto-corrected grammar:\n%s\n", fixed);
             fossil_io_cstring_free(work);
             work = fixed;
@@ -175,44 +198,51 @@ int fossil_shark_grammar(ccstring file_path,
     }
 
     // Suggest improvements
-    if (suggest) {
+    if (suggest)
+    {
         cstring sug = fossil_io_soap_suggest(work);
-        if (sug) {
+        if (sug)
+        {
             fossil_io_printf("{magenta,bold}=== Suggestions ==={normal}\n%s\n", sug);
             fossil_io_cstring_free(sug);
         }
     }
 
     // Summarize
-    if (summarize) {
+    if (summarize)
+    {
         cstring summary = fossil_io_soap_summarize(work);
-        if (summary) {
+        if (summary)
+        {
             fossil_io_printf("{cyan}[summary]{normal} %s\n", summary);
             fossil_io_cstring_free(summary);
         }
     }
 
     // Score
-    if (score) {
+    if (score)
+    {
         fossil_io_soap_scores_t scores = fossil_io_soap_score(work);
         const char *read_label = fossil_io_soap_readability_label(scores.readability);
         fossil_io_printf("{yellow}[score]{normal} Readability: %d (%s), Clarity: %d, Quality: %d\n",
-            scores.readability, read_label, scores.clarity, scores.quality);
+                         scores.readability, read_label, scores.clarity, scores.quality);
     }
 
     // Tone/style detection
-    if (tone) {
+    if (tone)
+    {
         fossil_io_soap_grammar_style_t style = fossil_io_soap_analyze_grammar_style(work);
         fossil_io_printf("{blue}[tone]{normal} Detected style: %s\n", style.style ? style.style : "unknown");
     }
 
     // Trait detection
-    if (detect_type) {
+    if (detect_type)
+    {
         fossil_io_printf("{yellow,bold}=== Detector: %s ==={normal}\n", detect_type);
         int result = fossil_io_soap_detect(work, detect_type);
         fossil_io_printf("{yellow}[detect:%s]{normal} %s\n",
-            detect_type,
-            result ? "{red,bold}MATCH FOUND{normal}" : "{green}clean{normal}");
+                         detect_type,
+                         result ? "{red,bold}MATCH FOUND{normal}" : "{green}clean{normal}");
     }
 
     fossil_io_cstring_free(work);

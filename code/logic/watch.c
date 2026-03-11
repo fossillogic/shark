@@ -24,14 +24,14 @@
  */
 #include "fossil/code/commands.h"
 
-
-__attribute__((unused))
-static void fossil_shark_watch_file(const char *path, const char *events, struct stat *prev_stat)
+__attribute__((unused)) static void fossil_shark_watch_file(const char *path, const char *events, struct stat *prev_stat)
 {
     struct stat curr_stat;
     int rc = stat(path, &curr_stat);
-    if (rc != 0) {
-        if (errno == ENOENT && fossil_io_cstring_icontains(events, "delete")) {
+    if (rc != 0)
+    {
+        if (errno == ENOENT && fossil_io_cstring_icontains(events, "delete"))
+        {
             cstring del_msg = fossil_io_cstring_format("{red}File deleted:{normal} %s\n", path);
             fossil_io_file_write(FOSSIL_STDOUT, del_msg, fossil_io_cstring_length(del_msg), 1);
             fossil_io_cstring_free(del_msg);
@@ -40,14 +40,16 @@ static void fossil_shark_watch_file(const char *path, const char *events, struct
     }
 
     // Check modification time
-    if (curr_stat.st_mtime != prev_stat->st_mtime && fossil_io_cstring_icontains(events, "modify")) {
+    if (curr_stat.st_mtime != prev_stat->st_mtime && fossil_io_cstring_icontains(events, "modify"))
+    {
         cstring mod_msg = fossil_io_cstring_format("{yellow}File modified:{normal} %s\n", path);
         fossil_io_file_write(FOSSIL_STDOUT, mod_msg, fossil_io_cstring_length(mod_msg), 1);
         fossil_io_cstring_free(mod_msg);
     }
 
     // Check size change
-    if (curr_stat.st_size != prev_stat->st_size && fossil_io_cstring_icontains(events, "modify")) {
+    if (curr_stat.st_size != prev_stat->st_size && fossil_io_cstring_icontains(events, "modify"))
+    {
         cstring size_msg = fossil_io_cstring_format("{cyan}File size changed:{normal} %s\n", path);
         fossil_io_file_write(FOSSIL_STDOUT, size_msg, fossil_io_cstring_length(size_msg), 1);
         fossil_io_cstring_free(size_msg);
@@ -57,25 +59,30 @@ static void fossil_shark_watch_file(const char *path, const char *events, struct
 }
 
 #if !defined(_WIN32) && !defined(_WIN64)
-__attribute__((unused))
-static void fossil_shark_watch_dir(const char *dir_path, const char *events, int interval)
+__attribute__((unused)) static void fossil_shark_watch_dir(const char *dir_path, const char *events, int interval)
 {
     fossil_io_dir_iter_t it;
     if (fossil_io_dir_iter_open(&it, dir_path) != 0)
         return;
 
-    while (fossil_io_dir_iter_next(&it) > 0) {
+    while (fossil_io_dir_iter_next(&it) > 0)
+    {
         fossil_io_dir_entry_t *entry = &it.current;
         if (strcmp(entry->name, ".") == 0 || strcmp(entry->name, "..") == 0)
             continue;
 
-        if (entry->type == 1) { // Directory
+        if (entry->type == 1)
+        { // Directory
             fossil_shark_watch_dir(entry->path, events, interval);
-        } else if (entry->type == 0) { // File
+        }
+        else if (entry->type == 0)
+        { // File
             struct stat st;
-            if (stat(entry->path, &st) == 0) {
+            if (stat(entry->path, &st) == 0)
+            {
                 struct stat prev_stat = st;
-                while (1) {
+                while (1)
+                {
                     sleep(interval);
                     fossil_shark_watch_file(entry->path, events, &prev_stat);
                 }
@@ -90,18 +97,19 @@ static void fossil_shark_watch_dir(const char *dir_path, const char *events, int
 
 static wchar_t *fossil_utf8_to_wide(const char *s)
 {
-    if (!s) return NULL;
+    if (!s)
+        return NULL;
     int len = MultiByteToWideChar(CP_UTF8, 0, s, -1, NULL, 0);
     wchar_t *w = (wchar_t *)malloc(len * sizeof(wchar_t));
-    if (!w) return NULL;
+    if (!w)
+        return NULL;
     MultiByteToWideChar(CP_UTF8, 0, s, -1, w, len);
     return w;
 }
 
 static int fossil_shark_watch_windows_recursive(
     const char *path,
-    const char *events
-)
+    const char *events)
 {
     wchar_t *wpath = fossil_utf8_to_wide(path);
     if (!wpath)
@@ -114,8 +122,7 @@ static int fossil_shark_watch_windows_recursive(
         NULL,
         OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS,
-        NULL
-    );
+        NULL);
 
     free(wpath);
 
@@ -125,16 +132,17 @@ static int fossil_shark_watch_windows_recursive(
     BYTE buffer[64 * 1024];
     DWORD bytes;
 
-    while (1) {
+    while (1)
+    {
         if (!ReadDirectoryChangesW(
                 dir,
                 buffer,
                 sizeof(buffer),
-                TRUE,  /* recursive */
+                TRUE, /* recursive */
                 FILE_NOTIFY_CHANGE_FILE_NAME |
-                FILE_NOTIFY_CHANGE_DIR_NAME  |
-                FILE_NOTIFY_CHANGE_SIZE      |
-                FILE_NOTIFY_CHANGE_LAST_WRITE,
+                    FILE_NOTIFY_CHANGE_DIR_NAME |
+                    FILE_NOTIFY_CHANGE_SIZE |
+                    FILE_NOTIFY_CHANGE_LAST_WRITE,
                 &bytes,
                 NULL,
                 NULL))
@@ -143,7 +151,8 @@ static int fossil_shark_watch_windows_recursive(
         FILE_NOTIFY_INFORMATION *fni =
             (FILE_NOTIFY_INFORMATION *)buffer;
 
-        do {
+        do
+        {
             char filename[1024];
             int flen = WideCharToMultiByte(
                 CP_UTF8, 0,
@@ -152,14 +161,14 @@ static int fossil_shark_watch_windows_recursive(
                 filename,
                 sizeof(filename) - 1,
                 NULL,
-                NULL
-            );
+                NULL);
             filename[flen] = '\0';
 
             bool emit = false;
             const char *etype = NULL;
 
-            switch (fni->Action) {
+            switch (fni->Action)
+            {
             case FILE_ACTION_ADDED:
                 emit = fossil_io_cstring_icontains(events, "create");
                 etype = "created";
@@ -179,7 +188,8 @@ static int fossil_shark_watch_windows_recursive(
                 break;
             }
 
-            if (emit) {
+            if (emit)
+            {
                 cstring msg = fossil_io_cstring_format(
                     "{yellow}%s:{normal} %s\n",
                     etype, filename);
@@ -194,9 +204,7 @@ static int fossil_shark_watch_windows_recursive(
             if (!fni->NextEntryOffset)
                 break;
 
-            fni = (FILE_NOTIFY_INFORMATION *)(
-                (BYTE *)fni + fni->NextEntryOffset
-            );
+            fni = (FILE_NOTIFY_INFORMATION *)((BYTE *)fni + fni->NextEntryOffset);
         } while (1);
     }
 
@@ -206,8 +214,7 @@ static int fossil_shark_watch_windows_recursive(
 
 static int fossil_shark_watch_windows(
     const char *path,
-    const char *events
-)
+    const char *events)
 {
     wchar_t *wpath = fossil_utf8_to_wide(path);
     if (!wpath)
@@ -220,8 +227,7 @@ static int fossil_shark_watch_windows(
         NULL,
         OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS,
-        NULL
-    );
+        NULL);
 
     free(wpath);
 
@@ -231,16 +237,17 @@ static int fossil_shark_watch_windows(
     BYTE buffer[64 * 1024];
     DWORD bytes;
 
-    while (1) {
+    while (1)
+    {
         if (!ReadDirectoryChangesW(
                 dir,
                 buffer,
                 sizeof(buffer),
                 FALSE, /* non-recursive */
                 FILE_NOTIFY_CHANGE_FILE_NAME |
-                FILE_NOTIFY_CHANGE_DIR_NAME  |
-                FILE_NOTIFY_CHANGE_SIZE      |
-                FILE_NOTIFY_CHANGE_LAST_WRITE,
+                    FILE_NOTIFY_CHANGE_DIR_NAME |
+                    FILE_NOTIFY_CHANGE_SIZE |
+                    FILE_NOTIFY_CHANGE_LAST_WRITE,
                 &bytes,
                 NULL,
                 NULL))
@@ -249,7 +256,8 @@ static int fossil_shark_watch_windows(
         FILE_NOTIFY_INFORMATION *fni =
             (FILE_NOTIFY_INFORMATION *)buffer;
 
-        do {
+        do
+        {
             char filename[1024];
             int flen = WideCharToMultiByte(
                 CP_UTF8, 0,
@@ -258,14 +266,14 @@ static int fossil_shark_watch_windows(
                 filename,
                 sizeof(filename) - 1,
                 NULL,
-                NULL
-            );
+                NULL);
             filename[flen] = '\0';
 
             bool emit = false;
             const char *etype = NULL;
 
-            switch (fni->Action) {
+            switch (fni->Action)
+            {
             case FILE_ACTION_ADDED:
                 emit = fossil_io_cstring_icontains(events, "create");
                 etype = "created";
@@ -285,27 +293,24 @@ static int fossil_shark_watch_windows(
                 break;
             }
 
-            if (emit) {
+            if (emit)
+            {
                 cstring msg = fossil_io_cstring_format(
                     "{yellow}%s:{normal} %s\n",
                     etype,
-                    filename
-                );
+                    filename);
                 fossil_io_file_write(
                     FOSSIL_STDOUT,
                     msg,
                     fossil_io_cstring_length(msg),
-                    1
-                );
+                    1);
                 fossil_io_cstring_free(msg);
             }
 
             if (!fni->NextEntryOffset)
                 break;
 
-            fni = (FILE_NOTIFY_INFORMATION *)(
-                (BYTE *)fni + fni->NextEntryOffset
-            );
+            fni = (FILE_NOTIFY_INFORMATION *)((BYTE *)fni + fni->NextEntryOffset);
         } while (1);
     }
 
@@ -318,7 +323,8 @@ static int fossil_shark_watch_windows(
 int fossil_shark_watch(const char *path, bool recursive,
                        const char *events, int interval)
 {
-    if (interval <= 0) {
+    if (interval <= 0)
+    {
         interval = 1; /* safety default */
     }
 
@@ -328,20 +334,22 @@ int fossil_shark_watch(const char *path, bool recursive,
         "{green,bold}Watching %s every %d seconds...{reset}%s\n",
         path,
         interval,
-        recursive ? " (recursive enabled)" : ""
-    );
+        recursive ? " (recursive enabled)" : "");
     fossil_io_file_write(
         FOSSIL_STDOUT,
         msg,
         fossil_io_cstring_length(msg),
-        1
-    );
+        1);
     fossil_io_cstring_free(msg);
 
-    while (1) {
-        if (recursive) {
+    while (1)
+    {
+        if (recursive)
+        {
             fossil_shark_watch_windows_recursive(path, events);
-        } else {
+        }
+        else
+        {
             fossil_shark_watch_windows(path, events);
         }
 
@@ -352,16 +360,15 @@ int fossil_shark_watch(const char *path, bool recursive,
 #else /* POSIX */
 
     struct stat st;
-    if (stat(path, &st) != 0) {
+    if (stat(path, &st) != 0)
+    {
         cstring err_msg = fossil_io_cstring_format(
-            "{red,bold}Failed to stat path:{reset} %s\n", path
-        );
+            "{red,bold}Failed to stat path:{reset} %s\n", path);
         fossil_io_file_write(
             FOSSIL_STDERR,
             err_msg,
             fossil_io_cstring_length(err_msg),
-            1
-        );
+            1);
         fossil_io_cstring_free(err_msg);
         return errno;
     }
@@ -370,21 +377,23 @@ int fossil_shark_watch(const char *path, bool recursive,
         "{green,bold}Watching %s every %d seconds...{reset}%s\n",
         path,
         interval,
-        recursive ? " (recursive enabled)" : ""
-    );
+        recursive ? " (recursive enabled)" : "");
     fossil_io_file_write(
         FOSSIL_STDOUT,
         msg,
         fossil_io_cstring_length(msg),
-        1
-    );
+        1);
     fossil_io_cstring_free(msg);
 
-    if (recursive && S_ISDIR(st.st_mode)) {
+    if (recursive && S_ISDIR(st.st_mode))
+    {
         fossil_shark_watch_dir(path, events, interval);
-    } else {
+    }
+    else
+    {
         struct stat prev_stat = st;
-        while (1) {
+        while (1)
+        {
             sleep(interval);
             fossil_shark_watch_file(path, events, &prev_stat);
         }

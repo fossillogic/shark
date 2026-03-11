@@ -24,7 +24,6 @@
  */
 #include "fossil/code/commands.h"
 
-
 /**
  * Encode or decode text using various ciphers
  * @param text Text to encode or decode
@@ -33,31 +32,39 @@
  * @param cipher Cipher type to use ("caesar", "vigenere", "base64", "base32", "binary", "morse", "baconian", "railfence", "haxor", "leet", "rot13", "atbash")
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_cryptic(const char *text, bool encode, bool decode, const char *cipher) {
-    if (!text || !cipher) {
+int fossil_shark_cryptic(const char *text, bool encode, bool decode, const char *cipher)
+{
+    if (!text || !cipher)
+    {
         return 1; // Error: invalid arguments
     }
-    
-    if (!encode && !decode) {
+
+    if (!encode && !decode)
+    {
         return 1; // Error: neither encode nor decode specified
     }
-    
-    if (encode && decode) {
+
+    if (encode && decode)
+    {
         return 1; // Error: both encode and decode specified
     }
-    
+
     char *result = NULL;
-    
-    if (encode) {
+
+    if (encode)
+    {
         result = fossil_io_cipher_encode(text, cipher);
-    } else {
+    }
+    else
+    {
         result = fossil_io_cipher_decode(text, cipher);
     }
-    
-    if (!result) {
+
+    if (!result)
+    {
         return 1; // Error: cipher operation failed
     }
-    
+
     // Output the result
     fossil_io_printf("%s\n", result);
     free(result);

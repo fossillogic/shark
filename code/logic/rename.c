@@ -24,17 +24,18 @@
  */
 #include "fossil/code/commands.h"
 
-
 // Helper: ask user for confirmation
-static bool confirm_overwrite_rename(ccstring path) {
+static bool confirm_overwrite_rename(ccstring path)
+{
     char *answer = (char *)fossil_sys_memory_alloc(8);
     fossil_io_printf("{cyan}Overwrite '%s'? [y/N]: {normal}", path);
-    
-    if (fossil_io_gets(answer, 8) != 0) {
+
+    if (fossil_io_gets(answer, 8) != 0)
+    {
         fossil_sys_memory_free(answer);
         return false;
     }
-    
+
     fossil_io_trim(answer);
     bool result = (answer[0] == 'y' || answer[0] == 'Y');
     fossil_sys_memory_free(answer);
@@ -42,8 +43,10 @@ static bool confirm_overwrite_rename(ccstring path) {
 }
 
 int fossil_shark_rename(ccstring old_name, ccstring new_name,
-                        bool force, bool interactive) {
-    if (cunlikely(!old_name || !new_name)) {
+                        bool force, bool interactive)
+{
+    if (cunlikely(!old_name || !new_name))
+    {
         fossil_io_printf("{red}Error: Old and new names must be specified.{normal}\n");
         return 1;
     }
@@ -51,30 +54,37 @@ int fossil_shark_rename(ccstring old_name, ccstring new_name,
     // Use safe null checking
     ccstring safe_old = cunwrap_or(old_name, cempty);
     ccstring safe_new = cunwrap_or(new_name, cempty);
-    
-    if (cunlikely(safe_old == cnull || safe_new == cnull)) {
+
+    if (cunlikely(safe_old == cnull || safe_new == cnull))
+    {
         fossil_io_printf("{red}Error: Invalid file names provided.{normal}\n");
         return 1;
     }
 
     bool dest_exists = fossil_io_file_file_exists(safe_new);
 
-    if (clikely(dest_exists)) {
-        if (interactive && !force) {
-            if (!confirm_overwrite_rename(safe_new)) {
+    if (clikely(dest_exists))
+    {
+        if (interactive && !force)
+        {
+            if (!confirm_overwrite_rename(safe_new))
+            {
                 fossil_io_printf("{blue}Rename cancelled by user.{normal}\n");
                 return 1;
             }
         }
 
-        if (cunlikely(!force && !interactive)) {
+        if (cunlikely(!force && !interactive))
+        {
             fossil_io_printf("{red}Error: Destination exists. Use --force or --interactive to overwrite.{normal}\n");
             return 1;
         }
 
         // Remove destination before renaming if force is specified
-        if (force) {
-            if (cunlikely(fossil_io_file_delete(safe_new) != 0)) {
+        if (force)
+        {
+            if (cunlikely(fossil_io_file_delete(safe_new) != 0))
+            {
                 fossil_io_printf("{red}Error: Failed to remove existing file/directory{normal}\n");
                 return 1;
             }
@@ -82,7 +92,8 @@ int fossil_shark_rename(ccstring old_name, ccstring new_name,
     }
 
     // Cross-platform rename operation
-    if (cunlikely(fossil_io_file_rename(safe_old, safe_new) != 0)) {
+    if (cunlikely(fossil_io_file_rename(safe_old, safe_new) != 0))
+    {
         fossil_io_printf("{red}Error: Rename failed - %s{normal}\n", strerror(errno));
         return 1;
     }
