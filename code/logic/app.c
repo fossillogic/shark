@@ -59,6 +59,16 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    --size <n>          Filter by size (e.g. >1MB)\n");
     fossil_io_printf("{bright_black}    --type <type>       Filter by type: file/dir/link\n");
 
+    fossil_io_printf("{cyan}  merge             {reset}Combine multiple files or directories\n");
+    fossil_io_printf("{bright_black}    -f, --force         Overwrite if needed\n");
+    fossil_io_printf("{bright_black}    -i, --interactive   Confirm before merge\n");
+    fossil_io_printf("{bright_black}    -b, --backup        Backup before merge\n");
+    fossil_io_printf("{bright_black}    --strategy <mode>   Merge strategy: overwrite/keep-both/skip\n");
+    fossil_io_printf("{bright_black}    --progress          Show progress\n");
+    fossil_io_printf("{bright_black}    --dry-run           Preview merge\n");
+    fossil_io_printf("{bright_black}    --exclude <pat>     Exclude files\n");
+    fossil_io_printf("{bright_black}    --include <pat>     Include files\n");
+
     fossil_io_printf("{cyan}  swap             {reset}Exchange locations of two files/directories\n");
     fossil_io_printf("{bright_black}    -f, --force         Overwrite if needed\n");
     fossil_io_printf("{bright_black}    -i, --interactive   Confirm swap\n");
@@ -228,8 +238,8 @@ bool app_entry(int argc, char **argv)
     // List of supported commands for suggestion
     static ccstring supported_commands[] = {
         "show", "move", "copy", "remove", "delete", "rename", "create", "search", "split",
-        "archive", "compare", "help", "sync", "cryptic",
-        "watch", "rewrite", "introspect", "grammar",
+        "archive", "compare", "help", "sync", "cryptic", "merge",
+        "watch", "rewrite", "introspect", "grammar", "swap",
         "--help", "--version", "--name", "--verbose", "--color", "--clear"};
     const int num_supported = sizeof(supported_commands) / sizeof(supported_commands[0]);
 
@@ -288,6 +298,8 @@ bool app_entry(int argc, char **argv)
         // Only apply to commands that take a path argument
         if (
             fossil_io_cstring_compare(argv[i], "show") == 0 ||
+            fossil_io_cstring_compare(argv[i], "merge") == 0 ||
+            fossil_io_cstring_compare(argv[i], "swap") == 0 ||
             fossil_io_cstring_compare(argv[i], "move") == 0 ||
             fossil_io_cstring_compare(argv[i], "copy") == 0 ||
             fossil_io_cstring_compare(argv[i], "remove") == 0 ||
@@ -442,6 +454,68 @@ bool app_entry(int argc, char **argv)
             if (i + 1 < argc && argv[i + 1][0] != '-')
                 path = argv[++i];
             fossil_shark_show(path, show_all, long_format, human_readable, recursive, format, show_time, depth, sort_key, match_pattern, size_filter, type_filter);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "merge") == 0)
+        {
+            const char **paths = malloc(sizeof(char *) * argc);
+            int num_paths = 0;
+            ccstring dest = cnull;
+            bool force = false, interactive = false, backup = false;
+            bool progress = false, dry_run = false;
+            ccstring strategy = "overwrite", exclude_pattern = cnull, include_pattern = cnull;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0)
+                {
+                    force = true;
+                }
+                else if (fossil_io_cstring_compare(argv[j], "-i") == 0 || fossil_io_cstring_compare(argv[j], "--interactive") == 0)
+                {
+                    interactive = true;
+                }
+                else if (fossil_io_cstring_compare(argv[j], "-b") == 0 || fossil_io_cstring_compare(argv[j], "--backup") == 0)
+                {
+                    backup = true;
+                }
+                else if (fossil_io_cstring_compare(argv[j], "--strategy") == 0 && j + 1 < argc)
+                {
+                    strategy = argv[++j];
+                }
+                else if (fossil_io_cstring_compare(argv[j], "--progress") == 0)
+                {
+                    progress = true;
+                }
+                else if (fossil_io_cstring_compare(argv[j], "--dry-run") == 0)
+                {
+                    dry_run = true;
+                }
+                else if (fossil_io_cstring_compare(argv[j], "--exclude") == 0 && j + 1 < argc)
+                {
+                    exclude_pattern = argv[++j];
+                }
+                else if (fossil_io_cstring_compare(argv[j], "--include") == 0 && j + 1 < argc)
+                {
+                    include_pattern = argv[++j];
+                }
+                else if (argv[j][0] != '-')
+                {
+                    if (!cnotnull(dest))
+                    {
+                        paths[num_paths++] = argv[j];
+                    }
+                    else
+                    {
+                        dest = argv[j];
+                    }
+                }
+                i = j;
+            }
+            if (num_paths > 0 && cnotnull(dest))
+            {
+                fossil_shark_merge(paths, num_paths, dest, force, interactive, backup, strategy, progress, dry_run, exclude_pattern, include_pattern);
+            }
+            free(paths);
         }
         else if (fossil_io_cstring_compare(argv[i], "swap") == 0)
         {

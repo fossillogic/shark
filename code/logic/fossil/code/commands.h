@@ -58,6 +58,26 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
                       ccstring size_filter, ccstring type_filter);
 
 /**
+ * Combine multiple files or directories
+ * @param paths Array of file or directory paths to merge
+ * @param num_paths Number of paths in the array
+ * @param dest Destination path for merged result
+ * @param force Overwrite if needed (--force)
+ * @param interactive Confirm before merge (--interactive)
+ * @param backup Create backups before merge (--backup)
+ * @param strategy Merge strategy: "overwrite", "keep-both", or "skip"
+ * @param progress Show progress during merge (--progress)
+ * @param dry_run Preview merge without executing (--dry-run)
+ * @param exclude_pattern Pattern for files to exclude (--exclude)
+ * @param include_pattern Pattern for files to include (--include)
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_merge(const char **paths, int num_paths, ccstring dest,
+                       bool force, bool interactive, bool backup,
+                       ccstring strategy, bool progress, bool dry_run,
+                       ccstring exclude_pattern, ccstring include_pattern);
+
+/**
  * Exchange the locations of two files or directories
  * @param path1 First file or directory path
  * @param path2 Second file or directory path
