@@ -344,6 +344,25 @@ int fossil_shark_grammar(ccstring file_path,
 int fossil_shark_cryptic(ccstring text, bool encode, bool decode,
                          ccstring cipher);
 
+/**
+ * Split files into smaller segments
+ * @param file_path Path to the file to split
+ * @param split_by_lines Split by line count (lines per segment)
+ * @param split_by_bytes Split by byte size (bytes per segment)
+ * @param num_segments Number of segments to create
+ * @param output_prefix Output file prefix for split segments
+ * @param suffix_digits Number of digits for suffix (0 for none)
+ * @param numeric_suffix Use numeric suffix instead of alphabetic
+ * @param delimiter Custom delimiter character (NULL for default)
+ * @param dry_run Preview split without executing (--dry-run)
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_split(ccstring file_path, size_t split_by_lines,
+                       size_t split_by_bytes, size_t num_segments,
+                       ccstring output_prefix, int suffix_digits,
+                       bool numeric_suffix, ccstring delimiter,
+                       bool dry_run);
+
 #ifdef __cplusplus
 }
 #endif
