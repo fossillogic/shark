@@ -196,11 +196,15 @@ FOSSIL_TEST(c_test_merge_dry_run) {
     int result = fossil_shark_merge(paths, 1, "dry_run_merge_dest.txt", false, false, false, "overwrite", false, true, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
     
-    // Verify destination was not created
-    ASSUME_ITS_FALSE(FOSSIL_SANITY_SYS_FILE_EXISTS("dry_run_merge_dest.txt"));
+    // Verify destination was not created (dry run should not create files)
+    bool file_exists = FOSSIL_SANITY_SYS_FILE_EXISTS("dry_run_merge_dest.txt");
+    ASSUME_ITS_FALSE(file_exists);
     
     // Clean up
     FOSSIL_SANITY_SYS_DELETE_FILE("dry_run_merge_src.txt");
+    if (file_exists) {
+        FOSSIL_SANITY_SYS_DELETE_FILE("dry_run_merge_dest.txt");
+    }
 }
 
 FOSSIL_TEST(c_test_merge_with_exclude_pattern) {
@@ -246,8 +250,8 @@ FOSSIL_TEST(c_test_merge_with_include_pattern) {
 }
 
 FOSSIL_TEST(c_test_merge_nonexistent_source) {
-    // Try to merge non-existent file
-    const char *paths[] = {"nonexistent_merge.txt"};
+    // Try to merge non-existent file - should fail
+    const char *paths[] = {"nonexistent_merge_file_that_does_not_exist_12345.txt"};
     int result = fossil_shark_merge(paths, 1, "dest", false, false, false, "overwrite", false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
@@ -257,9 +261,9 @@ FOSSIL_TEST(c_test_merge_invalid_strategy) {
     FOSSIL_SANITY_SYS_CREATE_FILE("invalid_strategy_src.txt");
     FOSSIL_SANITY_SYS_WRITE_FILE("invalid_strategy_src.txt", "Content\n");
     
-    // Merge with invalid strategy
+    // Merge with invalid strategy - should fail
     const char *paths[] = {"invalid_strategy_src.txt"};
-    int result = fossil_shark_merge(paths, 1, "dest", false, false, false, "invalid", false, false, cnull, cnull);
+    int result = fossil_shark_merge(paths, 1, "dest", false, false, false, "invalid_strategy_xyz", false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
     
     // Clean up
