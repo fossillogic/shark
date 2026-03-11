@@ -127,8 +127,6 @@ Ensure you have the following installed before starting:
 
 ### Usage Examples
 
-### Usage Examples
-
 | **Example** | **Description** |
 |---|---|
 | `shark show -a -l -h --as=tree --time` | List all files (including hidden) in long, human-readable format as a tree, with timestamps. |
