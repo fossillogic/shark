@@ -80,10 +80,10 @@ FOSSIL_TEST(c_test_create_simple_file)
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify file exists
-    ASSUME_ITS_TRUE(fossil_io_file_file_exists("create_test_file.txt"));
+    ASSUME_ITS_TRUE(fossil_io_filesys_exists("create_test_file.txt") == 1);
 
     // Clean up
-    remove("create_test_file.txt");
+    fossil_io_filesys_remove("create_test_file.txt", false);
 }
 
 FOSSIL_TEST(c_test_create_simple_directory)
@@ -93,10 +93,10 @@ FOSSIL_TEST(c_test_create_simple_directory)
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify directory exists
-    ASSUME_ITS_TRUE(fossil_io_file_file_exists("create_test_dir"));
+    ASSUME_ITS_TRUE(fossil_io_filesys_exists("create_test_dir") == 1);
 
     // Clean up
-    rmdir("create_test_dir");
+    fossil_io_filesys_remove("create_test_dir", false);
 }
 
 FOSSIL_TEST(c_test_create_invalid_type)
@@ -113,32 +113,29 @@ FOSSIL_TEST(c_test_create_invalid_type)
 FOSSIL_TEST(c_test_create_existing_file)
 {
     // Create a file first
-    FILE *existing_file = fopen("existing_file.txt", "w");
-    ASSUME_NOT_CNULL(existing_file);
-    fclose(existing_file);
+    fossil_io_filesys_file_t file;
+    int open_result = fossil_io_filesys_file_open(&file, "existing_file.txt", "w");
+    ASSUME_ITS_EQUAL_I32(0, open_result);
+    fossil_io_filesys_file_close(&file);
 
     // Try to create the same file again
     int result = fossil_shark_create("existing_file.txt", false, "file");
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
-    remove("existing_file.txt");
+    fossil_io_filesys_remove("existing_file.txt", false);
 }
 
 FOSSIL_TEST(c_test_create_existing_directory)
 {
-#ifdef _WIN32
-    _mkdir("existing_dir");
-#else
-    mkdir("existing_dir", 0755);
-#endif
+    fossil_io_filesys_dir_create("existing_dir", false);
 
     // Try to create the same directory again
     int result = fossil_shark_create("existing_dir", false, "dir");
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
-    rmdir("existing_dir");
+    fossil_io_filesys_remove("existing_dir", false);
 }
 
 FOSSIL_TEST(c_test_create_with_parent_dirs)
@@ -148,12 +145,12 @@ FOSSIL_TEST(c_test_create_with_parent_dirs)
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify file and parent directories exist
-    ASSUME_ITS_TRUE(fossil_io_file_file_exists("parent1/parent2/test_file.txt"));
+    ASSUME_ITS_TRUE(fossil_io_filesys_exists("parent1/parent2/test_file.txt") == 1);
 
     // Clean up
-    remove("parent1/parent2/test_file.txt");
-    rmdir("parent1/parent2");
-    rmdir("parent1");
+    fossil_io_filesys_remove("parent1/parent2/test_file.txt", false);
+    fossil_io_filesys_remove("parent1/parent2", false);
+    fossil_io_filesys_remove("parent1", false);
 }
 
 FOSSIL_TEST(c_test_create_without_parent_dirs)
@@ -170,12 +167,12 @@ FOSSIL_TEST(c_test_create_nested_directory)
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify directory structure exists
-    ASSUME_ITS_TRUE(fossil_io_file_file_exists("nested1/nested2/nested3"));
+    ASSUME_ITS_TRUE(fossil_io_filesys_exists("nested1/nested2/nested3") == 1);
 
     // Clean up
-    rmdir("nested1/nested2/nested3");
-    rmdir("nested1/nested2");
-    rmdir("nested1");
+    fossil_io_filesys_remove("nested1/nested2/nested3", false);
+    fossil_io_filesys_remove("nested1/nested2", false);
+    fossil_io_filesys_remove("nested1", false);
 }
 
 FOSSIL_TEST(c_test_create_file_with_special_characters)
@@ -185,10 +182,10 @@ FOSSIL_TEST(c_test_create_file_with_special_characters)
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify file exists
-    ASSUME_ITS_TRUE(fossil_io_file_file_exists("special_chars_123.txt"));
+    ASSUME_ITS_TRUE(fossil_io_filesys_exists("special_chars_123.txt") == 1);
 
     // Clean up
-    remove("special_chars_123.txt");
+    fossil_io_filesys_remove("special_chars_123.txt", false);
 }
 
 FOSSIL_TEST(c_test_create_directory_with_special_characters)
@@ -198,10 +195,10 @@ FOSSIL_TEST(c_test_create_directory_with_special_characters)
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify directory exists
-    ASSUME_ITS_TRUE(fossil_io_file_file_exists("special_dir_123"));
+    ASSUME_ITS_TRUE(fossil_io_filesys_exists("special_dir_123") == 1);
 
     // Clean up
-    rmdir("special_dir_123");
+    fossil_io_filesys_remove("special_dir_123", false);
 }
 
 FOSSIL_TEST(c_test_create_deep_nested_structure)
@@ -211,16 +208,16 @@ FOSSIL_TEST(c_test_create_deep_nested_structure)
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify file exists
-    ASSUME_ITS_TRUE(fossil_io_file_file_exists("deep/very/deeply/nested/file/structure/test.txt"));
+    ASSUME_ITS_TRUE(fossil_io_filesys_exists("deep/very/deeply/nested/file/structure/test.txt") == 1);
 
     // Clean up
-    remove("deep/very/deeply/nested/file/structure/test.txt");
-    rmdir("deep/very/deeply/nested/file/structure");
-    rmdir("deep/very/deeply/nested/file");
-    rmdir("deep/very/deeply/nested");
-    rmdir("deep/very/deeply");
-    rmdir("deep/very");
-    rmdir("deep");
+    fossil_io_filesys_remove("deep/very/deeply/nested/file/structure/test.txt", false);
+    fossil_io_filesys_remove("deep/very/deeply/nested/file/structure", false);
+    fossil_io_filesys_remove("deep/very/deeply/nested/file", false);
+    fossil_io_filesys_remove("deep/very/deeply/nested", false);
+    fossil_io_filesys_remove("deep/very/deeply", false);
+    fossil_io_filesys_remove("deep/very", false);
+    fossil_io_filesys_remove("deep", false);
 }
 
 FOSSIL_TEST(c_test_create_empty_filename)
@@ -237,10 +234,10 @@ FOSSIL_TEST(c_test_create_file_in_current_dir)
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify file exists
-    ASSUME_ITS_TRUE(fossil_io_file_file_exists("current_dir_test.txt"));
+    ASSUME_ITS_TRUE(fossil_io_filesys_exists("current_dir_test.txt") == 1);
 
     // Clean up
-    remove("current_dir_test.txt");
+    fossil_io_filesys_remove("current_dir_test.txt", false);
 }
 
 FOSSIL_TEST(c_test_create_file_case_sensitivity)
@@ -250,10 +247,10 @@ FOSSIL_TEST(c_test_create_file_case_sensitivity)
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify file exists
-    ASSUME_ITS_TRUE(fossil_io_file_file_exists("MixedCaseFile.TXT"));
+    ASSUME_ITS_TRUE(fossil_io_filesys_exists("MixedCaseFile.TXT") == 1);
 
     // Clean up
-    remove("MixedCaseFile.TXT");
+    fossil_io_filesys_remove("MixedCaseFile.TXT", false);
 }
 
 FOSSIL_TEST(c_test_create_type_case_sensitivity)

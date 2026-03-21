@@ -286,11 +286,11 @@ FOSSIL_TEST(c_test_swap_same_source_and_dest)
     int result = fossil_shark_swap("swap_same_file.txt", "swap_same_file.txt", false, false, false, false, false, false, cnull, false);
     (void)result;
 
-    // File should still exist
-    ASSUME_ITS_TRUE(fossil_io_file_file_exists("swap_same_file.txt"));
+    // File should still exist (using io_filesys)
+    ASSUME_ITS_TRUE(fossil_io_filesys_exists("swap_same_file.txt") > 0);
 
     // Clean up
-    remove("swap_same_file.txt");
+    fossil_io_filesys_remove("swap_same_file.txt", false);
 }
 
 FOSSIL_TEST(c_test_swap_dry_run_no_actual_swap)
@@ -308,13 +308,13 @@ FOSSIL_TEST(c_test_swap_dry_run_no_actual_swap)
     int result = fossil_shark_swap("swap_dry1.txt", "swap_dry2.txt", false, false, false, false, false, true, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
-    // Both files should still exist (no actual swap)
-    ASSUME_ITS_TRUE(fossil_io_file_file_exists("swap_dry1.txt"));
-    ASSUME_ITS_TRUE(fossil_io_file_file_exists("swap_dry2.txt"));
+    // Both files should still exist (no actual swap, using io_filesys)
+    ASSUME_ITS_TRUE(fossil_io_filesys_exists("swap_dry1.txt") > 0);
+    ASSUME_ITS_TRUE(fossil_io_filesys_exists("swap_dry2.txt") > 0);
 
     // Clean up
-    remove("swap_dry1.txt");
-    remove("swap_dry2.txt");
+    fossil_io_filesys_remove("swap_dry1.txt", false);
+    fossil_io_filesys_remove("swap_dry2.txt", false);
 }
 
 FOSSIL_TEST(c_test_swap_with_atomic_operation)
