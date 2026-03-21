@@ -172,7 +172,11 @@ static int copy_directory(ccstring src, ccstring dest,
             continue;
 
         char dest_path[FOSSIL_FILESYS_MAX_PATH];
-        snprintf(dest_path, sizeof(dest_path), "%s/%s", dest, strrchr(entry->path, '/') ? strrchr(entry->path, '/') + 1 : entry->path);
+        int written = snprintf(dest_path, sizeof(dest_path), "%s/%s", dest, strrchr(entry->path, '/') ? strrchr(entry->path, '/') + 1 : entry->path);
+        if (written < 0 || (size_t)written >= sizeof(dest_path)) {
+            fossil_io_printf("{red}Error: Destination path too long for '%s'{normal}\n", entry->path);
+            return 1;
+        }
 
         if (entry->type == FOSSIL_FILESYS_TYPE_DIR)
         {
