@@ -33,11 +33,11 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve,
         return 1;
     }
 
-    struct stat st_src, st_dest;
-    if (stat(src, &st_src) != 0)
+    fossil_io_filesys_obj_t src_obj, dest_obj;
+    if (fossil_io_filesys_stat(src, &src_obj) < 0)
     {
-        fossil_io_printf("{red}Error: Cannot stat source file '%s': %s{normal}\n", src, strerror(errno));
-        return errno;
+        fossil_io_printf("{red}Error: Cannot stat source file '%s'{normal}\n", src);
+        return 1;
     }
 
     if (dry_run)
@@ -46,122 +46,59 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve,
         return 0;
     }
 
-    bool dest_exists = (stat(dest, &st_dest) == 0);
+    bool dest_exists = (fossil_io_filesys_stat(dest, &dest_obj) == 0);
 
     if (update && dest_exists)
     {
-        char src_hash[128], dest_hash[128];
-        int src_hash_res = 0, dest_hash_res = 0;
-        {
-            fossil_io_file_t src_stream;
-            if (fossil_io_file_open(&src_stream, src, "rb") == 0)
-            {
-                size_t total = 0;
-                char *file_data = malloc(st_src.st_size);
-                if (file_data)
-                {
-                    size_t n;
-                    while ((n = fossil_io_file_read(&src_stream, file_data + total, 1, (size_t)st_src.st_size - total)) > 0)
-                    {
-                        total += n;
-                        if (total >= (size_t)st_src.st_size)
-                            break;
-                    }
-                    src_hash_res = fossil_cryptic_hash_compute(
-                        "xxhash64", "auto", "hex",
-                        src_hash, sizeof(src_hash),
-                        file_data, total);
-                    free(file_data);
-                }
-                else
-                {
-                    src_hash_res = 1;
-                }
-                fossil_io_file_close(&src_stream);
-            }
-            else
-            {
-                src_hash_res = 1;
-            }
-        }
-        {
-            fossil_io_file_t dest_stream;
-            if (fossil_io_file_open(&dest_stream, dest, "rb") == 0)
-            {
-                char *file_data = malloc(st_dest.st_size);
-                size_t total = 0;
-                if (file_data)
-                {
-                    size_t n;
-                    while ((n = fossil_io_file_read(&dest_stream, file_data + total, 1, (size_t)st_dest.st_size - total)) > 0)
-                    {
-                        total += n;
-                        if (total >= (size_t)st_dest.st_size)
-                            break;
-                    }
-                    dest_hash_res = fossil_cryptic_hash_compute(
-                        "xxhash64", "auto", "hex",
-                        dest_hash, sizeof(dest_hash),
-                        file_data, total);
-                    free(file_data);
-                }
-                else
-                {
-                    dest_hash_res = 1;
-                }
-                fossil_io_file_close(&dest_stream);
-            }
-            else
-            {
-                dest_hash_res = 1;
-            }
-        }
-        if (src_hash_res == 0 && dest_hash_res == 0 && strcmp(src_hash, dest_hash) == 0)
+        char src_hash[128] = {0}, dest_hash[128] = {0};
+        int src_hash_res = fossil_io_filesys_file_hash(src, (unsigned char*)src_hash, sizeof(src_hash), "xxhash64");
+        int dest_hash_res = fossil_io_filesys_file_hash(dest, (unsigned char*)dest_hash, sizeof(dest_hash), "xxhash64");
+        if (src_hash_res == 0 && dest_hash_res == 0 && memcmp(src_hash, dest_hash, sizeof(src_hash)) == 0)
         {
             fossil_io_printf("{cyan}Skipping '%s' - destination is up to date (hash match){normal}\n", src);
             return 0;
         }
     }
 
-    fossil_io_file_t src_stream, dest_stream;
+    fossil_io_filesys_file_t src_stream, dest_stream;
 
-    if (fossil_io_file_open(&src_stream, src, "rb") != 0)
+    if (fossil_io_filesys_file_open(&src_stream, src, "rb") < 0)
     {
-        fossil_io_printf("{red}Error: Cannot open source file '%s': %s{normal}\n", src, strerror(errno));
-        return errno;
+        fossil_io_printf("{red}Error: Cannot open source file '%s'{normal}\n", src);
+        return 1;
     }
 
-    if (fossil_io_file_open(&dest_stream, dest, "wb") != 0)
+    if (fossil_io_filesys_file_open(&dest_stream, dest, "wb") < 0)
     {
-        fossil_io_printf("{red}Error: Cannot create destination file '%s': %s{normal}\n", dest, strerror(errno));
-        fossil_io_file_close(&src_stream);
-        return errno;
+        fossil_io_printf("{red}Error: Cannot create destination file '%s'{normal}\n", dest);
+        fossil_io_filesys_file_close(&src_stream);
+        return 1;
     }
 
     fossil_io_printf("{cyan}Copying file: %s -> %s{normal}\n", src, dest);
 
     char buffer[8192];
     size_t n;
-    while ((n = fossil_io_file_read(&src_stream, buffer, 1, sizeof(buffer))) > 0)
+    while ((n = fossil_io_filesys_file_read(&src_stream, buffer, 1, sizeof(buffer))) > 0)
     {
-        if (cunlikely(fossil_io_file_write(&dest_stream, buffer, 1, n) != n))
+        if (cunlikely(fossil_io_filesys_file_write(&dest_stream, buffer, 1, n) != n))
         {
-            fossil_io_printf("{red}Error: Write failed for '%s': %s{normal}\n", dest, strerror(errno));
-            fossil_io_file_close(&src_stream);
-            fossil_io_file_close(&dest_stream);
-            return errno;
+            fossil_io_printf("{red}Error: Write failed for '%s'{normal}\n", dest);
+            fossil_io_filesys_file_close(&src_stream);
+            fossil_io_filesys_file_close(&dest_stream);
+            return 1;
         }
     }
 
-    fossil_io_file_close(&src_stream);
-    fossil_io_file_close(&dest_stream);
+    fossil_io_filesys_file_close(&src_stream);
+    fossil_io_filesys_file_close(&dest_stream);
 
     if (checksum)
     {
-        char src_hash[128], dest_hash[128];
-        fossil_cryptic_hash_compute("xxhash64", "auto", "hex", src_hash, sizeof(src_hash), NULL, 0);
-        fossil_cryptic_hash_compute("xxhash64", "auto", "hex", dest_hash, sizeof(dest_hash), NULL, 0);
-        if (strcmp(src_hash, dest_hash) != 0)
+        char src_hash[128] = {0}, dest_hash[128] = {0};
+        int src_hash_res = fossil_io_filesys_file_hash(src, (unsigned char*)src_hash, sizeof(src_hash), "xxhash64");
+        int dest_hash_res = fossil_io_filesys_file_hash(dest, (unsigned char*)dest_hash, sizeof(dest_hash), "xxhash64");
+        if (src_hash_res != 0 || dest_hash_res != 0 || memcmp(src_hash, dest_hash, sizeof(src_hash)) != 0)
         {
             fossil_io_printf("{red}Error: Checksum verification failed for '%s'{normal}\n", dest);
             return 1;
@@ -171,23 +108,16 @@ static int copy_file(ccstring src, ccstring dest, bool update, bool preserve,
 
     if (preserve)
     {
-#ifdef _WIN32
-        HANDLE hFile = CreateFileA(dest, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-        if (hFile != INVALID_HANDLE_VALUE)
+        // Only preserve permissions and timestamps if available
+        if (fossil_io_filesys_stat(src, &src_obj) == 0)
         {
-            FILETIME ft;
-            LONGLONG ll = Int32x32To64(st_src.st_mtime, 10000000) + 116444736000000000;
-            ft.dwLowDateTime = (DWORD)ll;
-            ft.dwHighDateTime = (DWORD)(ll >> 32);
-            SetFileTime(hFile, NULL, NULL, &ft);
-            CloseHandle(hFile);
-        }
-#else
-        chmod(dest, st_src.st_mode);
-        struct utimbuf times = {st_src.st_atime, st_src.st_mtime};
-        utime(dest, &times);
+#ifndef _WIN32
+            chmod(dest, src_obj.mode);
+            struct utimbuf times = {src_obj.accessed_at, src_obj.modified_at};
+            utime(dest, &times);
 #endif
-        fossil_io_printf("{cyan}Preserved permissions and timestamps for '%s'{normal}\n", dest);
+            fossil_io_printf("{cyan}Preserved permissions and timestamps for '%s'{normal}\n", dest);
+        }
     }
 
     return 0;
@@ -205,11 +135,11 @@ static int copy_directory(ccstring src, ccstring dest,
         return 1;
     }
 
-    struct stat st;
-    if (stat(src, &st) != 0)
+    fossil_io_filesys_obj_t src_obj;
+    if (fossil_io_filesys_stat(src, &src_obj) < 0)
     {
-        fossil_io_printf("{red}Error: Cannot stat source directory '%s': %s{normal}\n", src, strerror(errno));
-        return errno;
+        fossil_io_printf("{red}Error: Cannot stat source directory '%s'{normal}\n", src);
+        return 1;
     }
 
     if (dry_run)
@@ -219,35 +149,36 @@ static int copy_directory(ccstring src, ccstring dest,
     }
 
     fossil_io_printf("{cyan}Creating directory: %s{normal}\n", dest);
-    int32_t dir_create_result = fossil_io_dir_create(dest);
-    if (dir_create_result < 0 && dir_create_result != -EEXIST)
+    int32_t dir_create_result = fossil_io_filesys_dir_create(dest, false);
+    if (dir_create_result < 0)
     {
         fossil_io_printf("{red}Error: Cannot create directory '%s'{normal}\n", dest);
         return 1;
     }
 
-    fossil_io_dir_iter_t it;
-    if (fossil_io_dir_iter_open(&it, src) < 0)
+    // List directory entries
+    fossil_io_filesys_obj_t entries[256];
+    size_t entry_count = 0;
+    if (fossil_io_filesys_dir_list(src, entries, 256, &entry_count) < 0)
     {
-        fossil_io_printf("{red}Error: Cannot open directory '%s'{normal}\n", src);
+        fossil_io_printf("{red}Error: Cannot list directory '%s'{normal}\n", src);
         return 1;
     }
 
-    while (fossil_io_dir_iter_next(&it) > 0)
+    for (size_t i = 0; i < entry_count; ++i)
     {
-        fossil_io_dir_entry_t *entry = &it.current;
-        if (strcmp(entry->name, ".") == 0 || strcmp(entry->name, "..") == 0)
+        fossil_io_filesys_obj_t *entry = &entries[i];
+        if (strcmp(entry->path, ".") == 0 || strcmp(entry->path, "..") == 0)
             continue;
 
-        char dest_path[1024];
-        if (fossil_io_dir_join(dest, entry->name, dest_path, sizeof(dest_path)) < 0)
-        {
-            fossil_io_printf("{red}Error: Path join failed for '%s'{normal}\n", entry->name);
-            fossil_io_dir_iter_close(&it);
+        char dest_path[FOSSIL_FILESYS_MAX_PATH];
+        int written = snprintf(dest_path, sizeof(dest_path), "%s/%s", dest, strrchr(entry->path, '/') ? strrchr(entry->path, '/') + 1 : entry->path);
+        if (written < 0 || (size_t)written >= sizeof(dest_path)) {
+            fossil_io_printf("{red}Error: Destination path too long for '%s'{normal}\n", entry->path);
             return 1;
         }
 
-        if (entry->type == 1)
+        if (entry->type == FOSSIL_FILESYS_TYPE_DIR)
         {
             if (recursive)
             {
@@ -255,39 +186,24 @@ static int copy_directory(ccstring src, ccstring dest,
                                    checksum, sparse, link, reflink, progress, dry_run,
                                    exclude_pattern, include_pattern) != 0)
                 {
-                    fossil_io_dir_iter_close(&it);
                     return 1;
                 }
             }
         }
-        else if (entry->type == 0)
+        else if (entry->type == FOSSIL_FILESYS_TYPE_FILE)
         {
             if (copy_file(entry->path, dest_path, update, preserve,
                           checksum, dry_run) != 0)
             {
-                fossil_io_dir_iter_close(&it);
                 return 1;
             }
         }
     }
-    fossil_io_dir_iter_close(&it);
 
     if (preserve)
     {
-#ifdef _WIN32
-        HANDLE hDir = CreateFileA(dest, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-                                  OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
-        if (hDir != INVALID_HANDLE_VALUE)
-        {
-            FILETIME ft;
-            LONGLONG ll = Int32x32To64(st.st_mtime, 10000000) + 116444736000000000;
-            ft.dwLowDateTime = (DWORD)ll;
-            ft.dwHighDateTime = (DWORD)(ll >> 32);
-            SetFileTime(hDir, NULL, NULL, &ft);
-            CloseHandle(hDir);
-        }
-#else
-        struct utimbuf times = {st.st_atime, st.st_mtime};
+#ifndef _WIN32
+        struct utimbuf times = {src_obj.accessed_at, src_obj.modified_at};
         utime(dest, &times);
 #endif
     }
@@ -307,14 +223,14 @@ int fossil_shark_copy(ccstring src, ccstring dest,
         return 1;
     }
 
-    struct stat st;
-    if (stat(src, &st) != 0)
+    fossil_io_filesys_obj_t src_obj;
+    if (fossil_io_filesys_stat(src, &src_obj) < 0)
     {
-        fossil_io_printf("{red}Error: Cannot access source '%s': %s{normal}\n", src, strerror(errno));
-        return errno;
+        fossil_io_printf("{red}Error: Cannot access source '%s'{normal}\n", src);
+        return 1;
     }
 
-    if (S_ISDIR(st.st_mode))
+    if (src_obj.type == FOSSIL_FILESYS_TYPE_DIR)
     {
         if (!recursive)
         {
@@ -326,7 +242,7 @@ int fossil_shark_copy(ccstring src, ccstring dest,
                               checksum, sparse, link, reflink, progress, dry_run,
                               exclude_pattern, include_pattern);
     }
-    else if (S_ISREG(st.st_mode))
+    else if (src_obj.type == FOSSIL_FILESYS_TYPE_FILE)
     {
         return copy_file(src, dest, update, preserve,
                          checksum, dry_run);

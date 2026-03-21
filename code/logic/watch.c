@@ -24,72 +24,73 @@
  */
 #include "fossil/code/commands.h"
 
-__attribute__((unused)) static void fossil_shark_watch_file(const char *path, const char *events, struct stat *prev_stat)
+__attribute__((unused)) static void fossil_shark_watch_file(const char *path, const char *events, fossil_io_filesys_obj_t *prev_obj)
 {
-    struct stat curr_stat;
-    int rc = stat(path, &curr_stat);
+    fossil_io_filesys_obj_t curr_obj;
+    int rc = fossil_io_filesys_stat(path, &curr_obj);
     if (rc != 0)
     {
         if (errno == ENOENT && fossil_io_cstring_icontains(events, "delete"))
         {
             cstring del_msg = fossil_io_cstring_format("{red}File deleted:{normal} %s\n", path);
-            fossil_io_file_write(FOSSIL_STDOUT, del_msg, fossil_io_cstring_length(del_msg), 1);
+            fossil_io_filesys_file_write(FOSSIL_STDOUT, del_msg, fossil_io_cstring_length(del_msg), 1);
             fossil_io_cstring_free(del_msg);
         }
         return;
     }
 
     // Check modification time
-    if (curr_stat.st_mtime != prev_stat->st_mtime && fossil_io_cstring_icontains(events, "modify"))
+    if (curr_obj.modified_at != prev_obj->modified_at && fossil_io_cstring_icontains(events, "modify"))
     {
         cstring mod_msg = fossil_io_cstring_format("{yellow}File modified:{normal} %s\n", path);
-        fossil_io_file_write(FOSSIL_STDOUT, mod_msg, fossil_io_cstring_length(mod_msg), 1);
+        fossil_io_filesys_file_write(FOSSIL_STDOUT, mod_msg, fossil_io_cstring_length(mod_msg), 1);
         fossil_io_cstring_free(mod_msg);
     }
 
     // Check size change
-    if (curr_stat.st_size != prev_stat->st_size && fossil_io_cstring_icontains(events, "modify"))
+    if (curr_obj.size != prev_obj->size && fossil_io_cstring_icontains(events, "modify"))
     {
         cstring size_msg = fossil_io_cstring_format("{cyan}File size changed:{normal} %s\n", path);
-        fossil_io_file_write(FOSSIL_STDOUT, size_msg, fossil_io_cstring_length(size_msg), 1);
+        fossil_io_filesys_file_write(FOSSIL_STDOUT, size_msg, fossil_io_cstring_length(size_msg), 1);
         fossil_io_cstring_free(size_msg);
     }
 
-    *prev_stat = curr_stat;
+    *prev_obj = curr_obj;
 }
 
 #if !defined(_WIN32) && !defined(_WIN64)
 __attribute__((unused)) static void fossil_shark_watch_dir(const char *dir_path, const char *events, int interval)
 {
-    fossil_io_dir_iter_t it;
-    if (fossil_io_dir_iter_open(&it, dir_path) != 0)
+    fossil_io_filesys_obj_t entries[256];
+    size_t entry_count = 0;
+    if (fossil_io_filesys_dir_list(dir_path, entries, 256, &entry_count) != 0)
         return;
 
-    while (fossil_io_dir_iter_next(&it) > 0)
+    for (size_t i = 0; i < entry_count; ++i)
     {
-        fossil_io_dir_entry_t *entry = &it.current;
-        if (strcmp(entry->name, ".") == 0 || strcmp(entry->name, "..") == 0)
+        fossil_io_filesys_obj_t *entry = &entries[i];
+        // Skip "." and ".."
+        if (strcmp(entry->path, ".") == 0 || strcmp(entry->path, "..") == 0)
             continue;
 
-        if (entry->type == 1)
-        { // Directory
+        if (entry->type == FOSSIL_FILESYS_TYPE_DIR)
+        {
             fossil_shark_watch_dir(entry->path, events, interval);
         }
-        else if (entry->type == 0)
-        { // File
-            struct stat st;
-            if (stat(entry->path, &st) == 0)
+        else if (entry->type == FOSSIL_FILESYS_TYPE_FILE)
+        {
+            fossil_io_filesys_obj_t st;
+            if (fossil_io_filesys_stat(entry->path, &st) == 0)
             {
-                struct stat prev_stat = st;
+                fossil_io_filesys_obj_t prev_obj = st;
                 while (1)
                 {
                     sleep(interval);
-                    fossil_shark_watch_file(entry->path, events, &prev_stat);
+                    fossil_shark_watch_file(entry->path, events, &prev_obj);
                 }
             }
         }
     }
-    fossil_io_dir_iter_close(&it);
 }
 #endif
 
@@ -193,7 +194,7 @@ static int fossil_shark_watch_windows_recursive(
                 cstring msg = fossil_io_cstring_format(
                     "{yellow}%s:{normal} %s\n",
                     etype, filename);
-                fossil_io_file_write(
+                fossil_io_filesys_file_write(
                     FOSSIL_STDOUT,
                     msg,
                     fossil_io_cstring_length(msg),
@@ -299,7 +300,7 @@ static int fossil_shark_watch_windows(
                     "{yellow}%s:{normal} %s\n",
                     etype,
                     filename);
-                fossil_io_file_write(
+                fossil_io_filesys_file_write(
                     FOSSIL_STDOUT,
                     msg,
                     fossil_io_cstring_length(msg),
@@ -335,7 +336,7 @@ int fossil_shark_watch(const char *path, bool recursive,
         path,
         interval,
         recursive ? " (recursive enabled)" : "");
-    fossil_io_file_write(
+    fossil_io_filesys_file_write(
         FOSSIL_STDOUT,
         msg,
         fossil_io_cstring_length(msg),
@@ -359,12 +360,12 @@ int fossil_shark_watch(const char *path, bool recursive,
 
 #else /* POSIX */
 
-    struct stat st;
-    if (stat(path, &st) != 0)
+    fossil_io_filesys_obj_t st;
+    if (fossil_io_filesys_stat(path, &st) != 0)
     {
         cstring err_msg = fossil_io_cstring_format(
             "{red,bold}Failed to stat path:{reset} %s\n", path);
-        fossil_io_file_write(
+        fossil_io_filesys_file_write(
             FOSSIL_STDERR,
             err_msg,
             fossil_io_cstring_length(err_msg),
@@ -378,24 +379,24 @@ int fossil_shark_watch(const char *path, bool recursive,
         path,
         interval,
         recursive ? " (recursive enabled)" : "");
-    fossil_io_file_write(
+    fossil_io_filesys_file_write(
         FOSSIL_STDOUT,
         msg,
         fossil_io_cstring_length(msg),
         1);
     fossil_io_cstring_free(msg);
 
-    if (recursive && S_ISDIR(st.st_mode))
+    if (recursive && st.type == FOSSIL_FILESYS_TYPE_DIR)
     {
         fossil_shark_watch_dir(path, events, interval);
     }
     else
     {
-        struct stat prev_stat = st;
+        fossil_io_filesys_obj_t prev_obj = st;
         while (1)
         {
             sleep(interval);
-            fossil_shark_watch_file(path, events, &prev_stat);
+            fossil_shark_watch_file(path, events, &prev_obj);
         }
     }
 

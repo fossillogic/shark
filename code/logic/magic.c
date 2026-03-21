@@ -123,28 +123,21 @@ static int fossil_it_magic_is_code_file(ccstring path)
 
 static int fossil_it_magic_contains_git(ccstring path)
 {
-    fossil_io_dir_iter_t it;
-    if (fossil_io_dir_iter_open(&it, path) != 0)
+    fossil_io_filesys_obj_t entries[32];
+    size_t count = 0;
+    if (fossil_io_filesys_dir_list(path, entries, 32, &count) != 0)
         return 0;
 
-    i32 found = 0;
-    do
+    for (size_t i = 0; i < count; ++i)
     {
-        ccstring name = it.current.name;
-        if (fossil_io_cstring_equals(name, ".git") && it.current.type == 1)
-        { // 1=dir
-            found = 1;
-            break;
-        }
-        if (fossil_io_cstring_equals(name, ".gitignore") && (it.current.type == 0 || it.current.type == 2))
-        { // 0=file, 2=symlink
-            found = 1;
-            break;
-        }
-    } while (fossil_io_dir_iter_next(&it) > 0);
-
-    fossil_io_dir_iter_close(&it);
-    return found;
+        const fossil_io_filesys_obj_t *ent = &entries[i];
+        if (fossil_io_cstring_equals(ent->path, ".git") && ent->type == FOSSIL_FILESYS_TYPE_DIR)
+            return 1;
+        if (fossil_io_cstring_equals(ent->path, ".gitignore") &&
+            (ent->type == FOSSIL_FILESYS_TYPE_FILE || ent->type == FOSSIL_FILESYS_TYPE_LINK))
+            return 1;
+    }
+    return 0;
 }
 
 static int fossil_it_magic_contains_secret(ccstring path)
@@ -166,32 +159,45 @@ static int fossil_it_magic_contains_secret(ccstring path)
         "client_secrets.json", "google_api_key.txt", "azure_api_key.txt",
         "aws_secret_access_key.txt", "aws_access_key_id.txt"};
     static const i32 secret_count = (i32)(sizeof(secret_files) / sizeof(secret_files[0]));
-    char candidate[1024];
+    char candidate[FOSSIL_FILESYS_MAX_PATH];
 
     for (i32 i = 0; i < secret_count; i++)
     {
-        if (fossil_io_dir_join(path, secret_files[i], candidate, sizeof(candidate)) == 0)
+        // Compose candidate path using io_filesys_ API
+        int rc = fossil_io_filesys_abspath(path, candidate, sizeof(candidate));
+        if (rc != 0)
+            continue;
+        size_t len = strlen(candidate);
+        if (len + 1 + strlen(secret_files[i]) < sizeof(candidate))
         {
-            if (fossil_io_dir_is_file(candidate) > 0)
+            if (candidate[len - 1] != '/' && candidate[len - 1] != '\\')
+                strncat(candidate, "/", sizeof(candidate) - strlen(candidate) - 1);
+            strncat(candidate, secret_files[i], sizeof(candidate) - strlen(candidate) - 1);
+            fossil_io_filesys_obj_t obj;
+            if (fossil_io_filesys_stat(candidate, &obj) == 0 && obj.type == FOSSIL_FILESYS_TYPE_FILE)
                 return 1;
+            // Remove appended secret file for next iteration
+            candidate[len] = '\0';
         }
     }
 
-    fossil_io_dir_iter_t it;
-    if (fossil_io_dir_iter_open(&it, path) != 0)
+    fossil_io_filesys_obj_t entries[32];
+    size_t count = 0;
+    if (fossil_io_filesys_dir_list(path, entries, 32, &count) != 0)
         return 0;
 
-    do
+    for (size_t i = 0; i < count; ++i)
     {
-        ccstring name = it.current.name;
-        if (fossil_io_cstring_icontains(name, "password") || fossil_io_cstring_icontains(name, "secret"))
+        ccstring name = entries[i].path;
+        // Only check the basename, not the full path
+        char basename[FOSSIL_FILESYS_MAX_PATH];
+        if (fossil_io_filesys_basename(name, basename, sizeof(basename)) == 0)
         {
-            fossil_io_dir_iter_close(&it);
-            return 1;
+            if (fossil_io_cstring_icontains(basename, "password") ||
+                fossil_io_cstring_icontains(basename, "secret"))
+                return 1;
         }
-    } while (fossil_io_dir_iter_next(&it) > 0);
-
-    fossil_io_dir_iter_close(&it);
+    }
     return 0;
 }
 
@@ -432,13 +438,14 @@ void fossil_it_magic_path_suggest(
     fossil_ti_path_suggestion_set_t *out)
 {
     out->count = 0;
-    fossil_io_dir_iter_t it;
-    if (fossil_io_dir_iter_open(&it, base_dir) != 0)
+    fossil_io_filesys_obj_t entries[64];
+    size_t entry_count = 0;
+    if (fossil_io_filesys_dir_list(base_dir, entries, 64, &entry_count) != 0)
         return;
 
     struct
     {
-        char name[PATH_MAX];
+        char name[FOSSIL_FILESYS_MAX_PATH];
         f32 score;
         int exists;
     } candidates[32];
@@ -446,27 +453,45 @@ void fossil_it_magic_path_suggest(
     f32 best_score = 0.0f;
     i32 idx = 0;
 
-    while (fossil_io_dir_iter_next(&it) > 0 && idx < 32)
+    for (size_t i = 0; i < entry_count && idx < 32; ++i)
     {
-        ccstring entry_name = it.current.name;
-        if (!strcmp(entry_name, ".") || !strcmp(entry_name, ".."))
+        ccstring entry_name = entries[i].path;
+        char basename[FOSSIL_FILESYS_MAX_PATH];
+        if (fossil_io_filesys_basename(entry_name, basename, sizeof(basename)) != 0)
+            continue;
+        if (!strcmp(basename, ".") || !strcmp(basename, ".."))
             continue;
 
-        f32 score = fossil_it_magic_similarity(bad_path, entry_name);
+        f32 score = fossil_it_magic_similarity(bad_path, basename);
 
-        if (fossil_io_cstring_case_starts_with(bad_path, entry_name))
+        if (fossil_io_cstring_case_starts_with(bad_path, basename))
             score += 0.10f;
-        if (strlen(bad_path) <= strlen(entry_name) &&
-            fossil_io_cstring_case_ends_with(entry_name, bad_path))
+        if (strlen(bad_path) <= strlen(basename) &&
+            fossil_io_cstring_case_ends_with(basename, bad_path))
             score += 0.07f;
 
         if (score < 0.18f)
             continue;
 
-        if (fossil_io_dir_join(base_dir, entry_name, candidates[idx].name, sizeof(candidates[idx].name)) != 0)
-            continue;
+        // Compose candidate path
+        char candidate_path[FOSSIL_FILESYS_MAX_PATH];
+        size_t base_len = strlen(base_dir);
+        if (base_len > 0 && (base_dir[base_len - 1] == '/' || base_dir[base_len - 1] == '\\')) {
+            int n = snprintf(candidate_path, sizeof(candidate_path), "%s%s", base_dir, basename);
+            if (n < 0 || (size_t)n >= sizeof(candidate_path)) {
+                candidate_path[sizeof(candidate_path) - 1] = cterm;
+            }
+        } else {
+            int n = snprintf(candidate_path, sizeof(candidate_path), "%s/%s", base_dir, basename);
+            if (n < 0 || (size_t)n >= sizeof(candidate_path)) {
+                candidate_path[sizeof(candidate_path) - 1] = cterm;
+            }
+        }
 
-        candidates[idx].exists = (fossil_io_dir_exists(candidates[idx].name) > 0 || fossil_io_dir_is_file(candidates[idx].name) > 0);
+        strncpy(candidates[idx].name, candidate_path, sizeof(candidates[idx].name) - 1);
+        candidates[idx].name[sizeof(candidates[idx].name) - 1] = cterm;
+
+        candidates[idx].exists = (fossil_io_filesys_exists(candidate_path) > 0);
         candidates[idx].score = score;
         if (score > best_score)
         {
@@ -474,8 +499,8 @@ void fossil_it_magic_path_suggest(
         }
         idx++;
     }
-    fossil_io_dir_iter_close(&it);
 
+    // Sort by score descending
     for (i32 i = 0; i < idx - 1; i++)
     {
         for (i32 j = i + 1; j < idx; j++)
@@ -484,7 +509,7 @@ void fossil_it_magic_path_suggest(
             {
                 struct
                 {
-                    char name[PATH_MAX];
+                    char name[FOSSIL_FILESYS_MAX_PATH];
                     f32 score;
                     int exists;
                 } tmp;
@@ -608,33 +633,19 @@ void fossil_it_magic_danger_analyze(
     if (safe_path)
         fossil_io_cstring_free_safe(&safe_path);
 
-    i32 is_dir = fossil_io_dir_is_directory(path);
-    i32 is_file = fossil_io_dir_is_file(path);
-    i32 is_symlink = fossil_io_dir_is_symlink(path);
+    fossil_io_filesys_obj_t obj;
+    int stat_ok = (fossil_io_filesys_stat(path, &obj) == 0);
 
-    out->is_directory = (is_dir > 0);
-    out->is_symlink = (is_symlink > 0);
+    out->is_directory = (stat_ok && obj.type == FOSSIL_FILESYS_TYPE_DIR);
+    out->is_symlink = (stat_ok && obj.type == FOSSIL_FILESYS_TYPE_LINK);
 
-// Permissions and size/stat
-#ifdef _WIN32
-    out->writable = (_access(path, 2) == 0);
-    out->world_writable = 0;
-    struct _stat st;
-    int stat_ok = _stat(path, &st) == 0;
-#else
-    struct stat st;
-    int stat_ok = stat(path, &st) == 0;
-    if (stat_ok)
-    {
-        out->writable = (st.st_mode & S_IWUSR) != 0;
-        out->world_writable = (st.st_mode & S_IWOTH) != 0;
-    }
-    else
-    {
+    if (stat_ok) {
+        out->writable = obj.perms.write;
+        out->world_writable = (obj.mode & 0002) != 0;
+    } else {
         out->writable = 0;
         out->world_writable = 0;
     }
-#endif
 
     // Code/secrets detection
     out->contains_code = out->is_directory ? fossil_it_magic_contains_git(path) : fossil_it_magic_is_code_file(path);
@@ -642,34 +653,19 @@ void fossil_it_magic_danger_analyze(
 
     // Size
     u64 sz = 0;
-    if (out->is_directory)
-    {
-        fossil_io_dir_size(path, &sz);
-    }
-    else if (is_file > 0)
-    {
-#ifdef _WIN32
-        if (stat_ok)
-            sz = (u64)st.st_size;
-#else
-        if (stat_ok)
-            sz = (u64)st.st_size;
-#endif
+    if (stat_ok) {
+        sz = (u64)obj.size;
     }
     out->large_size = (sz > 10 * 1024 * 1024);
 
     // Suspicious extension
     static ccstring danger_exts[] = {".exe", ".dll", ".bin", ".sh", ".bat", ".cmd", ".scr", ".pif", ".com", ".js", ".vbs", ".elf"};
     out->suspicious_extension = 0;
-    if (!out->is_directory && is_file > 0)
-    {
-        ccstring ext = strrchr(path, '.');
-        if (cnotnull(ext))
-        {
-            for (i32 i = 0; i < (i32)(sizeof(danger_exts) / sizeof(danger_exts[0])); i++)
-            {
-                if (fossil_io_cstring_case_compare(ext, danger_exts[i]) == 0)
-                {
+    if (stat_ok && obj.type == FOSSIL_FILESYS_TYPE_FILE) {
+        char ext[32] = {0};
+        if (fossil_io_filesys_extension(path, ext, sizeof(ext)) == 0 && ext[0]) {
+            for (i32 i = 0; i < (i32)(sizeof(danger_exts) / sizeof(danger_exts[0])); i++) {
+                if (fossil_io_cstring_case_compare(ext, danger_exts[i]) == 0) {
                     out->suspicious_extension = 1;
                     break;
                 }
@@ -680,42 +676,33 @@ void fossil_it_magic_danger_analyze(
     // Recently modified
     out->recently_modified = 0;
     u64 mod_time = 0;
-#ifdef _WIN32
     if (stat_ok)
-        mod_time = (u64)st.st_mtime;
-#else
-    if (stat_ok)
-        mod_time = (u64)st.st_mtime;
-#endif
+        mod_time = (u64)obj.modified_at;
     u64 now = (u64)time(cnull);
     if (mod_time && now && (now > mod_time) && ((now - mod_time) < 24 * 3600))
         out->recently_modified = 1;
 
-    // Contains suspicious files (use directory iterator)
+    // Contains suspicious files (use directory listing)
     out->contains_suspicious_files = 0;
-    if (out->is_directory)
-    {
-        fossil_io_dir_iter_t it;
-        if (fossil_io_dir_iter_open(&it, path) == 0)
-        {
-            while (fossil_io_dir_iter_next(&it) > 0)
-            {
-                ccstring ext = strrchr(it.current.name, '.');
-                if (cnotnull(ext))
-                {
-                    for (i32 i = 0; i < (i32)(sizeof(danger_exts) / sizeof(danger_exts[0])); i++)
-                    {
-                        if (fossil_io_cstring_case_compare(ext, danger_exts[i]) == 0)
-                        {
-                            out->contains_suspicious_files = 1;
-                            break;
+    if (out->is_directory) {
+        fossil_io_filesys_obj_t entries[32];
+        size_t count = 0;
+        if (fossil_io_filesys_dir_list(path, entries, 32, &count) == 0) {
+            for (size_t i = 0; i < count; ++i) {
+                if (entries[i].type == FOSSIL_FILESYS_TYPE_FILE) {
+                    char ext[32] = {0};
+                    if (fossil_io_filesys_extension(entries[i].path, ext, sizeof(ext)) == 0 && ext[0]) {
+                        for (i32 j = 0; j < (i32)(sizeof(danger_exts) / sizeof(danger_exts[0])); j++) {
+                            if (fossil_io_cstring_case_compare(ext, danger_exts[j]) == 0) {
+                                out->contains_suspicious_files = 1;
+                                break;
+                            }
                         }
                     }
                 }
                 if (out->contains_suspicious_files)
                     break;
             }
-            fossil_io_dir_iter_close(&it);
         }
     }
 

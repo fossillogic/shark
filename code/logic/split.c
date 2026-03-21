@@ -36,24 +36,24 @@ int fossil_shark_split(ccstring file_path, size_t split_by_lines,
         return 1;
     }
 
-    struct stat st;
-    if (stat(file_path, &st) != 0)
+    fossil_io_filesys_obj_t src_obj = {0};
+    if (fossil_io_filesys_stat(file_path, &src_obj) != 0)
     {
-        fossil_io_printf("{red}Error: Cannot access '%s': %s{normal}\n", file_path, strerror(errno));
-        return errno;
+        fossil_io_printf("{red}Error: Cannot access '%s'{normal}\n", file_path);
+        return 1;
     }
 
-    if (!S_ISREG(st.st_mode))
+    if (src_obj.type != FOSSIL_FILESYS_TYPE_FILE)
     {
         fossil_io_printf("{red}Error: '%s' is not a regular file{normal}\n", file_path);
         return 1;
     }
 
-    fossil_io_file_t src_stream = {0};
-    if (fossil_io_file_open(&src_stream, file_path, "rb") != 0)
+    fossil_io_filesys_file_t src_stream = {0};
+    if (fossil_io_filesys_file_open(&src_stream, file_path, "rb") != 0)
     {
-        fossil_io_printf("{red}Error: Cannot open '%s': %s{normal}\n", file_path, strerror(errno));
-        return errno;
+        fossil_io_printf("{red}Error: Cannot open '%s'{normal}\n", file_path);
+        return 1;
     }
 
     /* Determine segment size */
@@ -80,12 +80,12 @@ int fossil_shark_split(ccstring file_path, size_t split_by_lines,
     else if (num_segments > 0)
     {
         mode_bytes = true;
-        segment_size = (st.st_size + num_segments - 1) / num_segments;
+        segment_size = (src_obj.size + num_segments - 1) / num_segments;
     }
     else
     {
         fossil_io_printf("{red}Error: Must specify split mode{normal}\n");
-        fossil_io_file_close(&src_stream);
+        fossil_io_filesys_file_close(&src_stream);
         return 1;
     }
 
@@ -98,22 +98,19 @@ int fossil_shark_split(ccstring file_path, size_t split_by_lines,
     size_t delimiter_pos = 0;
     char delimiter_window[256] = {0};
 
-    fossil_io_file_t dest_stream = {0};
+    fossil_io_filesys_file_t dest_stream = {0};
     bool file_open = false;
 
     size_t current_count = 0;
     int segment_num = 0;
 
     size_t n;
-    while ((n = fossil_io_file_read(&src_stream, buffer, 1, sizeof(buffer))) > 0)
+    while ((n = fossil_io_filesys_file_read(&src_stream, buffer, 1, sizeof(buffer))) > 0)
     {
-
         for (size_t i = 0; i < n; i++)
         {
-
             if (!file_open)
             {
-
                 if (suffix_digits > 0)
                 {
                     snprintf(output_file, sizeof(output_file),
@@ -136,12 +133,11 @@ int fossil_shark_split(ccstring file_path, size_t split_by_lines,
                 }
                 else
                 {
-                    if (fossil_io_file_open(&dest_stream, output_file, "wb") != 0)
+                    if (fossil_io_filesys_file_open(&dest_stream, output_file, "wb") != 0)
                     {
-                        fossil_io_printf("{red}Error creating '%s': %s{normal}\n",
-                                         output_file, strerror(errno));
-                        fossil_io_file_close(&src_stream);
-                        return errno;
+                        fossil_io_printf("{red}Error creating '%s'{normal}\n", output_file);
+                        fossil_io_filesys_file_close(&src_stream);
+                        return 1;
                     }
                     fossil_io_printf("{cyan}Creating: %s{normal}\n", output_file);
                 }
@@ -155,11 +151,10 @@ int fossil_shark_split(ccstring file_path, size_t split_by_lines,
 
             if (!dry_run)
             {
-                fossil_io_file_write(&dest_stream, &c, 1, 1);
+                fossil_io_filesys_file_write(&dest_stream, &c, 1, 1);
             }
 
             /* Counting logic */
-
             if (mode_bytes)
             {
                 current_count++;
@@ -171,7 +166,6 @@ int fossil_shark_split(ccstring file_path, size_t split_by_lines,
             }
             else if (mode_delim)
             {
-
                 delimiter_window[delimiter_pos++] = c;
 
                 if (delimiter_pos > delimiter_len)
@@ -188,9 +182,8 @@ int fossil_shark_split(ccstring file_path, size_t split_by_lines,
 
             if (current_count >= segment_size)
             {
-
                 if (file_open && !dry_run)
-                    fossil_io_file_close(&dest_stream);
+                    fossil_io_filesys_file_close(&dest_stream);
 
                 file_open = false;
                 current_count = 0;
@@ -200,9 +193,9 @@ int fossil_shark_split(ccstring file_path, size_t split_by_lines,
     }
 
     if (file_open && !dry_run)
-        fossil_io_file_close(&dest_stream);
+        fossil_io_filesys_file_close(&dest_stream);
 
-    fossil_io_file_close(&src_stream);
+    fossil_io_filesys_file_close(&src_stream);
 
     fossil_io_printf("{green}Split complete: %d segments created{normal}\n", segment_num);
 

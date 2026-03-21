@@ -28,57 +28,46 @@
 static int fossil_fpath_create_path_safe(char *dest, size_t dest_size, ccstring base_path, ccstring suffix)
 {
     if (!dest || !base_path || !suffix || dest_size == 0)
-    {
         return -1;
-    }
 
     // Clear destination buffer
     fossil_sys_memory_zero(dest, dest_size);
 
-    // Find the last directory separator to get the directory part
-    ccstring last_sep = cnull;
-    for (ccstring p = base_path; *p; p++)
-    {
-        if (*p == '/' || *p == '\\')
-        {
-            last_sep = p;
-        }
-    }
+    // Use io_filesys_ API to extract directory and basename
+    char dir[FOSSIL_FILESYS_MAX_PATH];
+    char name[FOSSIL_FILESYS_MAX_PATH];
+    fossil_sys_memory_zero(dir, sizeof(dir));
+    fossil_sys_memory_zero(name, sizeof(name));
 
-    // Calculate required size
-    size_t dir_len = last_sep ? (size_t)(last_sep - base_path + 1) : 0;
-    size_t base_name_len = fossil_io_cstring_length(base_path) - dir_len;
+    if (fossil_io_filesys_dirname(base_path, dir, sizeof(dir)) < 0)
+        return -1;
+    if (fossil_io_filesys_basename(base_path, name, sizeof(name)) < 0)
+        return -1;
+
+    // Remove extension from basename
+    char *dot = cnull;
+    for (char *p = name; *p; ++p)
+        if (*p == '.') dot = p;
+    size_t name_len = dot ? (size_t)(dot - name) : fossil_io_cstring_length(name);
+
+    // Compose new filename
+    size_t dir_len = fossil_io_cstring_length(dir);
     size_t suffix_len = fossil_io_cstring_length(suffix);
-    size_t required_size = dir_len + base_name_len + suffix_len + 1;
+    size_t required = dir_len + (dir_len ? 1 : 0) + name_len + suffix_len + 1;
+    if (required > dest_size)
+        return -1;
 
-    if (required_size > dest_size)
-    {
-        return -1; // Buffer too small
+    size_t offset = 0;
+    if (dir_len) {
+        fossil_sys_memory_copy(dest, dir, dir_len);
+        dest[dir_len] = '/';
+        offset = dir_len + 1;
     }
-
-    // Copy directory part if it exists
-    if (dir_len > 0)
-    {
-        fossil_sys_memory_copy(dest, (fossil_sys_memory_t)base_path, dir_len);
-    }
-
-    // Copy base filename (without extension if present)
-    ccstring base_name = base_path + dir_len;
-    ccstring dot = cnull;
-    for (ccstring p = base_name; *p; p++)
-    {
-        if (*p == '.')
-        {
-            dot = p;
-        }
-    }
-
-    size_t name_copy_len = dot ? (size_t)(dot - base_name) : base_name_len;
-    fossil_sys_memory_copy(dest + dir_len, (fossil_sys_memory_t)base_name, name_copy_len);
-
-    // Append suffix
-    fossil_sys_memory_copy(dest + dir_len + name_copy_len, (fossil_sys_memory_t)suffix, suffix_len);
-
+    fossil_sys_memory_copy(dest + offset, name, name_len);
+    offset += name_len;
+    fossil_sys_memory_copy(dest + offset, (void *)suffix, suffix_len);
+    offset += suffix_len;
+    dest[offset] = '\0';
     return 0;
 }
 
@@ -131,7 +120,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     }
 
     // Check if file exists for extract and list operations
-    if ((extract || list) && !fossil_io_file_file_exists(path))
+    if ((extract || list) && fossil_io_filesys_exists(path) != 1)
     {
         fossil_io_printf("{red}Error: Archive file '%s' does not exist.{normal}\n", path);
         return 1;
@@ -140,7 +129,8 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
     // Check permissions
     if (extract || list)
     {
-        if (!fossil_io_file_is_readable(path))
+        fossil_io_filesys_obj_t obj;
+        if (fossil_io_filesys_stat(path, &obj) < 0 || !obj.perms.read)
         {
             fossil_io_printf("{red}Error: Archive file '%s' is not readable.{normal}\n", path);
             return 1;
@@ -280,9 +270,9 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
         fossil_io_printf("{magenta}Archive path hash: %s{normal}\n", hash_buf);
     }
 
-    fossil_io_file_t log_stream;
+    fossil_io_filesys_file_t log_stream;
     COption log_option = cnone();
-    if (!stdout_output && fossil_io_file_open(&log_stream, log_filename, "w") == 0)
+    if (!stdout_output && fossil_io_filesys_file_open(&log_stream, log_filename, "w") == 0)
     {
         log_option = csome(&log_stream);
         char *log_msg = (char *)fossil_sys_memory_alloc(1000);
@@ -305,15 +295,15 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             size_t len = fossil_io_cstring_length(log_msg);
             log_msg[len] = '\n';
             log_msg[len + 1] = '\0';
-            fossil_io_file_write(&log_stream, log_msg, fossil_io_cstring_length(log_msg), 1);
+            fossil_io_filesys_file_write(&log_stream, log_msg, 1, fossil_io_cstring_length(log_msg));
 
             // Log the hash of the archive path
             size_t hash_len = fossil_io_cstring_length(hash_buf);
             if (hash_len > 0)
             {
-                fossil_io_file_write(&log_stream, "Archive path hash: ", 20, 1);
-                fossil_io_file_write(&log_stream, hash_buf, hash_len, 1);
-                fossil_io_file_write(&log_stream, "\n", 1, 1);
+                fossil_io_filesys_file_write(&log_stream, "Archive path hash: ", 1, 20);
+                fossil_io_filesys_file_write(&log_stream, hash_buf, 1, hash_len);
+                fossil_io_filesys_file_write(&log_stream, "\n", 1, 1);
             }
 
             fossil_sys_memory_free(log_msg);
@@ -341,7 +331,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             fossil_sys_memory_free(sanitized_exclude);
             if (log_option.is_some)
             {
-                fossil_io_file_close((fossil_io_file_t *)log_option.value);
+                fossil_io_filesys_file_close((fossil_io_filesys_file_t *)log_option.value);
             }
             return 1;
         }
@@ -361,7 +351,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
                 fossil_sys_memory_free(sanitized_exclude);
                 if (log_option.is_some)
                 {
-                    fossil_io_file_close((fossil_io_file_t *)log_option.value);
+                    fossil_io_filesys_file_close((fossil_io_filesys_file_t *)log_option.value);
                 }
                 return 0;
             }
@@ -478,10 +468,10 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
             }
             result_msg[written] = '\n';
             result_msg[written + 1] = '\0';
-            fossil_io_file_write((fossil_io_file_t *)log_option.value, result_msg, fossil_io_cstring_length(result_msg), 1);
+            fossil_io_filesys_file_write((fossil_io_filesys_file_t *)log_option.value, result_msg, 1, fossil_io_cstring_length(result_msg));
             fossil_sys_memory_free(result_msg);
         }
-        fossil_io_file_close((fossil_io_file_t *)log_option.value);
+        fossil_io_filesys_file_close((fossil_io_filesys_file_t *)log_option.value);
     }
 
     // Clean up allocated memory

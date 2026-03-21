@@ -38,16 +38,16 @@ static ccstring fossil_io_cstring_find_char(ccstring str, char ch)
     return NULL;
 }
 
-// Helper: detect if file is binary
+// Helper: detect if file is binary using io_filesys_
 static bool is_binary_file(ccstring file_path)
 {
-    fossil_io_file_t f;
-    if (fossil_io_file_open(&f, file_path, "rb") != 0)
+    fossil_io_filesys_file_t f;
+    if (fossil_io_filesys_file_open(&f, file_path, "rb") != 0)
         return true;
 
     unsigned char buf[512];
-    size_t n = fossil_io_file_read(&f, buf, 1, sizeof(buf));
-    fossil_io_file_close(&f);
+    size_t n = fossil_io_filesys_file_read(&f, buf, 1, sizeof(buf));
+    fossil_io_filesys_file_close(&f);
 
     for (size_t i = 0; i < n; i++)
         if (buf[i] == 0)
@@ -78,19 +78,13 @@ static bool str_match(ccstring str, fossil_io_regex_t *regex)
     return fossil_io_regex_match(regex, str, NULL) > 0;
 }
 
-// Helper: check file size filter
+// Helper: check file size filter using io_filesys_
 static bool check_file_size(ccstring file_path, uint64_t min_size, uint64_t max_size)
 {
     if (!file_path)
         return false;
 
-    fossil_io_file_t f;
-    if (fossil_io_file_open(&f, file_path, "rb") != 0)
-        return false;
-
-    int32_t size = fossil_io_file_get_size(&f);
-    fossil_io_file_close(&f);
-
+    int32_t size = fossil_io_filesys_file_size(file_path);
     if (size < 0)
         return false;
     if (min_size > 0 && (uint64_t)size < min_size)
@@ -100,7 +94,7 @@ static bool check_file_size(ccstring file_path, uint64_t min_size, uint64_t max_
     return true;
 }
 
-// Helper: search within file contents with context
+// Helper: search within file contents with context using io_filesys_
 static bool content_match(ccstring file_path, fossil_io_regex_t *regex, int *line_num)
 {
     if (!regex)
@@ -109,14 +103,14 @@ static bool content_match(ccstring file_path, fossil_io_regex_t *regex, int *lin
     if (is_binary_file(file_path))
         return false;
 
-    fossil_io_file_t stream;
-    if (fossil_io_file_open(&stream, file_path, "r") != 0)
+    fossil_io_filesys_file_t stream;
+    if (fossil_io_filesys_file_open(&stream, file_path, "r") != 0)
         return false;
 
     char *line = (char *)fossil_sys_memory_alloc(4096);
     if (cunlikely(!line))
     {
-        fossil_io_file_close(&stream);
+        fossil_io_filesys_file_close(&stream);
         return false;
     }
 
@@ -124,7 +118,9 @@ static bool content_match(ccstring file_path, fossil_io_regex_t *regex, int *lin
     int current_line = 0;
     size_t matches = 0;
 
-    while (fossil_io_gets_from_stream(line, 4096, &stream))
+    // Use fgets on stream.handle (assume FILE*)
+    FILE *fp = (FILE *)stream.handle;
+    while (fgets(line, 4096, fp))
     {
         current_line++;
         if (fossil_io_regex_match(regex, line, NULL) > 0)
@@ -141,42 +137,49 @@ static bool content_match(ccstring file_path, fossil_io_regex_t *regex, int *lin
     }
 
     fossil_sys_memory_free(line);
-    fossil_io_file_close(&stream);
+    fossil_io_filesys_file_close(&stream);
     return found;
 }
 
+// Directory traversal using io_filesys_
 static int search_recursive(ccstring path, bool recursive,
                             fossil_io_regex_t *name_regex, fossil_io_regex_t *content_regex,
                             bool has_content_pattern, uint64_t min_size, uint64_t max_size,
                             bool exclude_hidden)
 {
-    fossil_io_dir_iter_t it;
-    int32_t rc = fossil_io_dir_iter_open(&it, path);
+    // Directory listing buffer
+    fossil_io_filesys_obj_t entries[256];
+    size_t entry_count = 0;
+    int32_t rc = fossil_io_filesys_dir_list(path, entries, 256, &entry_count);
     if (rc != 0)
     {
         fossil_io_printf("{red}Error opening directory: %s{normal}\n", path);
         return rc;
     }
 
-    while (fossil_io_dir_iter_next(&it) > 0)
+    for (size_t i = 0; i < entry_count; ++i)
     {
-        fossil_io_dir_entry_t *entry = &it.current;
-        if (fossil_io_cstring_equals(entry->name, ".") ||
-            fossil_io_cstring_equals(entry->name, ".."))
+        fossil_io_filesys_obj_t *entry = &entries[i];
+        // Extract just the filename for matching
+        char filename[FOSSIL_FILESYS_MAX_PATH];
+        if (fossil_io_filesys_basename(entry->path, filename, sizeof(filename)) != 0)
             continue;
 
-        if (exclude_hidden && entry->name[0] == '.')
+        if (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0)
             continue;
 
-        if (entry->type == 1)
-        { // Directory
+        if (exclude_hidden && filename[0] == '.')
+            continue;
+
+        if (entry->type == FOSSIL_FILESYS_TYPE_DIR)
+        {
             if (recursive)
                 search_recursive(entry->path, recursive, name_regex, content_regex,
                                  has_content_pattern, min_size, max_size, exclude_hidden);
         }
-        else if (entry->type == 0)
-        { // Regular file
-            if (!str_match(entry->name, name_regex))
+        else if (entry->type == FOSSIL_FILESYS_TYPE_FILE)
+        {
+            if (!str_match(filename, name_regex))
                 continue;
 
             if (!check_file_size(entry->path, min_size, max_size))
@@ -196,8 +199,6 @@ static int search_recursive(ccstring path, bool recursive,
             }
         }
     }
-
-    fossil_io_dir_iter_close(&it);
     return 0;
 }
 
