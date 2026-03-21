@@ -521,12 +521,8 @@ FOSSIL_TEST(c_test_copy_multiple_files_in_directory)
     // Create multiple files
     for (int i = 0; i < 5; i++)
     {
-        char filename[64];
-#ifdef _WIN32
-        snprintf(filename, sizeof(filename), "multi_files_src\\file%d.txt", i);
-#else
+        char filename[32];
         snprintf(filename, sizeof(filename), "multi_files_src/file%d.txt", i);
-#endif
         FILE *file = fopen(filename, "w");
         ASSUME_NOT_CNULL(file);
         fprintf(file, "Content of file %d\n", i);
@@ -540,34 +536,22 @@ FOSSIL_TEST(c_test_copy_multiple_files_in_directory)
     // Verify all files were copied
     for (int i = 0; i < 5; i++)
     {
-        char filename[64];
-#ifdef _WIN32
-        snprintf(filename, sizeof(filename), "multi_files_dest\\file%d.txt", i);
-#else
+        char filename[32];
         snprintf(filename, sizeof(filename), "multi_files_dest/file%d.txt", i);
-#endif
         ASSUME_ITS_TRUE(fossil_io_filesys_exists(filename) > 0);
     }
 
     // Clean up
     for (int i = 0; i < 5; i++)
     {
-        char filename[64];
-#ifdef _WIN32
-        snprintf(filename, sizeof(filename), "multi_files_src\\file%d.txt", i);
-#else
+        char filename[32];
         snprintf(filename, sizeof(filename), "multi_files_src/file%d.txt", i);
-#endif
         remove(filename);
     }
     for (int i = 0; i < 5; i++)
     {
-        char filename[64];
-#ifdef _WIN32
-        snprintf(filename, sizeof(filename), "multi_files_dest\\file%d.txt", i);
-#else
+        char filename[32];
         snprintf(filename, sizeof(filename), "multi_files_dest/file%d.txt", i);
-#endif
         remove(filename);
     }
 #ifdef _WIN32
@@ -577,7 +561,6 @@ FOSSIL_TEST(c_test_copy_multiple_files_in_directory)
     rmdir("multi_files_src");
     rmdir("multi_files_dest");
 #endif
-}
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
