@@ -26,22 +26,6 @@
 
 #define PATH_MAX_LEN 1024
 
-static int get_mod_time(ccstring path, time_t *mod_time)
-{
-#if defined(_WIN32)
-    struct _stat st;
-    if (_stat(path, &st) != 0)
-        return errno;
-    *mod_time = st.st_mtime;
-#else
-    struct stat st;
-    if (stat(path, &st) != 0)
-        return errno;
-    *mod_time = st.st_mtime;
-#endif
-    return 0;
-}
-
 static int compute_file_hash(ccstring path, char *hash_out, size_t hash_out_len)
 {
     // Use SHA256 for demonstration; adjust as needed

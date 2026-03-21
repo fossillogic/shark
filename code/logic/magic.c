@@ -476,10 +476,17 @@ void fossil_it_magic_path_suggest(
         // Compose candidate path
         char candidate_path[FOSSIL_FILESYS_MAX_PATH];
         size_t base_len = strlen(base_dir);
-        if (base_len > 0 && (base_dir[base_len - 1] == '/' || base_dir[base_len - 1] == '\\'))
-            snprintf(candidate_path, sizeof(candidate_path), "%s%s", base_dir, basename);
-        else
-            snprintf(candidate_path, sizeof(candidate_path), "%s/%s", base_dir, basename);
+        if (base_len > 0 && (base_dir[base_len - 1] == '/' || base_dir[base_len - 1] == '\\')) {
+            int n = snprintf(candidate_path, sizeof(candidate_path), "%s%s", base_dir, basename);
+            if (n < 0 || (size_t)n >= sizeof(candidate_path)) {
+                candidate_path[sizeof(candidate_path) - 1] = cterm;
+            }
+        } else {
+            int n = snprintf(candidate_path, sizeof(candidate_path), "%s/%s", base_dir, basename);
+            if (n < 0 || (size_t)n >= sizeof(candidate_path)) {
+                candidate_path[sizeof(candidate_path) - 1] = cterm;
+            }
+        }
 
         strncpy(candidates[idx].name, candidate_path, sizeof(candidates[idx].name) - 1);
         candidates[idx].name[sizeof(candidates[idx].name) - 1] = cterm;
