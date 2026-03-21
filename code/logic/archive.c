@@ -65,7 +65,7 @@ static int fossil_fpath_create_path_safe(char *dest, size_t dest_size, ccstring 
     }
     fossil_sys_memory_copy(dest + offset, name, name_len);
     offset += name_len;
-    fossil_sys_memory_copy(dest + offset, (const void *)suffix, suffix_len);
+    fossil_sys_memory_copy(dest + offset, (void *)suffix, suffix_len);
     offset += suffix_len;
     dest[offset] = '\0';
     return 0;
