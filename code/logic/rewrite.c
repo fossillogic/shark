@@ -24,6 +24,56 @@
  */
 #include "fossil/code/commands.h"
 
+//
+#include <time.h>
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#else
+#include <utime.h>
+#endif
+
+/**
+ * Set the access and modification times of a file.
+ * Returns 0 on success, -1 on failure.
+ */
+int fossil_io_filesys_set_times(const char *path, time_t accessed_at, time_t modified_at)
+{
+    if (!path)
+        return -1;
+
+#if defined(_WIN32) || defined(_WIN64)
+    // Convert time_t to FILETIME
+    HANDLE hFile = CreateFileA(
+        path, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE)
+        return -1;
+
+    // Windows FILETIME is in 100-nanosecond intervals since Jan 1, 1601 (UTC)
+    ULONGLONG unix_epoch = 11644473600ULL;
+    ULONGLONG access_time = ((ULONGLONG)accessed_at + unix_epoch) * 10000000ULL;
+    ULONGLONG mod_time = ((ULONGLONG)modified_at + unix_epoch) * 10000000ULL;
+
+    FILETIME ftAccess, ftWrite;
+    ftAccess.dwLowDateTime = (DWORD)access_time;
+    ftAccess.dwHighDateTime = (DWORD)(access_time >> 32);
+    ftWrite.dwLowDateTime = (DWORD)mod_time;
+    ftWrite.dwHighDateTime = (DWORD)(mod_time >> 32);
+
+    int result = 0;
+    if (!SetFileTime(hFile, NULL, &ftAccess, &ftWrite))
+        result = -1;
+
+    CloseHandle(hFile);
+    return result;
+#else
+    struct utimbuf times;
+    times.actime = accessed_at;
+    times.modtime = modified_at;
+    return utime(path, &times);
+#endif
+}
+
 int fossil_shark_rewrite(const char *path, bool in_place, bool append,
                          const char *new_content, size_t size,
                          bool update_access_time, bool update_mod_time)
@@ -79,24 +129,14 @@ int fossil_shark_rewrite(const char *path, bool in_place, bool append,
         if (fossil_io_filesys_stat(path, &obj) != 0)
             return -1;
         time_t now = time(NULL);
+        time_t accessed_at = obj.accessed_at;
+        time_t modified_at = obj.modified_at;
         if (update_access_time)
-            obj.accessed_at = now;
+            accessed_at = now;
         if (update_mod_time)
-            obj.modified_at = now;
-        // If you have a function to set timestamps, use it here.
-        // Otherwise, platform-specific code may be needed.
-        // Example: fossil_io_filesys_set_times(path, obj.accessed_at, obj.modified_at);
-        // If not available, fallback to POSIX utime/utimes or Windows SetFileTime as needed.
-#if defined(_WIN32) || defined(_WIN64)
-        // Platform-specific: not implemented here, see your abstraction layer.
-#else
-        struct utimbuf new_times = {
-            .actime = obj.accessed_at,
-            .modtime = obj.modified_at
-        };
-        if (utime(path, &new_times) != 0)
+            modified_at = now;
+        if (fossil_io_filesys_set_times(path, accessed_at, modified_at) != 0)
             return -1;
-#endif
     }
 
     return 0;
