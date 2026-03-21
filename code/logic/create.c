@@ -24,53 +24,29 @@
  */
 #include "fossil/code/commands.h"
 
-static int create_parent_dirs(ccstring path)
+static int create_parent_dirs(const char *path)
 {
-    cstring tmp = fossil_io_cstring_create_safe(path, 4096);
-    if (!tmp)
-        return 1;
+    char dir_path[FOSSIL_FILESYS_MAX_PATH];
+    int32_t rc = fossil_io_filesys_dirname(path, dir_path, sizeof(dir_path));
+    if (rc < 0 || dir_path[0] == '\0')
+        return 0; // root or error, nothing to do
 
-    cstring dir_path = fossil_io_cstring_create_safe(dirname(tmp), 4096);
-    fossil_io_cstring_free_safe(&tmp);
-
-    if (!dir_path)
-        return 1;
-
-    struct stat st;
-    if (stat(dir_path, &st) == 0)
-    {
-        fossil_io_cstring_free_safe(&dir_path);
+    if (fossil_io_filesys_exists(dir_path) == 1)
         return 0; // already exists
-    }
 
     // Recursively create parent directories
     if (create_parent_dirs(dir_path) != 0)
-    {
-        fossil_io_cstring_free_safe(&dir_path);
+        return 1;
+
+    rc = fossil_io_filesys_dir_create(dir_path, false);
+    if (rc < 0) {
+        fossil_io_printf("{red}Error creating directory '%s': %s{normal}\n", dir_path, strerror(errno));
         return 1;
     }
-
-#ifdef _WIN32
-    if (_mkdir(dir_path) != 0)
-    {
-#else
-    if (mkdir(dir_path, 0755) != 0)
-    {
-#endif
-        if (errno != EEXIST)
-        {
-            fossil_io_printf("{red}Error creating directory '%s': %s{normal}\n", dir_path, strerror(errno));
-            fossil_io_cstring_free_safe(&dir_path);
-            return errno;
-        }
-    }
-
-    fossil_io_cstring_free_safe(&dir_path);
     return 0;
 }
 
-int fossil_shark_create(ccstring path, bool create_parents,
-                        ccstring type)
+int fossil_shark_create(const char *path, bool create_parents, const char *type)
 {
     if (cunlikely(!path || !type))
     {
@@ -84,34 +60,37 @@ int fossil_shark_create(ccstring path, bool create_parents,
             return 1;
     }
 
-    if (fossil_io_file_file_exists(path))
+    int32_t exists = fossil_io_filesys_exists(path);
+    if (exists == 1)
     {
         fossil_io_printf("{red}Error: '%s' already exists.{normal}\n", path);
         return 1;
     }
-
-    if (fossil_io_cstring_equals(type, "file"))
+    else if (exists < 0)
     {
-        fossil_io_file_t stream;
-        if (cunlikely(fossil_io_file_open(&stream, path, "w") != 0))
+        fossil_io_printf("{red}Error: Unable to check existence of '%s'.{normal}\n", path);
+        return 1;
+    }
+
+    if (strcmp(type, "file") == 0)
+    {
+        fossil_io_filesys_file_t file;
+        int32_t rc = fossil_io_filesys_file_open(&file, path, "w");
+        if (rc < 0)
         {
             fossil_io_printf("{red}Error creating file '%s': %s{normal}\n", path, strerror(errno));
-            return errno;
+            return 1;
         }
-        fossil_io_file_close(&stream);
+        fossil_io_filesys_file_close(&file);
         fossil_io_printf("{cyan}File '%s' created successfully.{normal}\n", path);
     }
-    else if (fossil_io_cstring_equals(type, "dir"))
+    else if (strcmp(type, "dir") == 0)
     {
-#ifdef _WIN32
-        if (cunlikely(_mkdir(path) != 0))
+        int32_t rc = fossil_io_filesys_dir_create(path, false);
+        if (rc < 0)
         {
-#else
-        if (cunlikely(mkdir(path, 0755) != 0))
-        {
-#endif
             fossil_io_printf("{red}Error creating directory '%s': %s{normal}\n", path, strerror(errno));
-            return errno;
+            return 1;
         }
         fossil_io_printf("{blue}Directory '%s' created successfully.{normal}\n", path);
     }

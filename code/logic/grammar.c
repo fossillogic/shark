@@ -26,34 +26,43 @@
 
 static char *read_file(const char *path)
 {
-    fossil_io_file_t stream;
-    if (fossil_io_file_open(&stream, path, "rb") != 0)
+    fossil_io_filesys_file_t file;
+    if (fossil_io_filesys_file_open(&file, path, "rb") != 0)
         return cnull;
 
-    if (fossil_io_file_seek(&stream, 0, SEEK_END) != 0)
+    if (fossil_io_filesys_file_seek(&file, 0, SEEK_END) != 0)
     {
-        fossil_io_file_close(&stream);
+        fossil_io_filesys_file_close(&file);
         return cnull;
     }
-    int32_t size = fossil_io_file_tell(&stream);
-    fossil_io_file_rewind(&stream);
+    int64_t size = fossil_io_filesys_file_tell(&file);
+    if (size < 0)
+    {
+        fossil_io_filesys_file_close(&file);
+        return cnull;
+    }
+    if (fossil_io_filesys_file_seek(&file, 0, SEEK_SET) != 0)
+    {
+        fossil_io_filesys_file_close(&file);
+        return cnull;
+    }
 
-    char *buf = malloc(size + 1);
+    char *buf = malloc((size_t)size + 1);
     if (!buf)
     {
-        fossil_io_file_close(&stream);
+        fossil_io_filesys_file_close(&file);
         return cnull;
     }
 
-    size_t read = fossil_io_file_read(&stream, buf, 1, size);
+    size_t read = fossil_io_filesys_file_read(&file, buf, 1, (size_t)size);
     if (read != (size_t)size)
     {
         free(buf);
-        fossil_io_file_close(&stream);
+        fossil_io_filesys_file_close(&file);
         return cnull;
     }
     buf[size] = cterm;
-    fossil_io_file_close(&stream);
+    fossil_io_filesys_file_close(&file);
     return buf;
 }
 

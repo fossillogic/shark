@@ -24,7 +24,8 @@
  */
 #include "fossil/code/commands.h"
 
-cstring fossil_io_file_path_normalize(ccstring path)
+// Filesys
+cstring fossil_io_filesys_file_path_normalize(ccstring path)
 {
     if (!cnotnull(path))
         return cnull;
@@ -57,7 +58,8 @@ static int create_backup(ccstring dest)
         return -1;
     }
 
-    if (fossil_io_file_backup(dest, ".bak") != 0)
+    // Use io_filesys_ for backup (copy)
+    if (fossil_io_filesys_copy(dest, backup_path, true) != 0)
     {
         fossil_io_printf("{red}Failed to create backup: %s{normal}\n", strerror(errno));
         fossil_io_cstring_free(backup_path);
@@ -94,7 +96,7 @@ static bool confirm_overwrite(ccstring dest)
 
 static int handle_atomic_move(ccstring src, ccstring dest)
 {
-    if (fossil_io_file_move(src, dest) != 0)
+    if (fossil_io_filesys_move(src, dest) != 0)
     {
         fossil_io_printf("{red}Atomic move failed: %s{normal}\n", strerror(errno));
         return errno;
@@ -107,7 +109,7 @@ static int handle_move_with_progress(ccstring src, ccstring dest)
 {
     fossil_io_printf("{cyan}Moving '%s' to '%s'{normal}\n", src, dest);
 
-    if (fossil_io_file_move(src, dest) != 0)
+    if (fossil_io_filesys_move(src, dest) != 0)
     {
         fossil_io_printf("{red}Move with progress failed: %s{normal}\n", strerror(errno));
         return errno;
@@ -131,7 +133,7 @@ static int filter_by_patterns(ccstring src, ccstring dest, ccstring exclude, ccs
         return 0;
     }
 
-    if (fossil_io_file_move(src, dest) != 0)
+    if (fossil_io_filesys_move(src, dest) != 0)
     {
         fossil_io_printf("{red}Pattern-filtered move failed: %s{normal}\n", strerror(errno));
         return errno;
@@ -153,8 +155,8 @@ int fossil_shark_move(ccstring src, ccstring dest,
     }
 
     // Normalize paths for cross-platform compatibility
-    cstring norm_src = fossil_io_file_path_normalize(src);
-    cstring norm_dest = fossil_io_file_path_normalize(dest);
+    cstring norm_src = fossil_io_filesys_file_path_normalize(src);
+    cstring norm_dest = fossil_io_filesys_file_path_normalize(dest);
 
     if (!cnotnull(norm_src) || !cnotnull(norm_dest))
     {
@@ -174,9 +176,9 @@ int fossil_shark_move(ccstring src, ccstring dest,
         return 0;
     }
 
-    bool dest_exists = fossil_io_file_file_exists(norm_dest);
+    int32_t dest_exists = fossil_io_filesys_exists(norm_dest);
 
-    if (clikely(dest_exists))
+    if (clikely(dest_exists > 0))
     {
         if (backup)
         {
@@ -250,7 +252,7 @@ int fossil_shark_move(ccstring src, ccstring dest,
         return 0;
     }
 
-    if (fossil_io_file_move(norm_src, norm_dest) != 0)
+    if (fossil_io_filesys_move(norm_src, norm_dest) != 0)
     {
         fossil_io_printf("{red}Failed to move: %s{normal}\n", strerror(errno));
         fossil_io_cstring_free(norm_src);

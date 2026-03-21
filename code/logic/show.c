@@ -26,7 +26,7 @@
 
 #define INDENT_SIZE 4
 
-static void print_size(off_t size, bool human_readable)
+static void print_size(size_t size, bool human_readable)
 {
     if (!human_readable)
     {
@@ -44,31 +44,24 @@ static void print_size(off_t size, bool human_readable)
     fossil_io_printf("{blue,underline}%.1f%s{normal} ", sz, units[i]);
 }
 
-static void print_permissions_advanced(const char *filename)
+static void print_permissions_advanced(const fossil_io_filesys_obj_t *obj)
 {
-#ifdef _WIN32
     fossil_io_printf("{yellow,bold}%c{normal}", '-');
-    fossil_io_printf("{green}%c{normal}", fossil_io_file_is_readable(filename) ? 'r' : '-');
-    fossil_io_printf("{green}%c{normal}", fossil_io_file_is_writable(filename) ? 'w' : '-');
-    fossil_io_printf("{green}%c{normal} ", fossil_io_file_is_executable(filename) ? 'x' : '-');
-#else
-    fossil_io_printf("{yellow,bold}%c{normal}", '-');
-    fossil_io_printf("{green}%c{normal}", fossil_io_file_is_readable(filename) ? 'r' : '-');
-    fossil_io_printf("{green}%c{normal}", fossil_io_file_is_writable(filename) ? 'w' : '-');
-    fossil_io_printf("{green}%c{normal}", fossil_io_file_is_executable(filename) ? 'x' : '-');
+    fossil_io_printf("{green}%c{normal}", obj->perms.read ? 'r' : '-');
+    fossil_io_printf("{green}%c{normal}", obj->perms.write ? 'w' : '-');
+    fossil_io_printf("{green}%c{normal}", obj->perms.execute ? 'x' : '-');
     fossil_io_printf("{magenta}---{normal}");
     fossil_io_printf("{cyan}---{normal} ");
-#endif
 }
 
-static bool parse_size_filter(ccstring size_filter, off_t file_size)
+static bool parse_size_filter(ccstring size_filter, size_t file_size)
 {
     if (!size_filter)
         return true;
 
     char op = size_filter[0];
     ccstring value = size_filter + 1;
-    off_t target = strtoll(value, NULL, 10);
+    size_t target = strtoull(value, NULL, 10);
 
     if (strchr(value, 'M'))
         target *= 1024 * 1024;
@@ -90,18 +83,18 @@ static bool parse_size_filter(ccstring size_filter, off_t file_size)
     }
 }
 
-static bool matches_filters(fossil_io_dir_entry_t *entry, ccstring match_pattern,
+static bool matches_filters(const fossil_io_filesys_obj_t *entry, ccstring match_pattern,
                             ccstring type_filter, ccstring size_filter)
 {
-    if (match_pattern && strstr(entry->name, match_pattern) == NULL)
+    if (match_pattern && strstr(entry->path, match_pattern) == NULL)
         return false;
     if (type_filter)
     {
-        if (strcmp(type_filter, "file") == 0 && entry->type != 0)
+        if (strcmp(type_filter, "file") == 0 && entry->type != FOSSIL_FILESYS_TYPE_FILE)
             return false;
-        if (strcmp(type_filter, "dir") == 0 && entry->type != 1)
+        if (strcmp(type_filter, "dir") == 0 && entry->type != FOSSIL_FILESYS_TYPE_DIR)
             return false;
-        if (strcmp(type_filter, "link") == 0 && entry->type != 2)
+        if (strcmp(type_filter, "link") == 0 && entry->type != FOSSIL_FILESYS_TYPE_LINK)
             return false;
     }
     if (!parse_size_filter(size_filter, entry->size))
@@ -109,41 +102,45 @@ static bool matches_filters(fossil_io_dir_entry_t *entry, ccstring match_pattern
     return true;
 }
 
+#define MAX_ENTRIES 1024
+
 static int show_list(ccstring path, bool show_all, bool long_format,
                      bool human_readable, bool recursive, ccstring format,
                      bool show_time, int depth, ccstring sort_key,
                      ccstring match_pattern, ccstring size_filter, ccstring type_filter)
 {
-    fossil_io_dir_iter_t it;
-    int32_t open_result = fossil_io_dir_iter_open(&it, path);
-    if (open_result < 0)
-        return open_result;
+    fossil_io_filesys_obj_t entries[MAX_ENTRIES];
+    size_t count = 0;
+    int32_t list_result = fossil_io_filesys_dir_list(path, entries, MAX_ENTRIES, &count);
+    if (list_result < 0)
+        return list_result;
 
     if (depth == 0)
     {
         fossil_io_printf("{bold,underline,blue}Directory Listing: %s{normal}\n", path);
     }
 
-    while (fossil_io_dir_iter_next(&it) > 0 && it.active)
+    for (size_t i = 0; i < count; ++i)
     {
-        fossil_io_dir_entry_t *entry = &it.current;
-        if (!show_all && entry->name[0] == '.')
+        fossil_io_filesys_obj_t *entry = &entries[i];
+        const char *name = entry->path;
+        if (!show_all && name[0] == '.')
             continue;
         if (!matches_filters(entry, match_pattern, type_filter, size_filter))
             continue;
 
-        for (int i = 0; i < depth; ++i)
+        for (int j = 0; j < depth; ++j)
         {
             fossil_io_printf("    ");
         }
 
         if (long_format)
         {
-            print_permissions_advanced(entry->path);
+            print_permissions_advanced(entry);
             print_size(entry->size, human_readable);
             if (show_time)
             {
-                fossil_io_printf("{bright_black}%llu{normal} ", (unsigned long long)entry->modified);
+                fossil_io_printf("{bright_black}%llu{normal} ", (unsigned long long)entry->modified_at);
             }
         }
 
@@ -157,16 +154,16 @@ static int show_list(ccstring path, bool show_all, bool long_format,
             fossil_io_printf("{gray}(%s){normal} ", format);
         }
 
-        fossil_io_printf("{cyan}%s{normal}\n", entry->name);
+        fossil_io_printf("{cyan}%s{normal}\n", name);
 
-        if (recursive && entry->type == 1 && strcmp(entry->name, ".") != 0 && strcmp(entry->name, "..") != 0)
+        if (recursive && entry->type == FOSSIL_FILESYS_TYPE_DIR &&
+            strcmp(name, ".") != 0 && strcmp(name, "..") != 0)
         {
             show_list(entry->path, show_all, long_format, human_readable, recursive, format,
                       show_time, depth + 1, sort_key, match_pattern, size_filter, type_filter);
         }
     }
 
-    fossil_io_dir_iter_close(&it);
     fossil_io_flush();
     return 0;
 }
@@ -176,25 +173,27 @@ static int show_tree(ccstring path, bool show_all, bool long_format,
                      bool show_time, int depth, ccstring sort_key,
                      ccstring match_pattern, ccstring size_filter, ccstring type_filter)
 {
-    fossil_io_dir_iter_t it;
-    int32_t open_result = fossil_io_dir_iter_open(&it, path);
-    if (open_result < 0)
-        return open_result;
+    fossil_io_filesys_obj_t entries[MAX_ENTRIES];
+    size_t count = 0;
+    int32_t list_result = fossil_io_filesys_dir_list(path, entries, MAX_ENTRIES, &count);
+    if (list_result < 0)
+        return list_result;
 
     if (depth == 0)
     {
         fossil_io_printf("{bold,underline,blue}Directory Tree: %s{normal}\n", path);
     }
 
-    while (fossil_io_dir_iter_next(&it) > 0 && it.active)
+    for (size_t i = 0; i < count; ++i)
     {
-        fossil_io_dir_entry_t *entry = &it.current;
-        if (!show_all && entry->name[0] == '.')
+        fossil_io_filesys_obj_t *entry = &entries[i];
+        const char *name = entry->path;
+        if (!show_all && name[0] == '.')
             continue;
         if (!matches_filters(entry, match_pattern, type_filter, size_filter))
             continue;
 
-        for (int i = 0; i < depth; ++i)
+        for (int j = 0; j < depth; ++j)
         {
             fossil_io_printf("    ");
         }
@@ -202,11 +201,11 @@ static int show_tree(ccstring path, bool show_all, bool long_format,
 
         if (long_format)
         {
-            print_permissions_advanced(entry->path);
+            print_permissions_advanced(entry);
             print_size(entry->size, human_readable);
             if (show_time)
             {
-                fossil_io_printf("{bright_black}%llu{normal} ", (unsigned long long)entry->modified);
+                fossil_io_printf("{bright_black}%llu{normal} ", (unsigned long long)entry->modified_at);
             }
         }
 
@@ -220,16 +219,16 @@ static int show_tree(ccstring path, bool show_all, bool long_format,
             fossil_io_printf("{gray}(%s){normal} ", format);
         }
 
-        fossil_io_printf("{cyan}%s{normal}\n", entry->name);
+        fossil_io_printf("{cyan}%s{normal}\n", name);
 
-        if (recursive && entry->type == 1 && strcmp(entry->name, ".") != 0 && strcmp(entry->name, "..") != 0)
+        if (recursive && entry->type == FOSSIL_FILESYS_TYPE_DIR &&
+            strcmp(name, ".") != 0 && strcmp(name, "..") != 0)
         {
             show_tree(entry->path, show_all, long_format, human_readable, recursive, format,
                       show_time, depth + 1, sort_key, match_pattern, size_filter, type_filter);
         }
     }
 
-    fossil_io_dir_iter_close(&it);
     fossil_io_flush();
     return 0;
 }
@@ -239,25 +238,27 @@ static int show_graph(ccstring path, bool show_all, bool long_format,
                       bool show_time, int depth, ccstring sort_key,
                       ccstring match_pattern, ccstring size_filter, ccstring type_filter)
 {
-    fossil_io_dir_iter_t it;
-    int32_t open_result = fossil_io_dir_iter_open(&it, path);
-    if (open_result < 0)
-        return open_result;
+    fossil_io_filesys_obj_t entries[MAX_ENTRIES];
+    size_t count = 0;
+    int32_t list_result = fossil_io_filesys_dir_list(path, entries, MAX_ENTRIES, &count);
+    if (list_result < 0)
+        return list_result;
 
     if (depth == 0)
     {
         fossil_io_printf("{bold,underline,blue}Directory Graph: %s{normal}\n", path);
     }
 
-    while (fossil_io_dir_iter_next(&it) > 0 && it.active)
+    for (size_t i = 0; i < count; ++i)
     {
-        fossil_io_dir_entry_t *entry = &it.current;
-        if (!show_all && entry->name[0] == '.')
+        fossil_io_filesys_obj_t *entry = &entries[i];
+        const char *name = entry->path;
+        if (!show_all && name[0] == '.')
             continue;
         if (!matches_filters(entry, match_pattern, type_filter, size_filter))
             continue;
 
-        for (int i = 0; i < depth; ++i)
+        for (int j = 0; j < depth; ++j)
         {
             fossil_io_printf("    ");
         }
@@ -265,23 +266,23 @@ static int show_graph(ccstring path, bool show_all, bool long_format,
 
         if (long_format)
         {
-            print_permissions_advanced(entry->path);
+            print_permissions_advanced(entry);
             print_size(entry->size, human_readable);
             if (show_time)
             {
-                fossil_io_printf("{bright_black}%llu{normal} ", (unsigned long long)entry->modified);
+                fossil_io_printf("{bright_black}%llu{normal} ", (unsigned long long)entry->modified_at);
             }
         }
-        fossil_io_printf("{magenta}%s{normal}\n", entry->name);
+        fossil_io_printf("{magenta}%s{normal}\n", name);
 
-        if (recursive && entry->type == 1 && strcmp(entry->name, ".") != 0 && strcmp(entry->name, "..") != 0)
+        if (recursive && entry->type == FOSSIL_FILESYS_TYPE_DIR &&
+            strcmp(name, ".") != 0 && strcmp(name, "..") != 0)
         {
             show_graph(entry->path, show_all, long_format, human_readable, recursive, format,
                        show_time, depth + 1, sort_key, match_pattern, size_filter, type_filter);
         }
     }
 
-    fossil_io_dir_iter_close(&it);
     fossil_io_flush();
     return 0;
 }

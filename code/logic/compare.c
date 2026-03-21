@@ -25,7 +25,7 @@
 #include "fossil/code/commands.h"
 
 // Helper: read line from file, return dynamically allocated string
-static cstring read_line(fossil_io_file_t *stream)
+static cstring read_line(fossil_io_filesys_file_t *stream)
 {
     size_t size = 128;
     size_t len = 0;
@@ -37,8 +37,13 @@ static cstring read_line(fossil_io_file_t *stream)
     }
 
     int c;
-    while ((c = fossil_io_getc(stream)) != EOF)
+    while (1)
     {
+        unsigned char ch;
+        size_t n = fossil_io_filesys_file_read(stream, &ch, 1, 1);
+        if (n != 1)
+            break;
+        c = ch;
         if (len + 1 >= size)
         {
             size *= 2;
@@ -55,7 +60,7 @@ static cstring read_line(fossil_io_file_t *stream)
             break;
     }
 
-    if (len == 0 && c == EOF)
+    if (len == 0)
     {
         fossil_sys_memory_free(line);
         return cnull;
@@ -82,16 +87,10 @@ static bool line_equal(ccstring a, ccstring b, bool ignore_case)
 // Helper: check if file is regular file (cross-platform)
 static bool is_regular_file(ccstring path)
 {
-#ifdef _WIN32
-    DWORD attrs = GetFileAttributesA(path);
-    return (attrs != INVALID_FILE_ATTRIBUTES) &&
-           !(attrs & FILE_ATTRIBUTE_DIRECTORY);
-#else
-    struct stat st;
-    if (stat(path, &st) != 0)
+    fossil_io_filesys_obj_t obj;
+    if (fossil_io_filesys_stat(path, &obj) != 0)
         return false;
-    return S_ISREG(st.st_mode);
-#endif
+    return obj.type == FOSSIL_FILESYS_TYPE_FILE;
 }
 
 int fossil_shark_compare(ccstring path1, ccstring path2,
@@ -112,9 +111,9 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
 
     if (binary_diff)
     {
-        fossil_io_file_t f1, f2;
-        if (cunlikely(fossil_io_file_open(&f1, path1, "rb") != 0 ||
-                      fossil_io_file_open(&f2, path2, "rb") != 0))
+        fossil_io_filesys_file_t f1, f2;
+        if (cunlikely(fossil_io_filesys_file_open(&f1, path1, "rb") != 0 ||
+                      fossil_io_filesys_file_open(&f2, path2, "rb") != 0))
         {
             fossil_io_printf("{red}Error: Failed to open files for binary comparison.{normal}\n");
             return 1;
@@ -123,8 +122,12 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
         int diff_found = 0;
         int c1, c2;
         size_t pos = 0;
-        while ((c1 = fossil_io_getc(&f1)) != EOF && (c2 = fossil_io_getc(&f2)) != EOF)
+        unsigned char b1, b2;
+        while (fossil_io_filesys_file_read(&f1, &b1, 1, 1) == 1 &&
+               fossil_io_filesys_file_read(&f2, &b2, 1, 1) == 1)
         {
+            c1 = b1;
+            c2 = b2;
             if (c1 != c2)
             {
                 fossil_io_printf("{cyan}Binary difference at byte %zu: %02x != %02x{normal}\n", pos, c1 & 0xFF, c2 & 0xFF);
@@ -133,18 +136,21 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
             }
             pos++;
         }
-        if (!diff_found && (fossil_io_getc(&f1) != EOF || fossil_io_getc(&f2) != EOF))
+        // Check for length difference
+        if (!diff_found &&
+            (fossil_io_filesys_file_read(&f1, &b1, 1, 1) == 1 ||
+             fossil_io_filesys_file_read(&f2, &b2, 1, 1) == 1))
             diff_found = 1;
-        fossil_io_file_close(&f1);
-        fossil_io_file_close(&f2);
+        fossil_io_filesys_file_close(&f1);
+        fossil_io_filesys_file_close(&f2);
         return diff_found;
     }
 
     if (text_diff)
     {
-        fossil_io_file_t f1, f2;
-        if (cunlikely(fossil_io_file_open(&f1, path1, "r") != 0 ||
-                      fossil_io_file_open(&f2, path2, "r") != 0))
+        fossil_io_filesys_file_t f1, f2;
+        if (cunlikely(fossil_io_filesys_file_open(&f1, path1, "r") != 0 ||
+                      fossil_io_filesys_file_open(&f2, path2, "r") != 0))
         {
             fossil_io_printf("{red}Error: Failed to open files for text comparison.{normal}\n");
             return 1;
@@ -164,8 +170,8 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
                 fossil_sys_memory_free(lines1);
             if (cnotnull(lines2))
                 fossil_sys_memory_free(lines2);
-            fossil_io_file_close(&f1);
-            fossil_io_file_close(&f2);
+            fossil_io_filesys_file_close(&f1);
+            fossil_io_filesys_file_close(&f2);
             return 1;
         }
 
@@ -183,8 +189,8 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
                         fossil_sys_memory_free(lines1[i]);
                     fossil_sys_memory_free(lines1);
                     fossil_sys_memory_free(lines2);
-                    fossil_io_file_close(&f1);
-                    fossil_io_file_close(&f2);
+                    fossil_io_filesys_file_close(&f1);
+                    fossil_io_filesys_file_close(&f2);
                     return 1;
                 }
                 lines1 = new_lines;
@@ -207,8 +213,8 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
                         fossil_sys_memory_free(lines2[i]);
                     fossil_sys_memory_free(lines1);
                     fossil_sys_memory_free(lines2);
-                    fossil_io_file_close(&f1);
-                    fossil_io_file_close(&f2);
+                    fossil_io_filesys_file_close(&f1);
+                    fossil_io_filesys_file_close(&f2);
                     return 1;
                 }
                 lines2 = new_lines;
@@ -216,8 +222,8 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
             lines2[count2++] = line;
         }
 
-        fossil_io_file_close(&f1);
-        fossil_io_file_close(&f2);
+        fossil_io_filesys_file_close(&f1);
+        fossil_io_filesys_file_close(&f2);
 
         int differences = 0;
         size_t max_lines = count1 > count2 ? count1 : count2;

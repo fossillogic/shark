@@ -26,17 +26,6 @@
 
 #define PATH_MAX_LEN 1024
 
-static int copy_file(ccstring src_path, ccstring dest_path)
-{
-    int32_t rc = fossil_io_file_copy(src_path, dest_path);
-    if (rc != 0)
-    {
-        perror("Failed to copy file");
-        return rc;
-    }
-    return 0;
-}
-
 static int get_mod_time(ccstring path, time_t *mod_time)
 {
 #if defined(_WIN32)
@@ -55,58 +44,35 @@ static int get_mod_time(ccstring path, time_t *mod_time)
 
 static int compute_file_hash(ccstring path, char *hash_out, size_t hash_out_len)
 {
-    fossil_io_file_t file;
-    int rc = fossil_io_file_open(&file, path, "rb");
+    // Use SHA256 for demonstration; adjust as needed
+    unsigned char hash_bin[32];
+    int rc = fossil_io_filesys_file_hash(path, hash_bin, sizeof(hash_bin), "sha256");
     if (rc != 0)
-        return errno;
+        return rc;
 
-    unsigned char *file_data = NULL;
-    size_t file_size = 0;
-    unsigned char buf[4096];
-
-    while (1)
-    {
-        size_t n = fossil_io_file_read(&file, buf, 1, sizeof(buf));
-        if (n > 0)
-        {
-            unsigned char *tmp = realloc(file_data, file_size + n);
-            if (!tmp)
-            {
-                free(file_data);
-                fossil_io_file_close(&file);
-                return ENOMEM;
-            }
-            file_data = tmp;
-            memcpy(file_data + file_size, buf, n);
-            file_size += n;
-        }
-        if (n < sizeof(buf))
-            break; // EOF or error
-    }
-
-    fossil_io_file_close(&file);
-
-    // Use crc32/u32/hex as before
-    rc = fossil_cryptic_hash_compute(
-        "crc32", "u32", "hex",
-        hash_out, hash_out_len,
-        file_data, file_size);
-    free(file_data);
-    return rc;
+    // Convert binary hash to hex string
+    for (size_t i = 0; i < sizeof(hash_bin) && (i * 2 + 1) < hash_out_len; ++i)
+        sprintf(hash_out + i * 2, "%02x", hash_bin[i]);
+    hash_out[sizeof(hash_bin) * 2] = '\0';
+    return 0;
 }
 
 static int sync_file(ccstring src, ccstring dest, bool update)
 {
-    time_t src_mtime, dest_mtime;
-    if (get_mod_time(src, &src_mtime) != 0)
+    fossil_io_filesys_obj_t src_obj, dest_obj;
+    int rc = fossil_io_filesys_stat(src, &src_obj);
+    if (rc != 0)
     {
         perror("stat src");
-        return errno;
+        return rc;
     }
 
-    if (get_mod_time(dest, &dest_mtime) == 0 && update)
+    rc = fossil_io_filesys_stat(dest, &dest_obj);
+    bool dest_exists = (rc == 0);
+
+    if (dest_exists && update)
     {
-        if (dest_mtime >= src_mtime)
+        if (dest_obj.modified_at >= src_obj.modified_at)
         {
             // Destination is newer, skip
             return 0;
@@ -116,6 +82,7 @@ static int sync_file(ccstring src, ccstring dest, bool update)
     // Compare hashes, skip copy if identical
     char src_hash[65], dest_hash[65];
     if (compute_file_hash(src, src_hash, sizeof(src_hash)) == 0 &&
+        dest_exists &&
         compute_file_hash(dest, dest_hash, sizeof(dest_hash)) == 0)
     {
         if (strcmp(src_hash, dest_hash) == 0)
@@ -125,7 +92,7 @@ static int sync_file(ccstring src, ccstring dest, bool update)
         }
     }
 
-    return copy_file(src, dest);
+    return fossil_io_filesys_copy(src, dest, true);
 }
 
 // Main sync function
@@ -133,88 +100,79 @@ int fossil_shark_sync(ccstring src, ccstring dest,
                       bool recursive, bool update, bool delete_flag)
 {
     int32_t rc = 0;
+    fossil_io_filesys_obj_t src_obj;
+    rc = fossil_io_filesys_stat(src, &src_obj);
+    if (rc != 0)
+        return rc;
 
-    // If src is not a directory, sync as a file
-    if (fossil_io_dir_is_directory(src) != 1)
+    if (src_obj.type != FOSSIL_FILESYS_TYPE_DIR)
     {
         return sync_file(src, dest, update);
     }
 
     // Create destination directory if needed
-    if (fossil_io_dir_exists(dest) != 1)
+    if (fossil_io_filesys_exists(dest) != 1)
     {
-        rc = fossil_io_dir_create(dest);
+        rc = fossil_io_filesys_dir_create(dest, false);
         if (rc != 0)
             return rc;
     }
 
-    // Iterate source directory
-    fossil_io_dir_iter_t it;
-    rc = fossil_io_dir_iter_open(&it, src);
+    // List source directory entries
+    fossil_io_filesys_obj_t entries[256];
+    size_t entry_count = 0;
+    rc = fossil_io_filesys_dir_list(src, entries, 256, &entry_count);
     if (rc != 0)
-    {
-        perror("Failed to open source dir");
         return rc;
-    }
 
-    while (fossil_io_dir_iter_next(&it) == 1)
+    for (size_t i = 0; i < entry_count; ++i)
     {
-        fossil_io_dir_entry_t *entry = &it.current;
-        if (strcmp(entry->name, ".") == 0 || strcmp(entry->name, "..") == 0)
+        fossil_io_filesys_obj_t *entry = &entries[i];
+        if (strcmp(entry->path, ".") == 0 || strcmp(entry->path, "..") == 0)
             continue;
 
-        char dest_path[PATH_MAX_LEN];
-        fossil_io_dir_join(dest, entry->name, dest_path, sizeof(dest_path));
+        char dest_path[FOSSIL_FILESYS_MAX_PATH];
+        snprintf(dest_path, sizeof(dest_path), "%s/%s", dest, entry->path + strlen(src) + 1);
 
-        if (entry->type == 1)
-        { // Directory
+        if (entry->type == FOSSIL_FILESYS_TYPE_DIR)
+        {
             if (recursive)
             {
                 fossil_shark_sync(entry->path, dest_path, recursive, update, delete_flag);
             }
         }
-        else if (entry->type == 0)
-        { // File
+        else if (entry->type == FOSSIL_FILESYS_TYPE_FILE)
+        {
             sync_file(entry->path, dest_path, update);
         }
         // Symlinks and other types can be handled here if needed
     }
-    fossil_io_dir_iter_close(&it);
 
     // Delete extraneous files in dest
     if (delete_flag)
     {
-        fossil_io_dir_iter_t dit;
-        rc = fossil_io_dir_iter_open(&dit, dest);
+        fossil_io_filesys_obj_t dest_entries[256];
+        size_t dest_entry_count = 0;
+        rc = fossil_io_filesys_dir_list(dest, dest_entries, 256, &dest_entry_count);
         if (rc != 0)
             return rc;
 
-        while (fossil_io_dir_iter_next(&dit) == 1)
+        for (size_t i = 0; i < dest_entry_count; ++i)
         {
-            fossil_io_dir_entry_t *dentry = &dit.current;
-            if (strcmp(dentry->name, ".") == 0 || strcmp(dentry->name, "..") == 0)
+            fossil_io_filesys_obj_t *dentry = &dest_entries[i];
+            if (strcmp(dentry->path, ".") == 0 || strcmp(dentry->path, "..") == 0)
                 continue;
 
-            char src_path[PATH_MAX_LEN];
-            fossil_io_dir_join(src, dentry->name, src_path, sizeof(src_path));
+            char src_path[FOSSIL_FILESYS_MAX_PATH];
+            snprintf(src_path, sizeof(src_path), "%s/%s", src, dentry->path + strlen(dest) + 1);
 
-            int exists = (dentry->type == 1)
-                             ? fossil_io_dir_exists(src_path)
-                             : fossil_io_dir_is_file(src_path);
+            int exists = fossil_io_filesys_exists(src_path);
 
             if (exists != 1)
             {
-                if (dentry->type == 1)
-                {
-                    fossil_io_dir_remove_recursive(dentry->path);
-                }
-                else if (dentry->type == 0)
-                {
-                    fossil_io_file_delete(dentry->path);
-                }
+                fossil_io_filesys_remove(dentry->path, dentry->type == FOSSIL_FILESYS_TYPE_DIR);
             }
         }
-        fossil_io_dir_iter_close(&dit);
     }
 
     return 0;
