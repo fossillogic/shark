@@ -160,7 +160,6 @@ static int search_recursive(ccstring path, bool recursive,
     for (size_t i = 0; i < entry_count; ++i)
     {
         fossil_io_filesys_obj_t *entry = &entries[i];
-        const char *name = entry->path;
         // Extract just the filename for matching
         char filename[FOSSIL_FILESYS_MAX_PATH];
         if (fossil_io_filesys_basename(entry->path, filename, sizeof(filename)) != 0)
