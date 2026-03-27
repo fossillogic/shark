@@ -62,32 +62,6 @@ static int create_backup(ccstring path)
     return result < 0 ? 1 : 0;
 }
 
-// To be added in Fossil Io 0.2.12
-static cstring fossil_io_filesys_path_normalize(ccstring path)
-{
-    if (!cnotnull(path))
-    {
-        return NULL;
-    }
-
-    cstring normalized = fossil_io_cstring_dup(path);
-    if (!cnotnull(normalized))
-    {
-        return NULL;
-    }
-
-    // Convert backslashes to forward slashes for cross-platform consistency
-    for (size_t i = 0; normalized[i] != '\0'; i++)
-    {
-        if (normalized[i] == '\\')
-        {
-            normalized[i] = '/';
-        }
-    }
-
-    return normalized;
-}
-
 static int swap_with_temp(ccstring path1, ccstring path2, ccstring temp_path)
 {
     if (!cnotnull(temp_path))
