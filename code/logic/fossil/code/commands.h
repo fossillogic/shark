@@ -364,6 +364,99 @@ int fossil_shark_split(ccstring file_path, size_t split_by_lines,
                         bool numeric_suffix, ccstring delimiter,
                         bool dry_run);
 
+/**
+ * Adjust or view file/directory permissions
+ * @param path File or directory path
+ * @param user User name (NULL if not targeting user)
+ * @param group Group name (NULL if not targeting group)
+ * @param grant_perm Permissions to grant (NULL for none)
+ * @param revoke_perm Permissions to revoke (NULL for none)
+ * @param list Show current permissions if true
+ * @param recursive Apply changes recursively if true
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_perm(ccstring path, ccstring user, ccstring group,
+                      ccstring grant_perm, ccstring revoke_perm,
+                      bool list, bool recursive);
+
+/**
+ * Capture the current state of a file or directory
+ * @param file_path Target file path (NULL if using dir_path)
+ * @param dir_path Target directory path (NULL if using file_path)
+ * @param label Snapshot label (NULL for default)
+ * @param output_json Export snapshot in JSON if true
+ * @param compare_with Previous snapshot to diff against (NULL for none)
+ * @param compress Store snapshot compressed if true
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_snapshot(ccstring file_path, ccstring dir_path,
+                          ccstring label, bool output_json,
+                          ccstring compare_with, bool compress);
+
+/**
+ * Chain commands, redirect outputs, or process streams
+ * @param input_file Source file (NULL for stdin)
+ * @param output_file Destination file (NULL for stdout)
+ * @param filter Inline command filter (NULL for none)
+ * @param tee Split output to console and file if true
+ * @param output_json Structured JSON output if true
+ * @param append Append to output file if true
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_pipe(ccstring input_file, ccstring output_file,
+                      ccstring filter, bool tee, bool output_json,
+                      bool append);
+
+/**
+ * Create or manage command shortcuts
+ * @param set_alias Define alias in format "name=cmd" (NULL to skip)
+ * @param remove_alias Name of alias to remove (NULL to skip)
+ * @param list Show all aliases if true
+ * @param global_scope Apply alias globally if true
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_alias(ccstring set_alias, ccstring remove_alias,
+                       bool list, bool global_scope);
+
+/**
+ * Revert previous file operations (move, copy, rename, remove)
+ * @param last_n Revert last n operations
+ * @param file_path Specific file to undo (NULL for all)
+ * @param interactive Confirm each undo if true
+ * @param dry_run Preview undo without executing
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_undo(int last_n, ccstring file_path,
+                      bool interactive, bool dry_run);
+
+/**
+ * Create hard or symbolic links
+ * @param source_file Source file path
+ * @param target_path Destination path
+ * @param symbolic Create symbolic link if true
+ * @param hard Create hard link if true
+ * @param relative Use relative paths if true
+ * @param overwrite Replace existing links if true
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_link(ccstring source_file, ccstring target_path,
+                      bool symbolic, bool hard,
+                      bool relative, bool overwrite);
+
+/**
+ * Detect and optionally remove duplicate files
+ * @param dir_path Target directory
+ * @param use_hash Compare files using hash (true) or size+timestamp (false)
+ * @param interactive Confirm each deletion if true
+ * @param delete Remove duplicate files if true
+ * @param link Replace duplicates with links if true
+ * @param output_json Report duplicates in JSON if true
+ * @return 0 on success, non-zero on error
+ */
+int fossil_shark_dedupe(ccstring dir_path, bool use_hash,
+                         bool interactive, bool delete,
+                         bool link, bool output_json);
+
 #ifdef __cplusplus
 }
 #endif
