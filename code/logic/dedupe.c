@@ -24,112 +24,108 @@
  */
 #include "fossil/code/commands.h"
 
-#define MAX_PATH_LEN FOSSIL_FILESYS_MAX_PATH
-#define HASH_STR_LEN 65  // e.g., SHA256 in hex + null terminator
-
-typedef struct duplicate_node {
-    char path[MAX_PATH_LEN];
-    struct duplicate_node *next;
-} duplicate_node_t;
-
 /**
- * Internal helper: compute hash of a file
+ * @brief Detect and optionally remove duplicate files in a directory.
+ *
+ * Uses Fossil filesystem abstractions and internal hashing. Supports interactive
+ * confirmation, deletion, linking, and JSON reporting.
  */
-static int compute_file_hash(const char *path, char *hash_out, size_t hash_len) {
-    fossil_io_filesys_file_t file;
-    if (fossil_io_filesys_file_open(&file, path, "rb") < 0) return -1;
+int fossil_shark_dedupe(
+    const char* dir_path,
+    bool use_hash,
+    bool interactive,
+    bool delete_files,
+    bool link_files,
+    bool output_json
+)
+{
+    if (!dir_path) return -1;
 
-    size_t buffer_size = file.base.size;
-    if (buffer_size == 0) buffer_size = 8192;
+    fossil_io_filesys_obj_t entries[1024];
+    size_t count = 0;
+    int rc = fossil_io_filesys_dir_list(dir_path, entries, 1024, &count);
+    if (rc < 0) return rc;
 
-    void *buffer = malloc(buffer_size);
-    if (!buffer) {
-        fossil_io_filesys_file_close(&file);
-        return -1;
-    }
+    typedef struct file_node_t {
+        char path[FOSSIL_FILESYS_MAX_PATH];
+        char hash[MAX_HASH_LEN];
+        struct file_node_t* next;
+    } file_node_t;
 
-    size_t read_bytes = fossil_io_filesys_file_read(&file, buffer, 1, buffer_size);
-    int res = fossil_cryptic_hash_compute(
-        "crc32", "u32", "hex", hash_out, hash_len, buffer, read_bytes
-    );
+    file_node_t* head = NULL;
 
-    free(buffer);
-    fossil_io_filesys_file_close(&file);
-    return res;
-}
+    for (size_t i = 0; i < count; ++i) {
+        fossil_io_filesys_obj_t* obj = &entries[i];
 
-/**
- * Internal helper: recursively walk directory and apply callback
- */
-static int walk_dir_recursive(const char *path, int (*callback)(const fossil_io_filesys_obj_t *, void *), void *user_data) {
-    return fossil_io_filesys_dir_walk(path, callback, user_data);
-}
+        if (obj->type != FOSSIL_FILESYS_TYPE_FILE) continue;
 
-/**
- * Deduplicate files in a directory (optionally recursive)
- */
-int32_t fossil_io_filesys_deduplicate(const char *path, bool recursive) {
-    typedef struct hash_entry {
-        char hash[HASH_STR_LEN];
-        duplicate_node_t *files;
-        struct hash_entry *next;
-    } hash_entry_t;
+        char file_hash[MAX_HASH_LEN] = {0};
+        if (use_hash) {
+            // Read file contents
+            fossil_io_filesys_file_t f = {0};
+            if (fossil_io_filesys_file_open(&f, obj->path, "rb") != 0) continue;
 
-    hash_entry_t *hash_table = NULL;
-    int duplicates_removed = 0;
+            uint8_t* buffer = malloc(obj->size);
+            if (!buffer) { fossil_io_filesys_file_close(&f); continue; }
+            size_t read_bytes = fossil_io_filesys_file_read(&f, buffer, 1, obj->size);
+            fossil_io_filesys_file_close(&f);
 
-    // Callback for dir_walk
-    int dedupe_callback(const fossil_io_filesys_obj_t *obj, void *user_data) {
-        hash_entry_t **table = (hash_entry_t **)user_data;
-        if (obj->type != FOSSIL_FILESYS_TYPE_FILE) return 0;
+            if (read_bytes != obj->size) { free(buffer); continue; }
 
-        char hash[HASH_STR_LEN] = {0};
-        if (compute_file_hash(obj->path, hash, sizeof(hash)) != 0) return 0;
-
-        // search hash table
-        hash_entry_t *entry = *table;
-        while (entry) {
-            if (strcmp(entry->hash, hash) == 0) break;
-            entry = entry->next;
+            fossil_cryptic_hash_compute("xor", "auto", "hex", file_hash, sizeof(file_hash), buffer, obj->size);
+            free(buffer);
+        } else {
+            // Use size+mtime as hash surrogate
+            snprintf(file_hash, sizeof(file_hash), "%zu-%ld", obj->size, obj->modified_at);
         }
 
-        if (entry) {
-            // duplicate found -> remove
-            if (fossil_io_filesys_remove(obj->path, false) == 0) {
-                duplicates_removed++;
+        // Compare against previously seen files
+        file_node_t* node = head;
+        bool duplicate_found = false;
+        while (node) {
+            if (strcmp(node->hash, file_hash) == 0) {
+                duplicate_found = true;
+
+                if (output_json)
+                    printf("{\"duplicate\":\"%s\",\"original\":\"%s\"}\n", obj->path, node->path);
+                else
+                    printf("Duplicate found: %s -> %s\n", obj->path, node->path);
+
+                bool do_delete = delete_files;
+                if (interactive) {
+                    printf("Delete %s? (y/n): ", obj->path);
+                    int c = getchar();
+                    while (getchar() != '\n');
+                    do_delete = (c == 'y' || c == 'Y');
+                }
+
+                if (do_delete) {
+                    fossil_io_filesys_remove(obj->path, false);
+                    if (link_files) fossil_io_filesys_link_create(node->path, obj->path, true);
+                }
+
+                break;
             }
-            return 0;
+            node = node->next;
         }
 
-        // new hash -> add to table
-        hash_entry_t *new_entry = malloc(sizeof(hash_entry_t));
-        if (!new_entry) return 0;
-        strncpy(new_entry->hash, hash, HASH_STR_LEN);
-        new_entry->files = NULL;
-        new_entry->next = *table;
-        *table = new_entry;
-
-        return 0;
-    }
-
-    // Walk the directory tree
-    if (recursive) {
-        walk_dir_recursive(path, dedupe_callback, &hash_table);
-    } else {
-        fossil_io_filesys_obj_t entries[1024];
-        size_t count = 0;
-        if (fossil_io_filesys_dir_list(path, entries, 1024, &count) == 0) {
-            for (size_t i = 0; i < count; ++i) dedupe_callback(&entries[i], &hash_table);
+        if (!duplicate_found) {
+            file_node_t* new_node = malloc(sizeof(file_node_t));
+            if (!new_node) continue;
+            strncpy(new_node->path, obj->path, sizeof(new_node->path));
+            strncpy(new_node->hash, file_hash, sizeof(new_node->hash));
+            new_node->next = head;
+            head = new_node;
         }
     }
 
-    // Free hash table
-    hash_entry_t *curr = hash_table;
-    while (curr) {
-        hash_entry_t *tmp = curr;
-        curr = curr->next;
+    // Free linked list
+    file_node_t* tmp;
+    while (head) {
+        tmp = head;
+        head = head->next;
         free(tmp);
     }
 
-    return duplicates_removed;
+    return 0;
 }
