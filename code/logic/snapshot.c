@@ -51,7 +51,8 @@ int fossil_shark_snapshot(
         snapshot_label[sizeof(snapshot_label) - 1] = '\0';
     } else {
         time_t t = time(NULL);
-        snprintf(snapshot_label, sizeof(snapshot_label), "%s_snapshot_%ld", target_type, t);
+        snprintf(snapshot_label, sizeof(snapshot_label),
+         "%s_snapshot_%lld", target_type, (long long)t);
     }
 
     /* Simulate snapshot capture */
