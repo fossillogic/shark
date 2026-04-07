@@ -86,13 +86,13 @@ int fossil_shark_undo(int last_n, const char* file_path, bool interactive, bool 
             int rc = 0;
             switch (op->type) {
                 case FOSSIL_SHARK_OP_MOVE:
-                    rc = fossil_io_filesys_rename(op->dest, op->src);
+                    rc = fossil_io_filesys_file_move(op->dest, op->src);
                     break;
                 case FOSSIL_SHARK_OP_RENAME:
-                    rc = fossil_io_filesys_rename(op->dest, op->src);
+                    rc = fossil_io_filesys_file_rename(op->dest, op->src);
                     break;
                 case FOSSIL_SHARK_OP_COPY:
-                    rc = fossil_io_filesys_remove(op->dest, false);
+                    rc = fossil_io_filesys_file_remove(op->dest, false);
                     break;
                 case FOSSIL_SHARK_OP_REMOVE:
                     // Can't restore removed file without backup; skipping
