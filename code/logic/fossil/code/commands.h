@@ -457,6 +457,16 @@ int fossil_shark_dedupe(ccstring dir_path, bool use_hash,
                          bool interactive, bool delete,
                          bool link, bool output_json);
 
+/**
+ * Launch a text-based game from the Shark tool.
+ * @param game_name Name of the game to play (e.g., "guess_number", "tic_tac_toe").
+ * @param difficulty Difficulty level ("easy", "medium", "hard").
+ * @param rounds Number of rounds to play.
+ * @param verbose If true, display detailed game logs.
+ * @return 0 on success, non-zero on failure.
+ */
+int shark_play(const char* game_name, const char* difficulty, int rounds, int verbose);
+
 #ifdef __cplusplus
 }
 #endif
