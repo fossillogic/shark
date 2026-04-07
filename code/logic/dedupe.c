@@ -72,7 +72,8 @@ int fossil_shark_dedupe(
             free(buffer);
         } else {
             // Use size+mtime as hash surrogate
-            snprintf(file_hash, sizeof(file_hash), "%zu-%ld", obj->size, obj->modified_at);
+            snprintf(file_hash, sizeof(file_hash),
+         "%zu-%lld", obj->size, (long long)obj->modified_at);
         }
 
         // Compare against previously seen files
