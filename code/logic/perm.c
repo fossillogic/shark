@@ -50,7 +50,7 @@ static fossil_io_filesys_perms_t perm_string_to_struct(const char* perm_str)
 /* ------------------------------------------------------------
  * Apply permissions to a single object
  * ------------------------------------------------------------ */
-static int fossil_shark_perm_apply(
+static int fossil_spino_perm_apply(
     const fossil_io_filesys_obj_t* obj,
     const char* user,
     const char* group,
@@ -143,7 +143,7 @@ static int perm_walk_cb(const fossil_io_filesys_obj_t* obj, void* user_data)
 {
     perm_ctx_t* ctx = (perm_ctx_t*)user_data;
 
-    return fossil_shark_perm_apply(
+    return fossil_spino_perm_apply(
         obj,
         ctx->user,
         ctx->group,
@@ -153,9 +153,9 @@ static int perm_walk_cb(const fossil_io_filesys_obj_t* obj, void* user_data)
 }
 
 /* ------------------------------------------------------------
- * Main fossil_shark_perm
+ * Main fossil_spino_perm
  * ------------------------------------------------------------ */
-int fossil_shark_perm(
+int fossil_spino_perm(
     const char* path,
     const char* user,
     const char* group,
@@ -211,7 +211,7 @@ int fossil_shark_perm(
     }
     else
     {
-        return fossil_shark_perm_apply(
+        return fossil_spino_perm_apply(
             &obj,
             user,
             group,

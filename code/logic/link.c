@@ -24,7 +24,7 @@
  */
 #include "fossil/code/commands.h"
 
-int fossil_shark_link(
+int fossil_spino_link(
     const char* source_file,
     const char* target_path,
     bool symbolic,

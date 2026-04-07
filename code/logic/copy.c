@@ -211,7 +211,7 @@ static int copy_directory(ccstring src, ccstring dest,
     return 0;
 }
 
-int fossil_shark_copy(ccstring src, ccstring dest,
+int fossil_spino_copy(ccstring src, ccstring dest,
                       bool recursive, bool update, bool preserve,
                       bool checksum, bool sparse, bool link, bool reflink,
                       bool progress, bool dry_run,

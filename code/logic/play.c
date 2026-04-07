@@ -140,8 +140,8 @@ static void play_rps(int rounds) {
     }
 }
 
-// --- Main Shark Play Command ---
-int shark_play(const char* game_name, const char* difficulty, int rounds, int verbose) {
+// --- Main Spino Play Command ---
+int spino_play(const char* game_name, const char* difficulty, int rounds, int verbose) {
     srand((unsigned int)time(NULL));
 
     if (!game_name || rounds <= 0) {

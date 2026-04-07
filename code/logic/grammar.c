@@ -66,7 +66,7 @@ static char *read_file(const char *path)
     return buf;
 }
 
-int fossil_shark_grammar(ccstring file_path,
+int fossil_spino_grammar(ccstring file_path,
                          bool check,
                          bool correct,
                          bool tone,

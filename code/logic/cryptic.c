@@ -32,7 +32,7 @@
  * @param cipher Cipher type to use ("caesar", "vigenere", "base64", "base32", "binary", "morse", "baconian", "railfence", "haxor", "leet", "rot13", "atbash")
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_cryptic(const char *text, bool encode, bool decode, const char *cipher)
+int fossil_spino_cryptic(const char *text, bool encode, bool decode, const char *cipher)
 {
     if (!text || !cipher)
     {

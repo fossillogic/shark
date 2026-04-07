@@ -239,7 +239,7 @@ static ccstring get_mime_type(ccstring path)
     return "application/octet-stream";
 }
 
-int fossil_shark_introspect(ccstring path, int show_head_lines,
+int fossil_spino_introspect(ccstring path, int show_head_lines,
                             int show_tail_lines, bool count_lines_words_bytes,
                             bool count_lines_only, bool show_size,
                             bool show_time, bool show_file_type,

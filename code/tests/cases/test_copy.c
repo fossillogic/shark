@@ -56,7 +56,7 @@ FOSSIL_TEARDOWN(c_copy_command_suite)
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-// Test cases for fossil_shark_copy function
+// Test cases for fossil_spino_copy function
 
 FOSSIL_TEST(c_test_copy_null_parameters)
 {

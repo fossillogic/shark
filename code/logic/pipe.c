@@ -45,9 +45,9 @@ static void* fossil_memmem(const void* haystack, size_t haystacklen,
 #endif
 
 /* ------------------------------------------------------------
- * Fossil Shark Pipe Command
+ * Fossil Spino Pipe Command
  * ------------------------------------------------------------ */
-int fossil_shark_pipe(
+int fossil_spino_pipe(
     const char* input_file,
     const char* output_file,
     const char* filter,

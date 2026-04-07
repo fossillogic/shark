@@ -52,7 +52,7 @@ extern "C"
  * @param type_filter Filter by type: "file", "dir", "link"
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_show(ccstring path, bool show_all, bool long_format,
+int fossil_spino_show(ccstring path, bool show_all, bool long_format,
                         bool human_readable, bool recursive,
                         ccstring format, bool show_time, int depth,
                         ccstring sort_key, ccstring match_pattern,
@@ -73,7 +73,7 @@ int fossil_shark_show(ccstring path, bool show_all, bool long_format,
  * @param include_pattern Pattern for files to include (--include)
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_merge(const char **paths, int num_paths, ccstring dest,
+int fossil_spino_merge(const char **paths, int num_paths, ccstring dest,
                         bool force, bool interactive, bool backup,
                         ccstring strategy, bool progress, bool dry_run,
                         ccstring exclude_pattern, ccstring include_pattern);
@@ -92,7 +92,7 @@ int fossil_shark_merge(const char **paths, int num_paths, ccstring dest,
  * @param no_cross_device Fail if paths are on different filesystems (--no-cross-device)
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_swap(ccstring path1, ccstring path2,
+int fossil_spino_swap(ccstring path1, ccstring path2,
                         bool force, bool interactive, bool backup,
                         bool atomic, bool progress, bool dry_run,
                         ccstring temp_path, bool no_cross_device);
@@ -111,7 +111,7 @@ int fossil_shark_swap(ccstring path1, ccstring path2,
  * @param include_pattern Pattern for files to include (--include)
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_move(ccstring src, ccstring dest,
+int fossil_spino_move(ccstring src, ccstring dest,
                         bool force, bool interactive, bool backup,
                         bool atomic, bool progress, bool dry_run,
                         ccstring exclude_pattern, ccstring include_pattern);
@@ -133,7 +133,7 @@ int fossil_shark_move(ccstring src, ccstring dest,
  * @param include_pattern Pattern for files to include (--include)
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_copy(ccstring src, ccstring dest,
+int fossil_spino_copy(ccstring src, ccstring dest,
                         bool recursive, bool update, bool preserve,
                         bool checksum, bool sparse, bool link, bool reflink,
                         bool progress, bool dry_run,
@@ -154,7 +154,7 @@ int fossil_shark_copy(ccstring src, ccstring dest,
  * @param log_file Write deletion log to specified file (NULL for no logging)
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_remove(ccstring path, bool recursive, bool force,
+int fossil_spino_remove(ccstring path, bool recursive, bool force,
                         bool interactive, bool use_trash, bool wipe,
                         int shred_passes, ccstring older_than,
                         size_t larger_than, bool empty_only,
@@ -168,7 +168,7 @@ int fossil_shark_remove(ccstring path, bool recursive, bool force,
  * @param interactive Prompt before overwriting existing files
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_rename(ccstring old_name, ccstring new_name,
+int fossil_spino_rename(ccstring old_name, ccstring new_name,
                         bool force, bool interactive);
 
 /**
@@ -179,10 +179,10 @@ int fossil_shark_rename(ccstring old_name, ccstring new_name,
  * @return 0 on success, non-zero on error
  *
  * Sample usage:
- *   fossil_shark_create("/path/to/newfile.txt", false, "file")
- *   fossil_shark_create("/path/to/nested/dir", true, "dir")
+ *   fossil_spino_create("/path/to/newfile.txt", false, "file")
+ *   fossil_spino_create("/path/to/nested/dir", true, "dir")
  */
-int fossil_shark_create(ccstring path, bool create_parents,
+int fossil_spino_create(ccstring path, bool create_parents,
                         ccstring type); // "file" or "dir"
 
 /**
@@ -194,7 +194,7 @@ int fossil_shark_create(ccstring path, bool create_parents,
  * @param ignore_case Perform case-insensitive matching
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_search(ccstring path, bool recursive,
+int fossil_spino_search(ccstring path, bool recursive,
                         ccstring name_pattern, ccstring content_pattern,
                         bool ignore_case);
 
@@ -211,7 +211,7 @@ int fossil_shark_search(ccstring path, bool recursive,
  * @param exclude_pattern Pattern for files to exclude
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_archive(ccstring path, bool create, bool extract,
+int fossil_spino_archive(ccstring path, bool create, bool extract,
                             bool list, ccstring format, ccstring password,
                             int compress_level, bool stdout_output,
                             ccstring exclude_pattern);
@@ -226,7 +226,7 @@ int fossil_shark_archive(ccstring path, bool create, bool extract,
  * @param ignore_case Ignore case differences in text comparison
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_compare(ccstring path1, ccstring path2,
+int fossil_spino_compare(ccstring path1, ccstring path2,
                             bool text_diff, bool binary_diff,
                             int context_lines, bool ignore_case);
 
@@ -237,7 +237,7 @@ int fossil_shark_compare(ccstring path1, ccstring path2,
  * @param full_manual Show complete manual instead of brief help
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_help(ccstring command, bool show_examples, bool full_manual);
+int fossil_spino_help(ccstring command, bool show_examples, bool full_manual);
 
 /**
  * Synchronize files or directories between source and destination
@@ -248,7 +248,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual);
  * @param delete Remove extraneous files from target
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_sync(ccstring src, ccstring dest,
+int fossil_spino_sync(ccstring src, ccstring dest,
                         bool recursive, bool update, bool delete);
 
 /**
@@ -259,7 +259,7 @@ int fossil_shark_sync(ccstring src, ccstring dest,
  * @param interval Poll interval in seconds
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_watch(ccstring path, bool recursive,
+int fossil_spino_watch(ccstring path, bool recursive,
                         ccstring events, int interval);
 
 /**
@@ -273,7 +273,7 @@ int fossil_shark_watch(ccstring path, bool recursive,
  * @param update_mod_time Update file modification time
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_rewrite(ccstring path, bool in_place, bool append,
+int fossil_spino_rewrite(ccstring path, bool in_place, bool append,
                             ccstring new_content, size_t size,
                             bool update_access_time, bool update_mod_time);
 
@@ -292,7 +292,7 @@ int fossil_shark_rewrite(ccstring path, bool in_place, bool append,
  * @param output_json Output metadata in JSON structured format
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_introspect(ccstring path, int show_head_lines,
+int fossil_spino_introspect(ccstring path, int show_head_lines,
                             int show_tail_lines, bool count_lines_words_bytes,
                             bool count_lines_only, bool show_size,
                             bool show_time, bool show_file_type,
@@ -319,7 +319,7 @@ int fossil_shark_introspect(ccstring path, int show_head_lines,
  * @param punctuate Normalize punctuation (--punctuate)
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_grammar(ccstring file_path,
+int fossil_spino_grammar(ccstring file_path,
                             bool check,
                             bool correct,
                             bool tone,
@@ -342,7 +342,7 @@ int fossil_shark_grammar(ccstring file_path,
  * @param cipher Cipher type to use ("caesar", "vigenere", "base64", "base32", "binary", "morse", "baconian", "railfence", "haxor", "leet", "rot13", "atbash")
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_cryptic(ccstring text, bool encode, bool decode,
+int fossil_spino_cryptic(ccstring text, bool encode, bool decode,
                             ccstring cipher);
 
 /**
@@ -358,7 +358,7 @@ int fossil_shark_cryptic(ccstring text, bool encode, bool decode,
  * @param dry_run Preview split without executing (--dry-run)
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_split(ccstring file_path, size_t split_by_lines,
+int fossil_spino_split(ccstring file_path, size_t split_by_lines,
                         size_t split_by_bytes, size_t num_segments,
                         ccstring output_prefix, int suffix_digits,
                         bool numeric_suffix, ccstring delimiter,
@@ -375,7 +375,7 @@ int fossil_shark_split(ccstring file_path, size_t split_by_lines,
  * @param recursive Apply changes recursively if true
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_perm(ccstring path, ccstring user, ccstring group,
+int fossil_spino_perm(ccstring path, ccstring user, ccstring group,
                       ccstring grant_perm, ccstring revoke_perm,
                       bool list, bool recursive);
 
@@ -389,7 +389,7 @@ int fossil_shark_perm(ccstring path, ccstring user, ccstring group,
  * @param compress Store snapshot compressed if true
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_snapshot(ccstring file_path, ccstring dir_path,
+int fossil_spino_snapshot(ccstring file_path, ccstring dir_path,
                           ccstring label, bool output_json,
                           ccstring compare_with, bool compress);
 
@@ -403,7 +403,7 @@ int fossil_shark_snapshot(ccstring file_path, ccstring dir_path,
  * @param append Append to output file if true
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_pipe(ccstring input_file, ccstring output_file,
+int fossil_spino_pipe(ccstring input_file, ccstring output_file,
                       ccstring filter, bool tee, bool output_json,
                       bool append);
 
@@ -415,7 +415,7 @@ int fossil_shark_pipe(ccstring input_file, ccstring output_file,
  * @param global_scope Apply alias globally if true
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_alias(ccstring set_alias, ccstring remove_alias,
+int fossil_spino_alias(ccstring set_alias, ccstring remove_alias,
                        bool list, bool global_scope);
 
 /**
@@ -426,7 +426,7 @@ int fossil_shark_alias(ccstring set_alias, ccstring remove_alias,
  * @param dry_run Preview undo without executing
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_undo(int last_n, ccstring file_path,
+int fossil_spino_undo(int last_n, ccstring file_path,
                       bool interactive, bool dry_run);
 
 /**
@@ -439,7 +439,7 @@ int fossil_shark_undo(int last_n, ccstring file_path,
  * @param overwrite Replace existing links if true
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_link(ccstring source_file, ccstring target_path,
+int fossil_spino_link(ccstring source_file, ccstring target_path,
                       bool symbolic, bool hard,
                       bool relative, bool overwrite);
 
@@ -453,19 +453,19 @@ int fossil_shark_link(ccstring source_file, ccstring target_path,
  * @param output_json Report duplicates in JSON if true
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_dedupe(ccstring dir_path, bool use_hash,
+int fossil_spino_dedupe(ccstring dir_path, bool use_hash,
                          bool interactive, bool delete,
                          bool link, bool output_json);
 
 /**
- * Launch a text-based game from the Shark tool.
+ * Launch a text-based game from the Spino tool.
  * @param game_name Name of the game to play (e.g., "guess_number", "tic_tac_toe").
  * @param difficulty Difficulty level ("easy", "medium", "hard").
  * @param rounds Number of rounds to play.
  * @param verbose If true, display detailed game logs.
  * @return 0 on success, non-zero on failure.
  */
-int shark_play(const char* game_name, const char* difficulty, int rounds, int verbose);
+int spino_play(const char* game_name, const char* difficulty, int rounds, int verbose);
 
 #ifdef __cplusplus
 }

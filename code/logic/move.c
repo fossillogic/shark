@@ -143,7 +143,7 @@ static int filter_by_patterns(ccstring src, ccstring dest, ccstring exclude, ccs
     return 0;
 }
 
-int fossil_shark_move(ccstring src, ccstring dest,
+int fossil_spino_move(ccstring src, ccstring dest,
                       bool force, bool interactive, bool backup,
                       bool atomic, bool progress, bool dry_run,
                       ccstring exclude_pattern, ccstring include_pattern)

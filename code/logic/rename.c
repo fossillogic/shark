@@ -42,7 +42,7 @@ static bool confirm_overwrite_rename(ccstring path)
     return result;
 }
 
-int fossil_shark_rename(ccstring old_name, ccstring new_name,
+int fossil_spino_rename(ccstring old_name, ccstring new_name,
                         bool force, bool interactive)
 {
     if (cunlikely(!old_name || !new_name))

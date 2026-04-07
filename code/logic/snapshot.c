@@ -25,9 +25,9 @@
 #include "fossil/code/commands.h"
 
 /* ------------------------------------------------------------
- * Fossil Shark Snapshot
+ * Fossil Spino Snapshot
  * ------------------------------------------------------------ */
-int fossil_shark_snapshot(
+int fossil_spino_snapshot(
     const char* file_path,
     const char* dir_path,
     const char* label,

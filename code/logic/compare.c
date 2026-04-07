@@ -93,7 +93,7 @@ static bool is_regular_file(ccstring path)
     return obj.type == FOSSIL_FILESYS_TYPE_FILE;
 }
 
-int fossil_shark_compare(ccstring path1, ccstring path2,
+int fossil_spino_compare(ccstring path1, ccstring path2,
                          bool text_diff, bool binary_diff,
                          int context_lines, bool ignore_case)
 {

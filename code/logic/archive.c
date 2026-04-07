@@ -95,7 +95,7 @@ static fossil_io_archive_type_t get_archive_type_from_format(ccstring format)
     return FOSSIL_IO_ARCHIVE_UNKNOWN;
 }
 
-int fossil_shark_archive(ccstring path, bool create, bool extract,
+int fossil_spino_archive(ccstring path, bool create, bool extract,
                          bool list, ccstring format, ccstring password,
                          int compress_level, bool stdout_output,
                          ccstring exclude_pattern)

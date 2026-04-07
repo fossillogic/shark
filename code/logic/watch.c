@@ -24,7 +24,7 @@
  */
 #include "fossil/code/commands.h"
 
-__attribute__((unused)) static void fossil_shark_watch_file(const char *path, const char *events, fossil_io_filesys_obj_t *prev_obj)
+__attribute__((unused)) static void fossil_spino_watch_file(const char *path, const char *events, fossil_io_filesys_obj_t *prev_obj)
 {
     fossil_io_filesys_obj_t curr_obj;
     int rc = fossil_io_filesys_stat(path, &curr_obj);
@@ -59,7 +59,7 @@ __attribute__((unused)) static void fossil_shark_watch_file(const char *path, co
 }
 
 #if !defined(_WIN32) && !defined(_WIN64)
-__attribute__((unused)) static void fossil_shark_watch_dir(const char *dir_path, const char *events, int interval)
+__attribute__((unused)) static void fossil_spino_watch_dir(const char *dir_path, const char *events, int interval)
 {
     fossil_io_filesys_obj_t entries[256];
     size_t entry_count = 0;
@@ -75,7 +75,7 @@ __attribute__((unused)) static void fossil_shark_watch_dir(const char *dir_path,
 
         if (entry->type == FOSSIL_FILESYS_TYPE_DIR)
         {
-            fossil_shark_watch_dir(entry->path, events, interval);
+            fossil_spino_watch_dir(entry->path, events, interval);
         }
         else if (entry->type == FOSSIL_FILESYS_TYPE_FILE)
         {
@@ -86,7 +86,7 @@ __attribute__((unused)) static void fossil_shark_watch_dir(const char *dir_path,
                 while (1)
                 {
                     sleep(interval);
-                    fossil_shark_watch_file(entry->path, events, &prev_obj);
+                    fossil_spino_watch_file(entry->path, events, &prev_obj);
                 }
             }
         }
@@ -108,7 +108,7 @@ static wchar_t *fossil_utf8_to_wide(const char *s)
     return w;
 }
 
-static int fossil_shark_watch_windows_recursive(
+static int fossil_spino_watch_windows_recursive(
     const char *path,
     const char *events)
 {
@@ -213,7 +213,7 @@ static int fossil_shark_watch_windows_recursive(
     return 0;
 }
 
-static int fossil_shark_watch_windows(
+static int fossil_spino_watch_windows(
     const char *path,
     const char *events)
 {
@@ -321,7 +321,7 @@ static int fossil_shark_watch_windows(
 
 #endif
 
-int fossil_shark_watch(const char *path, bool recursive,
+int fossil_spino_watch(const char *path, bool recursive,
                        const char *events, int interval)
 {
     if (interval <= 0)
@@ -347,11 +347,11 @@ int fossil_shark_watch(const char *path, bool recursive,
     {
         if (recursive)
         {
-            fossil_shark_watch_windows_recursive(path, events);
+            fossil_spino_watch_windows_recursive(path, events);
         }
         else
         {
-            fossil_shark_watch_windows(path, events);
+            fossil_spino_watch_windows(path, events);
         }
 
         /* Windows sleep uses milliseconds */
@@ -388,7 +388,7 @@ int fossil_shark_watch(const char *path, bool recursive,
 
     if (recursive && st.type == FOSSIL_FILESYS_TYPE_DIR)
     {
-        fossil_shark_watch_dir(path, events, interval);
+        fossil_spino_watch_dir(path, events, interval);
     }
     else
     {
@@ -396,7 +396,7 @@ int fossil_shark_watch(const char *path, bool recursive,
         while (1)
         {
             sleep(interval);
-            fossil_shark_watch_file(path, events, &prev_obj);
+            fossil_spino_watch_file(path, events, &prev_obj);
         }
     }
 

@@ -287,7 +287,7 @@ static int show_graph(ccstring path, bool show_all, bool long_format,
     return 0;
 }
 
-int fossil_shark_show(ccstring path, bool show_all, bool long_format,
+int fossil_spino_show(ccstring path, bool show_all, bool long_format,
                       bool human_readable, bool recursive, ccstring format,
                       bool show_time, int depth, ccstring sort_key,
                       ccstring match_pattern, ccstring size_filter, ccstring type_filter)

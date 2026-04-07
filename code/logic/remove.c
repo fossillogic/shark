@@ -319,7 +319,7 @@ static int remove_recursive(ccstring path, bool recursive, bool force,
     return 0;
 }
 
-int fossil_shark_remove(ccstring path, bool recursive, bool force,
+int fossil_spino_remove(ccstring path, bool recursive, bool force,
                         bool interactive, bool use_trash, bool wipe,
                         int shred_passes, ccstring older_than,
                         size_t larger_than, bool empty_only,

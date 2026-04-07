@@ -44,4 +44,4 @@ app_dep = declare_dependency(
     include_directories: dir)
 
 # This is the main executable for the app
-executable('shark', 'main.c', install: true, dependencies: [app_dep], include_directories: dir)
+executable('spino', 'main.c', install: true, dependencies: [app_dep], include_directories: dir)
