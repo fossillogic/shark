@@ -24,12 +24,8 @@
  */
 #include "fossil/code/commands.h"
 
-/**
- * @brief Detect and optionally remove duplicate files in a directory.
- *
- * Uses Fossil filesystem abstractions and internal hashing. Supports interactive
- * confirmation, deletion, linking, and JSON reporting.
- */
+#define MAX_HASH_LEN 128
+
 int fossil_shark_dedupe(
     const char* dir_path,
     bool use_hash,
