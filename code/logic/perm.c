@@ -24,72 +24,104 @@
  */
 #include "fossil/code/commands.h"
 
-#include <sys/stat.h>
-#include <unistd.h>
-#include <pwd.h>
-#include <grp.h>
-#include <dirent.h>
-#include <errno.h>
-
 /* ------------------------------------------------------------
- * Helper: Convert permission string (e.g., "rwx") to mode bits
+ * Helper: Convert permission string ("rwx") to struct
  * ------------------------------------------------------------ */
-static mode_t perm_string_to_mode(const char* perm_str) {
-    mode_t mode = 0;
-    if (!perm_str) return mode;
+static fossil_io_filesys_perms_t perm_string_to_struct(const char* perm_str)
+{
+    fossil_io_filesys_perms_t perms = {0};
 
-    for (size_t i = 0; i < strlen(perm_str); i++) {
-        switch (perm_str[i]) {
-            case 'r': mode |= S_IRUSR | S_IRGRP | S_IROTH; break;
-            case 'w': mode |= S_IWUSR | S_IWGRP | S_IWOTH; break;
-            case 'x': mode |= S_IXUSR | S_IXGRP | S_IXOTH; break;
+    if (!perm_str) return perms;
+
+    for (size_t i = 0; i < strlen(perm_str); i++)
+    {
+        switch (perm_str[i])
+        {
+            case 'r': perms.read = true; break;
+            case 'w': perms.write = true; break;
+            case 'x': perms.execute = true; break;
             default: break;
         }
     }
-    return mode;
+
+    return perms;
 }
 
 /* ------------------------------------------------------------
- * Helper: Change permissions of a single file
+ * Apply permissions to a single object
  * ------------------------------------------------------------ */
 static int fossil_shark_perm_apply(
-    const char* path,
+    const fossil_io_filesys_obj_t* obj,
     const char* user,
     const char* group,
     const char* grant_perm,
     const char* revoke_perm
-) {
-    struct stat st;
-    if (stat(path, &st) != 0) {
-        perror("stat failed");
-        return -1;
+)
+{
+    if (!obj) return -1;
+
+    fossil_io_filesys_perms_t perms = obj->perms;
+
+    /* Apply grants */
+    if (grant_perm)
+    {
+        fossil_io_filesys_perms_t g = perm_string_to_struct(grant_perm);
+        if (g.read)    perms.read = true;
+        if (g.write)   perms.write = true;
+        if (g.execute) perms.execute = true;
     }
 
-    mode_t mode = st.st_mode;
-
-    /* Grant permissions */
-    if (grant_perm) {
-        mode |= perm_string_to_mode(grant_perm);
+    /* Apply revokes */
+    if (revoke_perm)
+    {
+        fossil_io_filesys_perms_t r = perm_string_to_struct(revoke_perm);
+        if (r.read)    perms.read = false;
+        if (r.write)   perms.write = false;
+        if (r.execute) perms.execute = false;
     }
 
-    /* Revoke permissions */
-    if (revoke_perm) {
-        mode &= ~perm_string_to_mode(revoke_perm);
+    int rc = 0;
+
+    /* Apply permissions based on type */
+    if (obj->type == FOSSIL_FILESYS_TYPE_FILE)
+    {
+        rc = fossil_io_filesys_file_set_perms(obj->path, perms);
+    }
+    else if (obj->type == FOSSIL_FILESYS_TYPE_DIR)
+    {
+        rc = fossil_io_filesys_dir_set_perms(obj->path, perms);
+    }
+    else if (obj->type == FOSSIL_FILESYS_TYPE_LINK)
+    {
+        rc = fossil_io_filesys_link_set_perms(obj->path, perms);
     }
 
-    if (chmod(path, mode) != 0) {
-        perror("chmod failed");
-        return -1;
+    if (rc != 0)
+    {
+        fprintf(stderr, "Failed to set permissions on %s\n", obj->path);
+        return rc;
     }
 
-    /* Change ownership if requested */
-    if (user || group) {
-        uid_t uid = user ? getpwnam(user)->pw_uid : st.st_uid;
-        gid_t gid = group ? getgrnam(group)->gr_gid : st.st_gid;
+    /* Apply ownership if requested */
+    if (user || group)
+    {
+        if (obj->type == FOSSIL_FILESYS_TYPE_FILE)
+        {
+            rc = fossil_io_filesys_file_set_owner(obj->path, user, group);
+        }
+        else if (obj->type == FOSSIL_FILESYS_TYPE_DIR)
+        {
+            rc = fossil_io_filesys_dir_set_owner(obj->path, user, group);
+        }
+        else if (obj->type == FOSSIL_FILESYS_TYPE_LINK)
+        {
+            rc = fossil_io_filesys_link_set_owner(obj->path, user, group);
+        }
 
-        if (chown(path, uid, gid) != 0) {
-            perror("chown failed");
-            return -1;
+        if (rc != 0)
+        {
+            fprintf(stderr, "Failed to set owner/group on %s\n", obj->path);
+            return rc;
         }
     }
 
@@ -97,42 +129,31 @@ static int fossil_shark_perm_apply(
 }
 
 /* ------------------------------------------------------------
- * Recursive permission application
+ * Recursive callback
  * ------------------------------------------------------------ */
-static int fossil_shark_perm_recursive(
-    const char* path,
-    const char* user,
-    const char* group,
-    const char* grant_perm,
-    const char* revoke_perm
-) {
-    int ret = fossil_shark_perm_apply(path, user, group, grant_perm, revoke_perm);
-    if (ret != 0) return ret;
+typedef struct
+{
+    const char* user;
+    const char* group;
+    const char* grant_perm;
+    const char* revoke_perm;
+} perm_ctx_t;
 
-    struct stat st;
-    if (stat(path, &st) != 0) return ret;
+static int perm_walk_cb(const fossil_io_filesys_obj_t* obj, void* user_data)
+{
+    perm_ctx_t* ctx = (perm_ctx_t*)user_data;
 
-    if (S_ISDIR(st.st_mode)) {
-        DIR* dir = opendir(path);
-        if (!dir) return -1;
-        struct dirent* entry;
-        while ((entry = readdir(dir))) {
-            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
-            char child_path[1024];
-            snprintf(child_path, sizeof(child_path), "%s/%s", path, entry->d_name);
-            int child_ret = fossil_shark_perm_recursive(child_path, user, group, grant_perm, revoke_perm);
-            if (child_ret != 0) {
-                closedir(dir);
-                return child_ret;
-            }
-        }
-        closedir(dir);
-    }
-    return 0;
+    return fossil_shark_perm_apply(
+        obj,
+        ctx->user,
+        ctx->group,
+        ctx->grant_perm,
+        ctx->revoke_perm
+    );
 }
 
 /* ------------------------------------------------------------
- * Main fossil_shark_perm function
+ * Main fossil_shark_perm
  * ------------------------------------------------------------ */
 int fossil_shark_perm(
     const char* path,
@@ -142,30 +163,60 @@ int fossil_shark_perm(
     const char* revoke_perm,
     bool list,
     bool recursive
-) {
-    if (!path) {
+)
+{
+    if (!path)
+    {
         fprintf(stderr, "Error: path must be provided.\n");
         return -1;
     }
 
-    /* List current permissions if requested */
-    if (list) {
-        struct stat st;
-        if (stat(path, &st) != 0) {
-            perror("stat failed");
-            return -1;
-        }
-        printf("Path: %s\n", path);
-        printf("Permissions: %o\n", st.st_mode & 0777);
-        printf("Owner UID: %d\n", st.st_uid);
-        printf("Group GID: %d\n", st.st_gid);
+    fossil_io_filesys_obj_t obj;
+    if (fossil_io_filesys_stat(path, &obj) != 0)
+    {
+        fprintf(stderr, "Error: failed to stat path: %s\n", path);
+        return -1;
+    }
+
+    /* --------------------------------------------------------
+     * LIST MODE
+     * -------------------------------------------------------- */
+    if (list)
+    {
+        printf("Path: %s\n", obj.path);
+        printf("Type: %s\n", fossil_io_filesys_type_string(obj.type));
+        printf("Permissions: [r=%d w=%d x=%d]\n",
+               obj.perms.read,
+               obj.perms.write,
+               obj.perms.execute);
+        printf("Owner: %s\n", obj.owner);
+        printf("Group: %s\n", obj.group);
+        printf("Size: %zu\n", obj.size);
         return 0;
     }
 
-    /* Apply permissions */
-    if (recursive) {
-        return fossil_shark_perm_recursive(path, user, group, grant_perm, revoke_perm);
-    } else {
-        return fossil_shark_perm_apply(path, user, group, grant_perm, revoke_perm);
+    /* --------------------------------------------------------
+     * APPLY MODE
+     * -------------------------------------------------------- */
+    if (recursive)
+    {
+        perm_ctx_t ctx = {
+            .user = user,
+            .group = group,
+            .grant_perm = grant_perm,
+            .revoke_perm = revoke_perm
+        };
+
+        return fossil_io_filesys_dir_walk(path, perm_walk_cb, &ctx);
+    }
+    else
+    {
+        return fossil_shark_perm_apply(
+            &obj,
+            user,
+            group,
+            grant_perm,
+            revoke_perm
+        );
     }
 }
