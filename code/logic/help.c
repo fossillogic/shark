@@ -51,6 +51,13 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual)
         fossil_io_printf("  {cyan,bold}introspect{normal}  - Examine file contents, type, or metadata\n");
         fossil_io_printf("  {cyan,bold}grammar{normal}     - Grammar analysis and correction\n");
         fossil_io_printf("  {cyan,bold}cryptic{normal}     - Encode or decode text using various ciphers\n");
+        fossil_io_printf("  {cyan,bold}dedupe{normal}      - Detect and remove duplicate files\n");
+        fossil_io_printf("  {cyan,bold}link{normal}        - Create hard or symbolic links\n");
+        fossil_io_printf("  {cyan,bold}undo{normal}        - Revert previous file operations\n");
+        fossil_io_printf("  {cyan,bold}alias{normal}       - Create or manage command aliases\n");
+        fossil_io_printf("  {cyan,bold}pipe{normal}        - Chain commands and redirect streams\n");
+        fossil_io_printf("  {cyan,bold}snapshot{normal}    - Capture file/directory state\n");
+        fossil_io_printf("  {cyan,bold}perm{normal}        - Manage file/directory permissions\n");
         fossil_io_printf("\n{blue,bold,underline}Global Flags & Special Commands:{normal}\n");
         fossil_io_printf("  {cyan,bold}--help{normal}      - Show command help\n");
         fossil_io_printf("  {cyan,bold}--version{normal}   - Display Shark Tool version\n");
@@ -287,6 +294,68 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual)
             fossil_io_printf("                        binary, morse, baconian, railfence, haxor,\n");
             fossil_io_printf("                        leet, rot13, atbash\n");
         }
+        else if (fossil_io_cstring_equals(command, "dedupe"))
+        {
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}dedupe [options] <dir>{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
+            fossil_io_printf("  {cyan,bold}--hash{normal}           Compare using file hash\n");
+            fossil_io_printf("  {cyan,bold}--fast{normal}           Compare using size+timestamp\n");
+            fossil_io_printf("  {cyan,bold}-i, --interactive{normal} Confirm deletions\n");
+            fossil_io_printf("  {cyan,bold}-d, --delete{normal}     Remove duplicates\n");
+            fossil_io_printf("  {cyan,bold}-l, --link{normal}       Replace duplicates with links\n");
+            fossil_io_printf("  {cyan,bold}--json{normal}           Output results in JSON\n");
+        }
+        else if (fossil_io_cstring_equals(command, "link"))
+        {
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}link [options] <src> <dest>{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
+            fossil_io_printf("  {cyan,bold}-s, --symbolic{normal}   Create symbolic link\n");
+            fossil_io_printf("  {cyan,bold}-h, --hard{normal}       Create hard link\n");
+            fossil_io_printf("  {cyan,bold}-r, --relative{normal}   Use relative paths\n");
+            fossil_io_printf("  {cyan,bold}-f, --force{normal}      Overwrite existing\n");
+        }
+        else if (fossil_io_cstring_equals(command, "alias"))
+        {
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}alias [options]{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
+            fossil_io_printf("  {cyan,bold}--set <name=cmd>{normal} Define alias\n");
+            fossil_io_printf("  {cyan,bold}--remove <name>{normal}  Remove alias\n");
+            fossil_io_printf("  {cyan,bold}-l, --list{normal}       List aliases\n");
+            fossil_io_printf("  {cyan,bold}-g, --global{normal}     Apply globally\n");
+        }
+        else if (fossil_io_cstring_equals(command, "pipe"))
+        {
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}pipe [options]{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
+            fossil_io_printf("  {cyan,bold}-i <file>{normal}        Input file (default stdin)\n");
+            fossil_io_printf("  {cyan,bold}-o <file>{normal}        Output file (default stdout)\n");
+            fossil_io_printf("  {cyan,bold}-f <cmd>{normal}         Filter command\n");
+            fossil_io_printf("  {cyan,bold}-t, --tee{normal}        Output to console + file\n");
+            fossil_io_printf("  {cyan,bold}--json{normal}           JSON structured output\n");
+            fossil_io_printf("  {cyan,bold}-a, --append{normal}     Append to output file\n");
+        }
+        else if (fossil_io_cstring_equals(command, "snapshot"))
+        {
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}snapshot [options]{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
+            fossil_io_printf("  {cyan,bold}-f <file>{normal}        Target file\n");
+            fossil_io_printf("  {cyan,bold}-d <dir>{normal}         Target directory\n");
+            fossil_io_printf("  {cyan,bold}-l <label>{normal}       Snapshot label\n");
+            fossil_io_printf("  {cyan,bold}--json{normal}           Output JSON\n");
+            fossil_io_printf("  {cyan,bold}--diff <label>{normal}   Compare with snapshot\n");
+            fossil_io_printf("  {cyan,bold}--compress{normal}       Compress snapshot\n");
+        }
+        else if (fossil_io_cstring_equals(command, "perm"))
+        {
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}perm [options] <path>{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
+            fossil_io_printf("  {cyan,bold}-u <user>{normal}        Target user\n");
+            fossil_io_printf("  {cyan,bold}-g <group>{normal}       Target group\n");
+            fossil_io_printf("  {cyan,bold}--grant <perm>{normal}   Grant permissions\n");
+            fossil_io_printf("  {cyan,bold}--revoke <perm>{normal}  Revoke permissions\n");
+            fossil_io_printf("  {cyan,bold}-l, --list{normal}       Show permissions\n");
+            fossil_io_printf("  {cyan,bold}-r, --recursive{normal}  Apply recursively\n");
+        }
         else if (fossil_io_cstring_equals(command, "--help"))
         {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}--help{normal}\n");
@@ -364,6 +433,20 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual)
                 fossil_io_printf("  {cyan,bold}shark cryptic --encode --cipher caesar \"Hello, World!\"{normal}\n");
             else if (fossil_io_cstring_equals(command, "split"))
                 fossil_io_printf("  {cyan,bold}shark split -l 1000 --prefix part_ bigfile.txt{normal}\n");
+            else if (fossil_io_cstring_equals(command, "dedupe"))
+                fossil_io_printf("  {cyan,bold}shark dedupe --hash -d ./data{normal}\n");
+            else if (fossil_io_cstring_equals(command, "link"))
+                fossil_io_printf("  {cyan,bold}shark link -s source.txt link.txt{normal}\n");
+            else if (fossil_io_cstring_equals(command, "undo"))
+                fossil_io_printf("  {cyan,bold}shark undo -n 3 --dry-run{normal}\n");
+            else if (fossil_io_cstring_equals(command, "alias"))
+                fossil_io_printf("  {cyan,bold}shark alias --set ls=show -al{normal}\n");
+            else if (fossil_io_cstring_equals(command, "pipe"))
+                fossil_io_printf("  {cyan,bold}shark pipe -i input.txt -o output.txt -f \"cryptic --encode\"{normal}\n");
+            else if (fossil_io_cstring_equals(command, "snapshot"))
+                fossil_io_printf("  {cyan,bold}shark snapshot -d ./project -l v1{normal}\n");
+            else if (fossil_io_cstring_equals(command, "perm"))
+                fossil_io_printf("  {cyan,bold}shark perm --grant rwx -r ./scripts{normal}\n");
         }
 
         // Manual page output omitted for brevity, but should be updated similarly.
