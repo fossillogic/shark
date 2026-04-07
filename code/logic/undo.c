@@ -86,7 +86,7 @@ int fossil_shark_undo(int last_n, const char* file_path, bool interactive, bool 
             int rc = 0;
             switch (op->type) {
                 case FOSSIL_SHARK_OP_MOVE:
-                    rc = fossil_io_filesys_move(op->dest, op->src);
+                    rc = fossil_io_filesys_rename(op->dest, op->src);
                     break;
                 case FOSSIL_SHARK_OP_RENAME:
                     rc = fossil_io_filesys_rename(op->dest, op->src);
