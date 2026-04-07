@@ -210,6 +210,56 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    -d, --delimiter <c> Custom delimiter\n");
     fossil_io_printf("{bright_black}    --dry-run           Preview split\n");
 
+    fossil_io_printf("{cyan}  dedupe           {reset}Detect and remove duplicate files\n");
+    fossil_io_printf("{bright_black}    --hash             Use hash comparison\n");
+    fossil_io_printf("{bright_black}    --fast             Use size+timestamp\n");
+    fossil_io_printf("{bright_black}    -i, --interactive   Confirm deletions\n");
+    fossil_io_printf("{bright_black}    -d, --delete        Remove duplicates\n");
+    fossil_io_printf("{bright_black}    -l, --link          Replace duplicates with links\n");
+    fossil_io_printf("{bright_black}    --json              Output results in JSON\n");
+
+    fossil_io_printf("{cyan}  link             {reset}Create hard or symbolic links\n");
+    fossil_io_printf("{bright_black}    -s, --symbolic      Create symbolic link\n");
+    fossil_io_printf("{bright_black}    -h, --hard          Create hard link\n");
+    fossil_io_printf("{bright_black}    -r, --relative      Use relative paths\n");
+    fossil_io_printf("{bright_black}    -f, --force         Overwrite existing\n");
+
+    fossil_io_printf("{cyan}  undo             {reset}Revert previous file operations\n");
+    fossil_io_printf("{bright_black}    -n <count>          Undo last N operations\n");
+    fossil_io_printf("{bright_black}    -f <path>           Undo specific file\n");
+    fossil_io_printf("{bright_black}    -i, --interactive   Confirm each undo\n");
+    fossil_io_printf("{bright_black}    --dry-run           Preview undo actions\n");
+
+    fossil_io_printf("{cyan}  alias            {reset}Create or manage command aliases\n");
+    fossil_io_printf("{bright_black}    --set <name=cmd>    Define alias\n");
+    fossil_io_printf("{bright_black}    --remove <name>     Remove alias\n");
+    fossil_io_printf("{bright_black}    -l, --list          List aliases\n");
+    fossil_io_printf("{bright_black}    -g, --global        Apply globally\n");
+
+    fossil_io_printf("{cyan}  pipe             {reset}Chain commands and redirect streams\n");
+    fossil_io_printf("{bright_black}    -i <file>           Input file (default stdin)\n");
+    fossil_io_printf("{bright_black}    -o <file>           Output file (default stdout)\n");
+    fossil_io_printf("{bright_black}    -f <cmd>            Filter command\n");
+    fossil_io_printf("{bright_black}    -t, --tee           Output to console + file\n");
+    fossil_io_printf("{bright_black}    --json              JSON structured output\n");
+    fossil_io_printf("{bright_black}    -a, --append        Append to output file\n");
+
+    fossil_io_printf("{cyan}  snapshot         {reset}Capture file or directory state\n");
+    fossil_io_printf("{bright_black}    -f <file>           Target file\n");
+    fossil_io_printf("{bright_black}    -d <dir>            Target directory\n");
+    fossil_io_printf("{bright_black}    -l <label>          Snapshot label\n");
+    fossil_io_printf("{bright_black}    --json              Output snapshot as JSON\n");
+    fossil_io_printf("{bright_black}    --diff <label>      Compare with previous snapshot\n");
+    fossil_io_printf("{bright_black}    --compress          Compress snapshot\n");
+
+    fossil_io_printf("{cyan}  perm             {reset}Manage file or directory permissions\n");
+    fossil_io_printf("{bright_black}    -u <user>           Target user\n");
+    fossil_io_printf("{bright_black}    -g <group>          Target group\n");
+    fossil_io_printf("{bright_black}    --grant <perm>      Grant permissions\n");
+    fossil_io_printf("{bright_black}    --revoke <perm>     Revoke permissions\n");
+    fossil_io_printf("{bright_black}    -l, --list          Show current permissions\n");
+    fossil_io_printf("{bright_black}    -r, --recursive     Apply recursively\n");
+
     fossil_io_printf("\n{blue}Global Flags:{reset}\n");
     fossil_io_printf("{bright_black}  --help                Show command help\n");
     fossil_io_printf("{bright_black}  --version             Display Shark Tool version\n");
@@ -237,9 +287,22 @@ bool app_entry(int argc, char **argv)
 {
     // List of supported commands for suggestion
     static ccstring supported_commands[] = {
-        "show", "move", "copy", "remove", "delete", "rename", "create", "search", "split",
-        "archive", "compare", "help", "sync", "cryptic", "merge",
-        "watch", "rewrite", "introspect", "grammar", "swap",
+        // Core file ops
+        "show", "merge", "swap", "move", "copy", "remove", "delete", "rename", "create",
+
+        // Search / archive / compare
+        "search", "archive", "compare",
+
+        // Utility / system
+        "help", "sync", "watch",
+
+        // Advanced processing
+        "rewrite", "introspect", "grammar", "cryptic",
+
+        // Data ops
+        "split",
+
+        // Global flags
         "--help", "--version", "--name", "--verbose", "--color", "--clear"};
     const int num_supported = sizeof(supported_commands) / sizeof(supported_commands[0]);
 
@@ -1325,6 +1388,180 @@ bool app_entry(int argc, char **argv)
                     fossil_io_printf("{red}Split operation failed: %s{reset}\n", file_path);
                 }
             }
+        }
+        else if (fossil_io_cstring_compare(argv[i], "perm") == 0)
+        {
+            ccstring path = cnull, user = cnull, group = cnull;
+            ccstring grant = cnull, revoke = cnull;
+            bool list = false, recursive = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "--user") == 0 && j + 1 < argc)
+                    user = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--group") == 0 && j + 1 < argc)
+                    group = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--grant") == 0 && j + 1 < argc)
+                    grant = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--revoke") == 0 && j + 1 < argc)
+                    revoke = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--list") == 0)
+                    list = true;
+                else if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0)
+                    recursive = true;
+                else if (!cnotnull(path))
+                    path = argv[j];
+
+                i = j;
+            }
+
+            if (cnotnull(path))
+                fossil_shark_perm(path, user, group, grant, revoke, list, recursive);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "snapshot") == 0)
+        {
+            ccstring file = cnull, dir = cnull, label = cnull, compare = cnull;
+            bool json = false, compress = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "--file") == 0 && j + 1 < argc)
+                    file = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--dir") == 0 && j + 1 < argc)
+                    dir = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--label") == 0 && j + 1 < argc)
+                    label = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--compare") == 0 && j + 1 < argc)
+                    compare = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
+                    json = true;
+                else if (fossil_io_cstring_compare(argv[j], "--compress") == 0)
+                    compress = true;
+
+                i = j;
+            }
+
+            fossil_shark_snapshot(file, dir, label, json, compare, compress);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "pipe") == 0)
+        {
+            ccstring in = cnull, out = cnull, filter = cnull;
+            bool tee = false, json = false, append = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "--in") == 0 && j + 1 < argc)
+                    in = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--out") == 0 && j + 1 < argc)
+                    out = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--filter") == 0 && j + 1 < argc)
+                    filter = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--tee") == 0)
+                    tee = true;
+                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
+                    json = true;
+                else if (fossil_io_cstring_compare(argv[j], "--append") == 0)
+                    append = true;
+
+                i = j;
+            }
+
+            fossil_shark_pipe(in, out, filter, tee, json, append);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "alias") == 0)
+        {
+            ccstring set = cnull, remove = cnull;
+            bool list = false, global = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "--set") == 0 && j + 1 < argc)
+                    set = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--remove") == 0 && j + 1 < argc)
+                    remove = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--list") == 0)
+                    list = true;
+                else if (fossil_io_cstring_compare(argv[j], "--global") == 0)
+                    global = true;
+
+                i = j;
+            }
+
+            fossil_shark_alias(set, remove, list, global);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "undo") == 0)
+        {
+            ccstring path = cnull;
+            int last_n = 1;
+            bool interactive = false, dry_run = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "-n") == 0 && j + 1 < argc)
+                    last_n = atoi(argv[++j]);
+                else if (fossil_io_cstring_compare(argv[j], "-i") == 0)
+                    interactive = true;
+                else if (fossil_io_cstring_compare(argv[j], "--dry-run") == 0)
+                    dry_run = true;
+                else if (!cnotnull(path))
+                    path = argv[j];
+
+                i = j;
+            }
+
+            fossil_shark_undo(last_n, path, interactive, dry_run);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "link") == 0)
+        {
+            ccstring src = cnull, dest = cnull;
+            bool symbolic = false, hard = false, relative = false, overwrite = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--symbolic") == 0)
+                    symbolic = true;
+                else if (fossil_io_cstring_compare(argv[j], "-h") == 0 || fossil_io_cstring_compare(argv[j], "--hard") == 0)
+                    hard = true;
+                else if (fossil_io_cstring_compare(argv[j], "--relative") == 0)
+                    relative = true;
+                else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0)
+                    overwrite = true;
+                else if (!cnotnull(src))
+                    src = argv[j];
+                else if (!cnotnull(dest))
+                    dest = argv[j];
+
+                i = j;
+            }
+
+            if (cnotnull(src) && cnotnull(dest))
+                fossil_shark_link(src, dest, symbolic, hard, relative, overwrite);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "dedupe") == 0)
+        {
+            ccstring dir = cnull;
+            bool use_hash = false, interactive = false, del = false, link = false, json = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "--hash") == 0)
+                    use_hash = true;
+                else if (fossil_io_cstring_compare(argv[j], "-i") == 0)
+                    interactive = true;
+                else if (fossil_io_cstring_compare(argv[j], "--delete") == 0)
+                    del = true;
+                else if (fossil_io_cstring_compare(argv[j], "--link") == 0)
+                    link = true;
+                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
+                    json = true;
+                else if (!cnotnull(dir))
+                    dir = argv[j];
+
+                i = j;
+            }
+
+            if (cnotnull(dir))
+                fossil_shark_dedupe(dir, use_hash, interactive, del, link, json);
         }
         else
         {

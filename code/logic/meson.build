@@ -2,8 +2,10 @@ dir = include_directories('.')
 
 app_lib = static_library('app-code',
     files(
-        'app.c',
-        'magic.c',
+         # not commands
+        'app.c', 'magic.c',
+
+        # commands
         'merge.c',
         'show.c',
         'swap.c',
@@ -22,7 +24,14 @@ app_lib = static_library('app-code',
         'grammar.c',
         'rewrite.c',
         'introspect.c',
-        'split.c'
+        'split.c',
+        'perm.c',
+        'pipe.c',
+        'undo.c',
+        'snapshot.c',
+        'alias.c',
+        'link.c',
+        'dedupe.c'
     ),
     install: true,
     dependencies: [code_deps],
