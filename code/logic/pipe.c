@@ -29,6 +29,21 @@
 #include <string.h>
 #include <stdbool.h>
 
+#ifndef HAVE_MEMMEM
+static void* fossil_memmem(const void* haystack, size_t haystacklen,
+                           const void* needle, size_t needlelen)
+{
+    if (needlelen == 0) return (void*)haystack;
+
+    for (size_t i = 0; i + needlelen <= haystacklen; i++)
+    {
+        if (memcmp((const char*)haystack + i, needle, needlelen) == 0)
+            return (void*)((const char*)haystack + i);
+    }
+    return NULL;
+}
+#endif
+
 /* ------------------------------------------------------------
  * Fossil Shark Pipe Command
  * ------------------------------------------------------------ */
@@ -43,10 +58,14 @@ int fossil_shark_pipe(
     FILE *in = stdin;
     FILE *out = stdout;
     FILE *tmp_out = NULL;
+
     char buffer[4096];
     size_t n;
 
-    /* Open input file if specified */
+    const char* needle = filter;
+    size_t needle_len = (filter) ? strlen(filter) : 0;
+
+    /* Open input file */
     if (input_file) {
         in = fopen(input_file, "rb");
         if (!in) {
@@ -55,7 +74,7 @@ int fossil_shark_pipe(
         }
     }
 
-    /* Open output file if specified */
+    /* Open output file */
     if (output_file) {
         out = fopen(output_file, append ? "ab" : "wb");
         if (!out) {
@@ -65,58 +84,62 @@ int fossil_shark_pipe(
         }
     }
 
-    /* Optional temporary stream for tee */
+    /* Tee support */
     if (tee && output_file) {
         tmp_out = stdout;
     }
 
-    /* Process input line by line */
+    /* Streaming buffer overlap (for boundary-safe matching) */
+    char overlap[256];  // supports filters up to 256 bytes safely
+    size_t overlap_len = 0;
+
     while ((n = fread(buffer, 1, sizeof(buffer), in)) > 0) {
-        /* Apply filter if provided (simple strstr check per block) */
-        if (filter) {
-            char filtered[4096];
-            size_t filtered_len = 0;
-            for (size_t i = 0; i < n; i++) {
-                filtered[i] = buffer[i];
-            }
-            filtered_len = n;
 
-            /* Simple inline filter: skip block if filter not found */
-            if (!memmem(filtered, filtered_len, filter, strlen(filter))) {
-                continue;
-            }
+        /* Build combined buffer: overlap + current chunk */
+        char combined[4096 + 256];
+        size_t combined_len = 0;
 
-            fwrite(filtered, 1, filtered_len, out);
-            if (tmp_out) fwrite(filtered, 1, filtered_len, tmp_out);
-        } else {
-            /* No filter: write directly */
+        if (overlap_len > 0) {
+            memcpy(combined, overlap, overlap_len);
+            combined_len += overlap_len;
+        }
+
+        memcpy(combined + combined_len, buffer, n);
+        combined_len += n;
+
+        bool pass = true;
+
+        if (needle) {
+            if (!fossil_memmem(combined, combined_len, needle, needle_len)) {
+                pass = false;
+            }
+        }
+
+        if (pass) {
             fwrite(buffer, 1, n, out);
             if (tmp_out) fwrite(buffer, 1, n, tmp_out);
         }
+
+        /* Save overlap for next iteration */
+        if (needle_len > 1) {
+            overlap_len = (needle_len - 1 < combined_len)
+                          ? needle_len - 1
+                          : combined_len;
+
+            memcpy(overlap,
+                   combined + combined_len - overlap_len,
+                   overlap_len);
+        }
     }
 
-    /* JSON output wrapping */
+    /* JSON output */
     if (output_json) {
         fprintf(out, "\n{\"status\":\"ok\"}\n");
         if (tmp_out) fprintf(tmp_out, "\n{\"status\":\"ok\"}\n");
     }
 
-    /* Cleanup */
     if (input_file) fclose(in);
     if (output_file) fclose(out);
 
     return 0;
 }
-
-/* ------------------------------------------------------------
- * Simple memmem implementation for portability
- * ------------------------------------------------------------ */
-#ifndef _GNU_SOURCE
-void* memmem(const void* haystack, size_t haystacklen, const void* needle, size_t needlelen) {
-    if (needlelen == 0) return (void*)haystack;
-    for (size_t i = 0; i + needlelen <= haystacklen; i++) {
-        if (memcmp((char*)haystack + i, needle, needlelen) == 0) return (char*)haystack + i;
-    }
-    return NULL;
-}
-#endif
