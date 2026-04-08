@@ -22,51 +22,32 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/cryptic.h"
+#ifndef FOSSIL_APP_COMMAND_PIPE_H
+#define FOSSIL_APP_COMMAND_PIPE_H
+
+#include "common.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /**
- * Encode or decode text using various ciphers
- * @param text Text to encode or decode
- * @param encode Encode the text
- * @param decode Decode the text
- * @param cipher Cipher type to use ("caesar", "vigenere", "base64", "base32", "binary", "morse", "baconian", "railfence", "haxor", "leet", "rot13", "atbash")
+ * Chain commands, redirect outputs, or process streams
+ * @param input_file Source file (NULL for stdin)
+ * @param output_file Destination file (NULL for stdout)
+ * @param filter Inline command filter (NULL for none)
+ * @param tee Split output to console and file if true
+ * @param output_json Structured JSON output if true
+ * @param append Append to output file if true
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_cryptic(const char *text, bool encode, bool decode, const char *cipher)
-{
-    if (!text || !cipher)
-    {
-        return 1; // Error: invalid arguments
-    }
+int fossil_spino_pipe(ccstring input_file, ccstring output_file,
+                      ccstring filter, bool tee, bool output_json,
+                      bool append);
 
-    if (!encode && !decode)
-    {
-        return 1; // Error: neither encode nor decode specified
-    }
-
-    if (encode && decode)
-    {
-        return 1; // Error: both encode and decode specified
-    }
-
-    char *result = NULL;
-
-    if (encode)
-    {
-        result = fossil_io_cipher_encode(text, cipher);
-    }
-    else
-    {
-        result = fossil_io_cipher_decode(text, cipher);
-    }
-
-    if (!result)
-    {
-        return 1; // Error: cipher operation failed
-    }
-
-    // Output the result
-    fossil_io_printf("%s\n", result);
-    free(result);
-    return 0; // Success
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* FOSSIL_APP_CODE_H */

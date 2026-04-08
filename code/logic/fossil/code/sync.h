@@ -22,51 +22,30 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/cryptic.h"
+#ifndef FOSSIL_APP_COMMAND_SYNC_H
+#define FOSSIL_APP_COMMAND_SYNC_H
+
+#include "common.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /**
- * Encode or decode text using various ciphers
- * @param text Text to encode or decode
- * @param encode Encode the text
- * @param decode Decode the text
- * @param cipher Cipher type to use ("caesar", "vigenere", "base64", "base32", "binary", "morse", "baconian", "railfence", "haxor", "leet", "rot13", "atbash")
+ * Synchronize files or directories between source and destination
+ * @param src Source path
+ * @param dest Destination path
+ * @param recursive Include subdirectories
+ * @param update Copy only newer files
+ * @param delete Remove extraneous files from target
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_cryptic(const char *text, bool encode, bool decode, const char *cipher)
-{
-    if (!text || !cipher)
-    {
-        return 1; // Error: invalid arguments
-    }
+int fossil_spino_sync(ccstring src, ccstring dest,
+                        bool recursive, bool update, bool delete);
 
-    if (!encode && !decode)
-    {
-        return 1; // Error: neither encode nor decode specified
-    }
-
-    if (encode && decode)
-    {
-        return 1; // Error: both encode and decode specified
-    }
-
-    char *result = NULL;
-
-    if (encode)
-    {
-        result = fossil_io_cipher_encode(text, cipher);
-    }
-    else
-    {
-        result = fossil_io_cipher_decode(text, cipher);
-    }
-
-    if (!result)
-    {
-        return 1; // Error: cipher operation failed
-    }
-
-    // Output the result
-    fossil_io_printf("%s\n", result);
-    free(result);
-    return 0; // Success
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* FOSSIL_APP_CODE_H */

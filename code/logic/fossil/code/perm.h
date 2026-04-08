@@ -22,51 +22,33 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/cryptic.h"
+#ifndef FOSSIL_APP_COMMAND_PERM_H
+#define FOSSIL_APP_COMMAND_PERM_H
+
+#include "common.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /**
- * Encode or decode text using various ciphers
- * @param text Text to encode or decode
- * @param encode Encode the text
- * @param decode Decode the text
- * @param cipher Cipher type to use ("caesar", "vigenere", "base64", "base32", "binary", "morse", "baconian", "railfence", "haxor", "leet", "rot13", "atbash")
+ * Adjust or view file/directory permissions
+ * @param path File or directory path
+ * @param user User name (NULL if not targeting user)
+ * @param group Group name (NULL if not targeting group)
+ * @param grant_perm Permissions to grant (NULL for none)
+ * @param revoke_perm Permissions to revoke (NULL for none)
+ * @param list Show current permissions if true
+ * @param recursive Apply changes recursively if true
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_cryptic(const char *text, bool encode, bool decode, const char *cipher)
-{
-    if (!text || !cipher)
-    {
-        return 1; // Error: invalid arguments
-    }
+int fossil_spino_perm(ccstring path, ccstring user, ccstring group,
+                      ccstring grant_perm, ccstring revoke_perm,
+                      bool list, bool recursive);
 
-    if (!encode && !decode)
-    {
-        return 1; // Error: neither encode nor decode specified
-    }
-
-    if (encode && decode)
-    {
-        return 1; // Error: both encode and decode specified
-    }
-
-    char *result = NULL;
-
-    if (encode)
-    {
-        result = fossil_io_cipher_encode(text, cipher);
-    }
-    else
-    {
-        result = fossil_io_cipher_decode(text, cipher);
-    }
-
-    if (!result)
-    {
-        return 1; // Error: cipher operation failed
-    }
-
-    // Output the result
-    fossil_io_printf("%s\n", result);
-    free(result);
-    return 0; // Success
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* FOSSIL_APP_CODE_H */

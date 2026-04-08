@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/compare.h"
 
 // Helper: read line from file, return dynamically allocated string
 static cstring read_line(fossil_io_filesys_file_t *stream)

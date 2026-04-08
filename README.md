@@ -115,7 +115,7 @@ Ensure you have the following installed before starting:
 | `undo` | Revert previous file operations (move, copy, rename, remove). | `--last <n>` (revert last n operations)<br>`--file <path>` (specific target)<br>`--interactive` (confirm each undo)<br>`--dry-run` (preview undo) |
 | `link` | Create hard or symbolic links between files or directories. | `--file <source>` (source file)<br>`--target <dest>` (destination path)<br>`--symbolic` (create symlink)<br>`--hard` (create hardlink)<br>`--relative` (use relative paths)<br>`--overwrite` (replace existing links) |
 | `dedupe` | Detect and optionally remove duplicate files. | `--dir <path>` (target directory)<br>`--hash` (compare via file hash)<br>`--interactive` (confirm deletions)<br>`--delete` (remove duplicates)<br>`--link` (replace duplicates with links)<br>`--json` (report duplicates in structured format) |
-| `play` | Launch text-based games directly in the terminal. Games include `guess_number`, `tic_tac_toe`, `puzzle`. | `--game <name>` (choose game)<br>`--difficulty <level>` (set difficulty: easy/medium/hard)<br>`--rounds <n>` (number of rounds)<br>`--verbose` (detailed output) |
+| `play` | Launch text-based games directly in the terminal. Games include `guess_number`, `guess_the_word`, `prs`. | `--game <name>` (choose game)<br>`--rounds <n>` (number of rounds) |
 
 ---
 

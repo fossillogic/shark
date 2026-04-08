@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/search.h"
 
 // Helper: find character in string: soon to be added to Fossil Io
 static ccstring fossil_io_cstring_find_char(ccstring str, char ch)

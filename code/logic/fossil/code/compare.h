@@ -22,51 +22,32 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/cryptic.h"
+#ifndef FOSSIL_APP_COMMAND_COMPARE_H
+#define FOSSIL_APP_COMMAND_COMPARE_H
+
+#include "common.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /**
- * Encode or decode text using various ciphers
- * @param text Text to encode or decode
- * @param encode Encode the text
- * @param decode Decode the text
- * @param cipher Cipher type to use ("caesar", "vigenere", "base64", "base32", "binary", "morse", "baconian", "railfence", "haxor", "leet", "rot13", "atbash")
+ * Compare two files or directories and show differences
+ * @param path1 First file or directory to compare
+ * @param path2 Second file or directory to compare
+ * @param text_diff Perform text-based difference comparison
+ * @param binary_diff Perform binary difference comparison
+ * @param context_lines Number of context lines to show around differences
+ * @param ignore_case Ignore case differences in text comparison
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_cryptic(const char *text, bool encode, bool decode, const char *cipher)
-{
-    if (!text || !cipher)
-    {
-        return 1; // Error: invalid arguments
-    }
+int fossil_spino_compare(ccstring path1, ccstring path2,
+                            bool text_diff, bool binary_diff,
+                            int context_lines, bool ignore_case);
 
-    if (!encode && !decode)
-    {
-        return 1; // Error: neither encode nor decode specified
-    }
-
-    if (encode && decode)
-    {
-        return 1; // Error: both encode and decode specified
-    }
-
-    char *result = NULL;
-
-    if (encode)
-    {
-        result = fossil_io_cipher_encode(text, cipher);
-    }
-    else
-    {
-        result = fossil_io_cipher_decode(text, cipher);
-    }
-
-    if (!result)
-    {
-        return 1; // Error: cipher operation failed
-    }
-
-    // Output the result
-    fossil_io_printf("%s\n", result);
-    free(result);
-    return 0; // Success
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* FOSSIL_APP_CODE_H */

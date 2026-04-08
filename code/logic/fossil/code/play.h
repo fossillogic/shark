@@ -22,37 +22,26 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#ifndef FOSSIL_APP_COMMANDS_H
-#define FOSSIL_APP_COMMANDS_H
+#ifndef FOSSIL_APP_COMMAND_PLAY_H
+#define FOSSIL_APP_COMMAND_PLAY_H
 
-// This header aggregates all command headers for easy inclusion in the main application
+#include "common.h"
 
-#include "merge.h"
-#include "show.h"
-#include "swap.h"
-#include "move.h"
-#include "copy.h"
-#include "remove.h"
-#include "rename.h"
-#include "create.h"
-#include "cryptic.h"
-#include "search.h"
-#include "archive.h"
-#include "compare.h"
-#include "help.h"
-#include "sync.h"
-#include "watch.h"
-#include "grammar.h"
-#include "rewrite.h"
-#include "introspect.h"
-#include "split.h"
-#include "perm.h"
-#include "pipe.h"
-#include "play.h"
-#include "undo.h"
-#include "snapshot.h"
-#include "alias.h"
-#include "link.h"
-#include "dedupe.h"
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/**
+ * Launch a text-based game from the Spino tool.
+ * @param game_name Name of the game to play (e.g., "guess_number", "tic_tac_toe").
+ * @param rounds Number of rounds to play.
+ * @return 0 on success, non-zero on failure.
+ */
+int fossil_spino_play(const char* game_name, int rounds);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* FOSSIL_APP_CODE_H */

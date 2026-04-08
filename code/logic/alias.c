@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/alias.h"
 
 #define FOSSIL_SPINO_ALIAS_MAX 128
 #define FOSSIL_SPINO_ALIAS_NAME_MAX 64

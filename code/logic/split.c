@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/split.h"
 
 int fossil_spino_split(ccstring file_path, size_t split_by_lines,
                        size_t split_by_bytes, size_t num_segments,

@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/help.h"
 
 int fossil_spino_help(ccstring command, bool show_examples, bool full_manual)
 {

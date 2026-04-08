@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/play.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -141,17 +141,12 @@ static void play_rps(int rounds) {
 }
 
 // --- Main Spino Play Command ---
-int spino_play(const char* game_name, const char* difficulty, int rounds, int verbose) {
+int fossil_spino_play(const char* game_name, int rounds) {
     srand((unsigned int)time(NULL));
 
     if (!game_name || rounds <= 0) {
         fprintf(stderr, "Invalid game or rounds.\n");
         return 1;
-    }
-
-    if (verbose) {
-        printf("Starting game '%s' for %d rounds, difficulty: %s\n",
-               game_name, rounds, difficulty ? difficulty : "normal");
     }
 
     if (strcmp(game_name, "dice") == 0) {

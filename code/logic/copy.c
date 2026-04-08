@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/copy.h"
 
 static int copy_file(ccstring src, ccstring dest, bool update, bool preserve,
                      bool checksum, bool dry_run)

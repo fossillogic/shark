@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/watch.h"
 
 __attribute__((unused)) static void fossil_spino_watch_file(const char *path, const char *events, fossil_io_filesys_obj_t *prev_obj)
 {
