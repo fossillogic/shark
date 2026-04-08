@@ -260,6 +260,10 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    -l, --list          Show current permissions\n");
     fossil_io_printf("{bright_black}    -r, --recursive     Apply recursively\n");
 
+    fossil_io_printf("{cyan}  play            {reset}Launch a text-based game from the Spino tool\n");
+    fossil_io_printf("{bright_black}    --game <game>       Game name (e.g., guess_number, tic_tac_toe)\n");
+    fossil_io_printf("{bright_black}    --rounds <rounds>   Number of rounds to play\n");
+
     fossil_io_printf("\n{blue}Global Flags:{reset}\n");
     fossil_io_printf("{bright_black}  --help                Show command help\n");
     fossil_io_printf("{bright_black}  --version             Display Spino Tool version\n");
