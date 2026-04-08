@@ -299,6 +299,9 @@ bool app_entry(int argc, char **argv)
         // Advanced processing
         "rewrite", "introspect", "grammar", "cryptic",
 
+        // Other operations
+        "play", "alias", "pipe", "snapshot", "perm", "dedupe", "link", "undo",
+
         // Data ops
         "split",
 
@@ -377,6 +380,16 @@ bool app_entry(int argc, char **argv)
             fossil_io_cstring_compare(argv[i], "rewrite") == 0 ||
             fossil_io_cstring_compare(argv[i], "introspect") == 0 ||
             fossil_io_cstring_compare(argv[i], "grammar") == 0 ||
+            fossil_io_cstring_compare(argv[i], "split") == 0 ||
+            fossil_io_cstring_compare(argv[i], "dedupe") == 0 ||
+            fossil_io_cstring_compare(argv[i], "link") == 0 ||
+            fossil_io_cstring_compare(argv[i], "undo") == 0 ||
+            fossil_io_cstring_compare(argv[i], "alias") == 0 ||
+            fossil_io_cstring_compare(argv[i], "pipe") == 0 ||
+            fossil_io_cstring_compare(argv[i], "play") == 0 ||
+            fossil_io_cstring_compare(argv[i], "snapshot") == 0 ||
+            fossil_io_cstring_compare(argv[i], "perm") == 0 ||
+            fossil_io_cstring_compare(argv[i], "help") == 0 ||
             fossil_io_cstring_compare(argv[i], "cryptic") == 0)
         {
             // Look ahead for path-like arguments and suggest corrections
@@ -1562,6 +1575,40 @@ bool app_entry(int argc, char **argv)
 
             if (cnotnull(dir))
                 fossil_spino_dedupe(dir, use_hash, interactive, del, link, json);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "play") == 0)
+        {
+            ccstring game_name = cnull;
+            int rounds = 1;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "-g") == 0 || fossil_io_cstring_compare(argv[j], "--game") == 0)
+                {
+                    if (j + 1 < argc)
+                        game_name = argv[++j];
+                }
+                else if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--rounds") == 0)
+                {
+                    if (j + 1 < argc)
+                        rounds = atoi(argv[++j]);
+                }
+                i = j;
+            }
+
+            if (cnotnull(game_name))
+            {
+                int rc = fossil_spino_play(game_name, rounds);
+                if (rc != 0)
+                {
+                    fossil_io_printf("{red}Failed to play game: %s{reset}\n", game_name);
+                }
+            }
+            else
+            {
+                fossil_io_printf("{red}Game name is required for play command{reset}\n");
+                fossil_spino_help("play", false, false);
+            }
         }
         else
         {
