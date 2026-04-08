@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/create.h"
 
 static int create_parent_dirs(const char *path)
 {
@@ -46,7 +46,7 @@ static int create_parent_dirs(const char *path)
     return 0;
 }
 
-int fossil_shark_create(const char *path, bool create_parents, const char *type)
+int fossil_spino_create(const char *path, bool create_parents, const char *type)
 {
     if (cunlikely(!path || !type))
     {

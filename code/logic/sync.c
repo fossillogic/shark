@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/sync.h"
 
 #define PATH_MAX_LEN 1024
 
@@ -80,7 +80,7 @@ static int sync_file(ccstring src, ccstring dest, bool update)
 }
 
 // Main sync function
-int fossil_shark_sync(ccstring src, ccstring dest,
+int fossil_spino_sync(ccstring src, ccstring dest,
                       bool recursive, bool update, bool delete_flag)
 {
     int32_t rc = 0;
@@ -122,7 +122,7 @@ int fossil_shark_sync(ccstring src, ccstring dest,
         {
             if (recursive)
             {
-                fossil_shark_sync(entry->path, dest_path, recursive, update, delete_flag);
+                fossil_spino_sync(entry->path, dest_path, recursive, update, delete_flag);
             }
         }
         else if (entry->type == FOSSIL_FILESYS_TYPE_FILE)

@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/rename.h"
 
 // Helper: ask user for confirmation
 static bool confirm_overwrite_rename(ccstring path)
@@ -42,7 +42,7 @@ static bool confirm_overwrite_rename(ccstring path)
     return result;
 }
 
-int fossil_shark_rename(ccstring old_name, ccstring new_name,
+int fossil_spino_rename(ccstring old_name, ccstring new_name,
                         bool force, bool interactive)
 {
     if (cunlikely(!old_name || !new_name))

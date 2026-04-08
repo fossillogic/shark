@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/swap.h"
 
 static bool fossil_io_device_differs(ccstring path1, ccstring path2)
 {
@@ -62,32 +62,6 @@ static int create_backup(ccstring path)
     return result < 0 ? 1 : 0;
 }
 
-// To be added in Fossil Io 0.2.12
-static cstring fossil_io_filesys_path_normalize(ccstring path)
-{
-    if (!cnotnull(path))
-    {
-        return NULL;
-    }
-
-    cstring normalized = fossil_io_cstring_dup(path);
-    if (!cnotnull(normalized))
-    {
-        return NULL;
-    }
-
-    // Convert backslashes to forward slashes for cross-platform consistency
-    for (size_t i = 0; normalized[i] != '\0'; i++)
-    {
-        if (normalized[i] == '\\')
-        {
-            normalized[i] = '/';
-        }
-    }
-
-    return normalized;
-}
-
 static int swap_with_temp(ccstring path1, ccstring path2, ccstring temp_path)
 {
     if (!cnotnull(temp_path))
@@ -114,7 +88,7 @@ static int swap_with_temp(ccstring path1, ccstring path2, ccstring temp_path)
     return fossil_io_filesys_remove(temp_path, false) < 0 ? 1 : 0;
 }
 
-int fossil_shark_swap(ccstring path1, ccstring path2,
+int fossil_spino_swap(ccstring path1, ccstring path2,
                       bool force, bool interactive, bool backup,
                       bool atomic, bool progress, bool dry_run,
                       ccstring temp_path, bool no_cross_device)

@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/search.h"
 
 // Helper: find character in string: soon to be added to Fossil Io
 static ccstring fossil_io_cstring_find_char(ccstring str, char ch)
@@ -209,9 +209,9 @@ static int search_recursive(ccstring path, bool recursive,
  * - Regex patterns
  *
  * Usage:
- *   fossil_shark_search_advanced(".", true, "\.c$", "malloc", false, 0, 1000000, true)
+ *   fossil_spino_search_advanced(".", true, "\.c$", "malloc", false, 0, 1000000, true)
  */
-int fossil_shark_search_advanced(ccstring path, bool recursive,
+int fossil_spino_search_advanced(ccstring path, bool recursive,
                                  ccstring name_pattern, ccstring content_pattern,
                                  bool ignore_case, uint64_t min_size, uint64_t max_size,
                                  bool exclude_hidden)
@@ -255,10 +255,10 @@ int fossil_shark_search_advanced(ccstring path, bool recursive,
 /**
  * Legacy wrapper for compatibility
  */
-int fossil_shark_search(ccstring path, bool recursive,
+int fossil_spino_search(ccstring path, bool recursive,
                         ccstring name_pattern, ccstring content_pattern,
                         bool ignore_case)
 {
-    return fossil_shark_search_advanced(path, recursive, name_pattern, content_pattern,
+    return fossil_spino_search_advanced(path, recursive, name_pattern, content_pattern,
                                         ignore_case, 0, 0, false);
 }

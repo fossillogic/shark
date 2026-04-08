@@ -56,27 +56,27 @@ FOSSIL_TEARDOWN(c_create_command_suite)
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-// Test cases for fossil_shark_create function
+// Test cases for fossil_spino_create function
 
 FOSSIL_TEST(c_test_create_null_parameters)
 {
     // Test with null path
-    int result = fossil_shark_create(cnull, false, "file");
+    int result = fossil_spino_create(cnull, false, "file");
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with null type
-    result = fossil_shark_create("test.txt", false, cnull);
+    result = fossil_spino_create("test.txt", false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with both null
-    result = fossil_shark_create(cnull, false, cnull);
+    result = fossil_spino_create(cnull, false, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_create_simple_file)
 {
     // Create a simple file
-    int result = fossil_shark_create("create_test_file.txt", false, "file");
+    int result = fossil_spino_create("create_test_file.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify file exists
@@ -89,7 +89,7 @@ FOSSIL_TEST(c_test_create_simple_file)
 FOSSIL_TEST(c_test_create_simple_directory)
 {
     // Create a simple directory
-    int result = fossil_shark_create("create_test_dir", false, "dir");
+    int result = fossil_spino_create("create_test_dir", false, "dir");
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify directory exists
@@ -102,11 +102,11 @@ FOSSIL_TEST(c_test_create_simple_directory)
 FOSSIL_TEST(c_test_create_invalid_type)
 {
     // Test with invalid type
-    int result = fossil_shark_create("invalid_type_test", false, "invalid");
+    int result = fossil_spino_create("invalid_type_test", false, "invalid");
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with empty type
-    result = fossil_shark_create("empty_type_test", false, "");
+    result = fossil_spino_create("empty_type_test", false, "");
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -119,7 +119,7 @@ FOSSIL_TEST(c_test_create_existing_file)
     fossil_io_filesys_file_close(&file);
 
     // Try to create the same file again
-    int result = fossil_shark_create("existing_file.txt", false, "file");
+    int result = fossil_spino_create("existing_file.txt", false, "file");
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
@@ -131,7 +131,7 @@ FOSSIL_TEST(c_test_create_existing_directory)
     fossil_io_filesys_dir_create("existing_dir", false);
 
     // Try to create the same directory again
-    int result = fossil_shark_create("existing_dir", false, "dir");
+    int result = fossil_spino_create("existing_dir", false, "dir");
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
@@ -141,7 +141,7 @@ FOSSIL_TEST(c_test_create_existing_directory)
 FOSSIL_TEST(c_test_create_with_parent_dirs)
 {
     // Create file with parent directories
-    int result = fossil_shark_create("parent1/parent2/test_file.txt", true, "file");
+    int result = fossil_spino_create("parent1/parent2/test_file.txt", true, "file");
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify file and parent directories exist
@@ -156,14 +156,14 @@ FOSSIL_TEST(c_test_create_with_parent_dirs)
 FOSSIL_TEST(c_test_create_without_parent_dirs)
 {
     // Try to create file without creating parent directories
-    int result = fossil_shark_create("nonexistent/path/test_file.txt", false, "file");
+    int result = fossil_spino_create("nonexistent/path/test_file.txt", false, "file");
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_create_nested_directory)
 {
     // Create nested directory structure
-    int result = fossil_shark_create("nested1/nested2/nested3", true, "dir");
+    int result = fossil_spino_create("nested1/nested2/nested3", true, "dir");
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify directory structure exists
@@ -178,7 +178,7 @@ FOSSIL_TEST(c_test_create_nested_directory)
 FOSSIL_TEST(c_test_create_file_with_special_characters)
 {
     // Create file with special characters in name
-    int result = fossil_shark_create("special_chars_123.txt", false, "file");
+    int result = fossil_spino_create("special_chars_123.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify file exists
@@ -191,7 +191,7 @@ FOSSIL_TEST(c_test_create_file_with_special_characters)
 FOSSIL_TEST(c_test_create_directory_with_special_characters)
 {
     // Create directory with special characters in name
-    int result = fossil_shark_create("special_dir_123", false, "dir");
+    int result = fossil_spino_create("special_dir_123", false, "dir");
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify directory exists
@@ -204,7 +204,7 @@ FOSSIL_TEST(c_test_create_directory_with_special_characters)
 FOSSIL_TEST(c_test_create_deep_nested_structure)
 {
     // Create deeply nested file structure
-    int result = fossil_shark_create("deep/very/deeply/nested/file/structure/test.txt", true, "file");
+    int result = fossil_spino_create("deep/very/deeply/nested/file/structure/test.txt", true, "file");
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify file exists
@@ -223,14 +223,14 @@ FOSSIL_TEST(c_test_create_deep_nested_structure)
 FOSSIL_TEST(c_test_create_empty_filename)
 {
     // Try to create file with empty name
-    int result = fossil_shark_create("", false, "file");
+    int result = fossil_spino_create("", false, "file");
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_create_file_in_current_dir)
 {
     // Create file in current directory using relative path
-    int result = fossil_shark_create("./current_dir_test.txt", false, "file");
+    int result = fossil_spino_create("./current_dir_test.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify file exists
@@ -243,7 +243,7 @@ FOSSIL_TEST(c_test_create_file_in_current_dir)
 FOSSIL_TEST(c_test_create_file_case_sensitivity)
 {
     // Create file with mixed case
-    int result = fossil_shark_create("MixedCaseFile.TXT", false, "file");
+    int result = fossil_spino_create("MixedCaseFile.TXT", false, "file");
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify file exists
@@ -256,13 +256,13 @@ FOSSIL_TEST(c_test_create_file_case_sensitivity)
 FOSSIL_TEST(c_test_create_type_case_sensitivity)
 {
     // Test type parameter case sensitivity
-    int result = fossil_shark_create("case_test_file.txt", false, "FILE");
+    int result = fossil_spino_create("case_test_file.txt", false, "FILE");
     ASSUME_NOT_EQUAL_I32(0, result);
 
-    result = fossil_shark_create("case_test_dir", false, "DIR");
+    result = fossil_spino_create("case_test_dir", false, "DIR");
     ASSUME_NOT_EQUAL_I32(0, result);
 
-    result = fossil_shark_create("case_test_dir", false, "Dir");
+    result = fossil_spino_create("case_test_dir", false, "Dir");
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 

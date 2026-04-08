@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/move.h"
 
 // Filesys
 cstring fossil_io_filesys_file_path_normalize(ccstring path)
@@ -143,7 +143,7 @@ static int filter_by_patterns(ccstring src, ccstring dest, ccstring exclude, ccs
     return 0;
 }
 
-int fossil_shark_move(ccstring src, ccstring dest,
+int fossil_spino_move(ccstring src, ccstring dest,
                       bool force, bool interactive, bool backup,
                       bool atomic, bool progress, bool dry_run,
                       ccstring exclude_pattern, ccstring include_pattern)

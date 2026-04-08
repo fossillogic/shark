@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/archive.h"
 
 // Helper function to safely create a path by combining directory and filename
 static int fossil_fpath_create_path_safe(char *dest, size_t dest_size, ccstring base_path, ccstring suffix)
@@ -95,7 +95,7 @@ static fossil_io_archive_type_t get_archive_type_from_format(ccstring format)
     return FOSSIL_IO_ARCHIVE_UNKNOWN;
 }
 
-int fossil_shark_archive(ccstring path, bool create, bool extract,
+int fossil_spino_archive(ccstring path, bool create, bool extract,
                          bool list, ccstring format, ccstring password,
                          int compress_level, bool stdout_output,
                          ccstring exclude_pattern)

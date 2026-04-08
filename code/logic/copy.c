@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/copy.h"
 
 static int copy_file(ccstring src, ccstring dest, bool update, bool preserve,
                      bool checksum, bool dry_run)
@@ -211,7 +211,7 @@ static int copy_directory(ccstring src, ccstring dest,
     return 0;
 }
 
-int fossil_shark_copy(ccstring src, ccstring dest,
+int fossil_spino_copy(ccstring src, ccstring dest,
                       bool recursive, bool update, bool preserve,
                       bool checksum, bool sparse, bool link, bool reflink,
                       bool progress, bool dry_run,

@@ -1,0 +1,58 @@
+/**
+ * -----------------------------------------------------------------------------
+ * Project: Fossil Logic
+ *
+ * This file is part of the Fossil Logic project, which aims to develop
+ * high-performance, cross-platform applications and libraries. The code
+ * contained herein is licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License. You may obtain
+ * a copy of the License at:
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ *
+ * Author: Michael Gene Brockus (Dreamer)
+ * Date: 04/05/2014
+ *
+ * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
+ * -----------------------------------------------------------------------------
+ */
+#ifndef FOSSIL_APP_COMMAND_MOVE_H
+#define FOSSIL_APP_COMMAND_MOVE_H
+
+#include "common.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/**
+ * Move or rename files and directories
+ * @param src Source path of the file or directory
+ * @param dest Destination path
+ * @param force Force move without confirmation (--force)
+ * @param interactive Prompt before overwriting (--interactive)
+ * @param backup Create backup before move (--backup)
+ * @param atomic Perform atomic move operation (--atomic)
+ * @param progress Show progress during move (--progress)
+ * @param dry_run Simulate the move without executing (--dry-run)
+ * @param exclude_pattern Pattern for files to exclude (--exclude)
+ * @param include_pattern Pattern for files to include (--include)
+ * @return 0 on success, non-zero on error
+ */
+int fossil_spino_move(ccstring src, ccstring dest,
+                        bool force, bool interactive, bool backup,
+                        bool atomic, bool progress, bool dry_run,
+                        ccstring exclude_pattern, ccstring include_pattern);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* FOSSIL_APP_CODE_H */

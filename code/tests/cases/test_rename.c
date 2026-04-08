@@ -56,31 +56,31 @@ FOSSIL_TEARDOWN(c_rename_command_suite)
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-// Test cases for fossil_shark_rename function
+// Test cases for fossil_spino_rename function
 
 FOSSIL_TEST(c_test_rename_null_parameters)
 {
     // Test with null old_name
-    int result = fossil_shark_rename(cnull, "new_file.txt", false, false);
+    int result = fossil_spino_rename(cnull, "new_file.txt", false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with null new_name
-    result = fossil_shark_rename("old_file.txt", cnull, false, false);
+    result = fossil_spino_rename("old_file.txt", cnull, false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with both null
-    result = fossil_shark_rename(cnull, cnull, false, false);
+    result = fossil_spino_rename(cnull, cnull, false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_rename_empty_strings)
 {
     // Test with empty old_name
-    int result = fossil_shark_rename("", "new_file.txt", false, false);
+    int result = fossil_spino_rename("", "new_file.txt", false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with empty new_name
-    result = fossil_shark_rename("old_file.txt", "", false, false);
+    result = fossil_spino_rename("old_file.txt", "", false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -93,7 +93,7 @@ FOSSIL_TEST(c_test_rename_basic_file)
     fclose(temp);
 
     // Rename the file
-    int result = fossil_shark_rename("rename_test_old.txt", "rename_test_new.txt", false, false);
+    int result = fossil_spino_rename("rename_test_old.txt", "rename_test_new.txt", false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify old file doesn't exist and new file exists
@@ -111,7 +111,7 @@ FOSSIL_TEST(c_test_rename_basic_file)
 FOSSIL_TEST(c_test_rename_nonexistent_file)
 {
     // Try to rename a file that doesn't exist
-    int result = fossil_shark_rename("nonexistent_file.txt", "new_name.txt", false, false);
+    int result = fossil_spino_rename("nonexistent_file.txt", "new_name.txt", false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -130,7 +130,7 @@ FOSSIL_TEST(c_test_rename_overwrite_without_force)
     fclose(dest);
 
     // Try to rename without force (should fail)
-    int result = fossil_shark_rename("rename_source.txt", "rename_dest.txt", false, false);
+    int result = fossil_spino_rename("rename_source.txt", "rename_dest.txt", false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
@@ -153,7 +153,7 @@ FOSSIL_TEST(c_test_rename_overwrite_with_force)
     fclose(dest);
 
     // Rename with force (should succeed)
-    int result = fossil_shark_rename("rename_force_src.txt", "rename_force_dst.txt", true, false);
+    int result = fossil_spino_rename("rename_force_src.txt", "rename_force_dst.txt", true, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify the rename worked
@@ -177,7 +177,7 @@ FOSSIL_TEST(c_test_rename_with_path)
     fclose(temp);
 
     // Rename with relative path
-    int result = fossil_shark_rename("path_test.txt", "./renamed_path.txt", false, false);
+    int result = fossil_spino_rename("path_test.txt", "./renamed_path.txt", false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify rename
@@ -198,7 +198,7 @@ FOSSIL_TEST(c_test_rename_special_characters)
     fclose(temp);
 
     // Rename to file with special characters (platform dependent)
-    int result = fossil_shark_rename("normal_file.txt", "file_with-underscore.txt", false, false);
+    int result = fossil_spino_rename("normal_file.txt", "file_with-underscore.txt", false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify rename
@@ -219,7 +219,7 @@ FOSSIL_TEST(c_test_rename_preserve_content)
     fclose(temp);
 
     // Rename the file
-    int result = fossil_shark_rename("content_test.txt", "renamed_content.txt", false, false);
+    int result = fossil_spino_rename("content_test.txt", "renamed_content.txt", false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify content is preserved
@@ -253,7 +253,7 @@ FOSSIL_TEST(c_test_rename_large_filename)
     strcpy(long_name + 200, ".txt");
 
     // Try rename (may fail due to platform limits, that's okay)
-    int result = fossil_shark_rename("short.txt", long_name, false, false);
+    int result = fossil_spino_rename("short.txt", long_name, false, false);
     (void)result; // Suppress unused variable warning
 
     // Clean up regardless of result
@@ -273,7 +273,7 @@ FOSSIL_TEST(c_test_rename_file_to_existing_directory_name)
     fclose(temp);
     // This test assumes current directory exists (which it should)
     // Try to rename file to an existing directory name (should handle gracefully)
-    int result = fossil_shark_rename("file_to_dir.txt", ".", false, false);
+    int result = fossil_spino_rename("file_to_dir.txt", ".", false, false);
     (void)result; // Suppress unused variable warning
     // This should likely fail, but shouldn't crash
 

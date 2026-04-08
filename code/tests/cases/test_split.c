@@ -58,10 +58,10 @@ FOSSIL_TEARDOWN(c_split_command_suite)
 
 FOSSIL_TEST(c_test_split_null_parameters)
 {
-    int result = fossil_shark_split(cnull, 10, 0, 0, "output", 0, false, cnull, false);
+    int result = fossil_spino_split(cnull, 10, 0, 0, "output", 0, false, cnull, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
-    result = fossil_shark_split("test.txt", 10, 0, 0, cnull, 0, false, cnull, false);
+    result = fossil_spino_split("test.txt", 10, 0, 0, cnull, 0, false, cnull, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -75,7 +75,7 @@ FOSSIL_TEST(c_test_split_by_lines)
     }
     fclose(file);
 
-    int result = fossil_shark_split("split_lines.txt", 25, 0, 0, "split_lines_", 0, false, cnull, false);
+    int result = fossil_spino_split("split_lines.txt", 25, 0, 0, "split_lines_", 0, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("split_lines.txt");
@@ -92,7 +92,7 @@ FOSSIL_TEST(c_test_split_by_bytes)
     fprintf(file, "0123456789");
     fclose(file);
 
-    int result = fossil_shark_split("split_bytes.txt", 0, 5, 0, "split_bytes_", 0, false, cnull, false);
+    int result = fossil_spino_split("split_bytes.txt", 0, 5, 0, "split_bytes_", 0, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("split_bytes.txt");
@@ -107,7 +107,7 @@ FOSSIL_TEST(c_test_split_by_segments)
     fprintf(file, "Content for splitting into segments");
     fclose(file);
 
-    int result = fossil_shark_split("split_segs.txt", 0, 0, 3, "split_segs_", 0, false, cnull, false);
+    int result = fossil_spino_split("split_segs.txt", 0, 0, 3, "split_segs_", 0, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("split_segs.txt");
@@ -126,7 +126,7 @@ FOSSIL_TEST(c_test_split_numeric_suffix)
     }
     fclose(file);
 
-    int result = fossil_shark_split("split_num.txt", 25, 0, 0, "split_num_", 0, true, cnull, false);
+    int result = fossil_spino_split("split_num.txt", 25, 0, 0, "split_num_", 0, true, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("split_num.txt");
@@ -144,7 +144,7 @@ FOSSIL_TEST(c_test_split_with_suffix_digits)
     }
     fclose(file);
 
-    int result = fossil_shark_split("split_digits.txt", 25, 0, 0, "split_digits_", 3, false, cnull, false);
+    int result = fossil_spino_split("split_digits.txt", 25, 0, 0, "split_digits_", 3, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("split_digits.txt");
@@ -160,7 +160,7 @@ FOSSIL_TEST(c_test_split_with_delimiter)
     fprintf(file, "data|data|data|data");
     fclose(file);
 
-    int result = fossil_shark_split("split_delim.txt", 0, 0, 0, "split_delim_", 0, false, "|", false);
+    int result = fossil_spino_split("split_delim.txt", 0, 0, 0, "split_delim_", 0, false, "|", false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("split_delim.txt");
@@ -178,7 +178,7 @@ FOSSIL_TEST(c_test_split_dry_run)
     }
     fclose(file);
 
-    int result = fossil_shark_split("split_dry.txt", 25, 0, 0, "split_dry_", 0, false, cnull, true);
+    int result = fossil_spino_split("split_dry.txt", 25, 0, 0, "split_dry_", 0, false, cnull, true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     ASSUME_ITS_FALSE(FOSSIL_SANITY_SYS_FILE_EXISTS("split_dry_a"));
@@ -188,7 +188,7 @@ FOSSIL_TEST(c_test_split_dry_run)
 
 FOSSIL_TEST(c_test_split_nonexistent_file)
 {
-    int result = fossil_shark_split("nonexistent_split.txt", 10, 0, 0, "output_", 0, false, cnull, false);
+    int result = fossil_spino_split("nonexistent_split.txt", 10, 0, 0, "output_", 0, false, cnull, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -198,7 +198,7 @@ FOSSIL_TEST(c_test_split_empty_file)
     ASSUME_NOT_CNULL(file);
     fclose(file);
 
-    int result = fossil_shark_split("split_empty.txt", 10, 0, 0, "split_empty_", 0, false, cnull, false);
+    int result = fossil_spino_split("split_empty.txt", 10, 0, 0, "split_empty_", 0, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("split_empty.txt");
@@ -214,7 +214,7 @@ FOSSIL_TEST(c_test_split_large_file)
     }
     fclose(file);
 
-    int result = fossil_shark_split("split_large.txt", 2500, 0, 0, "split_large_", 0, false, cnull, false);
+    int result = fossil_spino_split("split_large.txt", 2500, 0, 0, "split_large_", 0, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("split_large.txt");
@@ -231,7 +231,7 @@ FOSSIL_TEST(c_test_split_single_line)
     fprintf(file, "Single line content");
     fclose(file);
 
-    int result = fossil_shark_split("split_single.txt", 1, 0, 0, "split_single_", 0, false, cnull, false);
+    int result = fossil_spino_split("split_single.txt", 1, 0, 0, "split_single_", 0, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("split_single.txt");
@@ -245,7 +245,7 @@ FOSSIL_TEST(c_test_split_zero_split_param)
     fprintf(file, "Content");
     fclose(file);
 
-    int result = fossil_shark_split("split_zero.txt", 0, 0, 0, "split_zero_", 0, false, cnull, false);
+    int result = fossil_spino_split("split_zero.txt", 0, 0, 0, "split_zero_", 0, false, cnull, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("split_zero.txt");
@@ -261,7 +261,7 @@ FOSSIL_TEST(c_test_split_alphabetic_suffix)
     }
     fclose(file);
 
-    int result = fossil_shark_split("split_alpha.txt", 50, 0, 0, "split_alpha_", 0, false, cnull, false);
+    int result = fossil_spino_split("split_alpha.txt", 50, 0, 0, "split_alpha_", 0, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     FOSSIL_SANITY_SYS_DELETE_FILE("split_alpha.txt");

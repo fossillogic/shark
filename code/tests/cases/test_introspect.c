@@ -59,14 +59,14 @@ FOSSIL_TEARDOWN(c_introspect_command_suite)
 FOSSIL_TEST(c_test_introspect_null_parameters)
 {
     // Test with null path
-    int result = fossil_shark_introspect(cnull, 0, 0, false, false, false, false, false, cnull, false, false);
+    int result = fossil_spino_introspect(cnull, 0, 0, false, false, false, false, false, cnull, false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_introspect_nonexistent_file)
 {
     // Test with non-existent file
-    int result = fossil_shark_introspect("nonexistent_file_12345.txt", 0, 0, false, false, false, false, false, cnull, false, false);
+    int result = fossil_spino_introspect("nonexistent_file_12345.txt", 0, 0, false, false, false, false, false, cnull, false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -76,7 +76,7 @@ FOSSIL_TEST(c_test_introspect_show_head_lines)
     FOSSIL_SANITY_SYS_WRITE_FILE("test_head.txt", "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n");
 
     // Test showing head lines
-    int result = fossil_shark_introspect("test_head.txt", 3, 0, false, false, false, false, false, cnull, false, false);
+    int result = fossil_spino_introspect("test_head.txt", 3, 0, false, false, false, false, false, cnull, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -89,7 +89,7 @@ FOSSIL_TEST(c_test_introspect_show_tail_lines)
     FOSSIL_SANITY_SYS_WRITE_FILE("test_tail.txt", "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n");
 
     // Test showing tail lines
-    int result = fossil_shark_introspect("test_tail.txt", 0, 2, false, false, false, false, false, cnull, false, false);
+    int result = fossil_spino_introspect("test_tail.txt", 0, 2, false, false, false, false, false, cnull, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -102,7 +102,7 @@ FOSSIL_TEST(c_test_introspect_count_lines_words_bytes)
     FOSSIL_SANITY_SYS_WRITE_FILE("test_count.txt", "Hello world\nFoo bar baz\n");
 
     // Test counting lines, words, and bytes
-    int result = fossil_shark_introspect("test_count.txt", 0, 0, true, false, false, false, false, cnull, false, false);
+    int result = fossil_spino_introspect("test_count.txt", 0, 0, true, false, false, false, false, cnull, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -115,7 +115,7 @@ FOSSIL_TEST(c_test_introspect_count_lines_only)
     FOSSIL_SANITY_SYS_WRITE_FILE("test_lines_only.txt", "Line 1\nLine 2\nLine 3\n");
 
     // Test counting lines only
-    int result = fossil_shark_introspect("test_lines_only.txt", 0, 0, false, true, false, false, false, cnull, false, false);
+    int result = fossil_spino_introspect("test_lines_only.txt", 0, 0, false, true, false, false, false, cnull, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -128,7 +128,7 @@ FOSSIL_TEST(c_test_introspect_show_size)
     FOSSIL_SANITY_SYS_WRITE_FILE("test_size.txt", "Test content for size display\n");
 
     // Test showing file size
-    int result = fossil_shark_introspect("test_size.txt", 0, 0, false, false, true, false, false, cnull, false, false);
+    int result = fossil_spino_introspect("test_size.txt", 0, 0, false, false, true, false, false, cnull, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -141,7 +141,7 @@ FOSSIL_TEST(c_test_introspect_show_time)
     FOSSIL_SANITY_SYS_WRITE_FILE("test_time.txt", "Test content\n");
 
     // Test showing file timestamps
-    int result = fossil_shark_introspect("test_time.txt", 0, 0, false, false, false, true, false, cnull, false, false);
+    int result = fossil_spino_introspect("test_time.txt", 0, 0, false, false, false, true, false, cnull, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -154,7 +154,7 @@ FOSSIL_TEST(c_test_introspect_show_file_type)
     FOSSIL_SANITY_SYS_WRITE_FILE("test_type.c", "int main() { return 0; }\n");
 
     // Test showing file type
-    int result = fossil_shark_introspect("test_type.c", 0, 0, false, false, false, false, true, cnull, false, false);
+    int result = fossil_spino_introspect("test_type.c", 0, 0, false, false, false, false, true, cnull, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -167,7 +167,7 @@ FOSSIL_TEST(c_test_introspect_find_pattern)
     FOSSIL_SANITY_SYS_WRITE_FILE("test_pattern.txt", "Hello world\nHello again\nGoodbye world\nHello once more\n");
 
     // Test pattern matching
-    int result = fossil_shark_introspect("test_pattern.txt", 0, 0, false, false, false, false, false, "Hello", false, false);
+    int result = fossil_spino_introspect("test_pattern.txt", 0, 0, false, false, false, false, false, "Hello", false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -180,7 +180,7 @@ FOSSIL_TEST(c_test_introspect_output_fson)
     FOSSIL_SANITY_SYS_WRITE_FILE("test_fson.txt", "Line 1\nLine 2\n");
 
     // Test FSON output format
-    int result = fossil_shark_introspect("test_fson.txt", 0, 0, true, false, true, true, true, cnull, true, false);
+    int result = fossil_spino_introspect("test_fson.txt", 0, 0, true, false, true, true, true, cnull, true, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -193,7 +193,7 @@ FOSSIL_TEST(c_test_introspect_empty_file)
     FOSSIL_SANITY_SYS_CREATE_FILE("test_empty.txt");
 
     // Test with empty file
-    int result = fossil_shark_introspect("test_empty.txt", 0, 0, true, true, true, false, false, cnull, false, false);
+    int result = fossil_spino_introspect("test_empty.txt", 0, 0, true, true, true, false, false, cnull, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -206,7 +206,7 @@ FOSSIL_TEST(c_test_introspect_combined_options)
     FOSSIL_SANITY_SYS_WRITE_FILE("test_combined.txt", "First line\nSecond line\nThird line\nFourth line\nFifth line\n");
 
     // Test with multiple options combined
-    int result = fossil_shark_introspect("test_combined.txt", 2, 2, true, false, true, true, true, "line", false, false);
+    int result = fossil_spino_introspect("test_combined.txt", 2, 2, true, false, true, true, true, "line", false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -219,7 +219,7 @@ FOSSIL_TEST(c_test_introspect_pattern_not_found)
     FOSSIL_SANITY_SYS_WRITE_FILE("test_no_pattern.txt", "Hello world\nGoodbye world\n");
 
     // Test pattern not found
-    int result = fossil_shark_introspect("test_no_pattern.txt", 0, 0, false, false, false, false, false, "XYZ_NOT_FOUND", false, false);
+    int result = fossil_spino_introspect("test_no_pattern.txt", 0, 0, false, false, false, false, false, "XYZ_NOT_FOUND", false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up

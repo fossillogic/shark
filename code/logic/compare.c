@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/compare.h"
 
 // Helper: read line from file, return dynamically allocated string
 static cstring read_line(fossil_io_filesys_file_t *stream)
@@ -93,7 +93,7 @@ static bool is_regular_file(ccstring path)
     return obj.type == FOSSIL_FILESYS_TYPE_FILE;
 }
 
-int fossil_shark_compare(ccstring path1, ccstring path2,
+int fossil_spino_compare(ccstring path1, ccstring path2,
                          bool text_diff, bool binary_diff,
                          int context_lines, bool ignore_case)
 {

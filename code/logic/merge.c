@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include "fossil/code/commands.h"
+#include "fossil/code/merge.h"
 
 typedef int (*pattern_matcher)(const char *filename, const char *pattern);
 
@@ -112,7 +112,7 @@ static int merge_file(const char *src, const char *dest, bool force)
     return 0;
 }
 
-int fossil_shark_merge(const char **paths, int num_paths, ccstring dest,
+int fossil_spino_merge(const char **paths, int num_paths, ccstring dest,
                        bool force, bool interactive, bool backup,
                        ccstring strategy, bool progress, bool dry_run,
                        ccstring exclude_pattern, ccstring include_pattern)

@@ -58,28 +58,28 @@ FOSSIL_TEARDOWN(c_sync_command_suite)
 
 FOSSIL_TEST(c_test_sync_null_source)
 {
-    int result = fossil_shark_sync(cnull, "dest", false, false, false);
+    int result = fossil_spino_sync(cnull, "dest", false, false, false);
     ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_sync_null_destination)
 {
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_src.txt");
-    int result = fossil_shark_sync("test_sync_src.txt", cnull, false, false, false);
+    int result = fossil_spino_sync("test_sync_src.txt", cnull, false, false, false);
     ASSUME_NOT_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_src.txt");
 }
 
 FOSSIL_TEST(c_test_sync_nonexistent_source)
 {
-    int result = fossil_shark_sync("nonexistent_sync_src.txt", "sync_dest.txt", false, false, false);
+    int result = fossil_spino_sync("nonexistent_sync_src.txt", "sync_dest.txt", false, false, false);
     ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_sync_single_file)
 {
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_file_src.txt");
-    int result = fossil_shark_sync("test_sync_file_src.txt", "test_sync_file_dest.txt", false, false, false);
+    int result = fossil_spino_sync("test_sync_file_src.txt", "test_sync_file_dest.txt", false, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_file_src.txt");
     if (FOSSIL_SANITY_SYS_FILE_EXISTS("test_sync_file_dest.txt"))
@@ -92,7 +92,7 @@ FOSSIL_TEST(c_test_sync_directory_non_recursive)
 {
     FOSSIL_SANITY_SYS_CREATE_DIR("test_sync_src_dir");
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_src_dir/file1.txt");
-    int result = fossil_shark_sync("test_sync_src_dir", "test_sync_dest_dir", false, false, false);
+    int result = fossil_spino_sync("test_sync_src_dir", "test_sync_dest_dir", false, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_src_dir/file1.txt");
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_src_dir");
@@ -106,7 +106,7 @@ FOSSIL_TEST(c_test_sync_directory_recursive)
 {
     FOSSIL_SANITY_SYS_CREATE_DIR("test_sync_rec_src");
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_rec_src/file1.txt");
-    int result = fossil_shark_sync("test_sync_rec_src", "test_sync_rec_dest", true, false, false);
+    int result = fossil_spino_sync("test_sync_rec_src", "test_sync_rec_dest", true, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_rec_src/file1.txt");
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_rec_src");
@@ -119,7 +119,7 @@ FOSSIL_TEST(c_test_sync_directory_recursive)
 FOSSIL_TEST(c_test_sync_update_flag)
 {
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_update_src.txt");
-    int result = fossil_shark_sync("test_sync_update_src.txt", "test_sync_update_dest.txt", false, true, false);
+    int result = fossil_spino_sync("test_sync_update_src.txt", "test_sync_update_dest.txt", false, true, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_update_src.txt");
     if (FOSSIL_SANITY_SYS_FILE_EXISTS("test_sync_update_dest.txt"))
@@ -132,7 +132,7 @@ FOSSIL_TEST(c_test_sync_delete_flag)
 {
     FOSSIL_SANITY_SYS_CREATE_DIR("test_sync_del_src");
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_del_src/file1.txt");
-    int result = fossil_shark_sync("test_sync_del_src", "test_sync_del_dest", true, false, true);
+    int result = fossil_spino_sync("test_sync_del_src", "test_sync_del_dest", true, false, true);
     ASSUME_ITS_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_del_src/file1.txt");
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_del_src");
@@ -146,7 +146,7 @@ FOSSIL_TEST(c_test_sync_identical_files)
 {
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_identical_src.txt");
     FOSSIL_SANITY_SYS_CREATE_FILE("test_sync_identical_dest.txt");
-    int result = fossil_shark_sync("test_sync_identical_src.txt", "test_sync_identical_dest.txt", false, false, false);
+    int result = fossil_spino_sync("test_sync_identical_src.txt", "test_sync_identical_dest.txt", false, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_identical_src.txt");
     FOSSIL_SANITY_SYS_DELETE_FILE("test_sync_identical_dest.txt");

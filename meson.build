@@ -1,4 +1,4 @@
-project('Shark Tool', 'c', 'cpp',
+project('Spino Tool', 'c', 'cpp',
     meson_version: '>=1.8.0',
     license: 'Apache-2.0',
     version: '0.1.9',

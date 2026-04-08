@@ -59,16 +59,16 @@ FOSSIL_TEARDOWN(c_merge_command_suite)
 FOSSIL_TEST(c_test_merge_null_parameters)
 {
     // Test with null paths array
-    int result = fossil_shark_merge(cnull, 1, "dest", false, false, false, "overwrite", false, false, cnull, cnull);
+    int result = fossil_spino_merge(cnull, 1, "dest", false, false, false, "overwrite", false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with null destination
     const char *paths[] = {"file1.txt"};
-    result = fossil_shark_merge(paths, 1, cnull, false, false, false, "overwrite", false, false, cnull, cnull);
+    result = fossil_spino_merge(paths, 1, cnull, false, false, false, "overwrite", false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with zero paths
-    result = fossil_shark_merge(paths, 0, "dest", false, false, false, "overwrite", false, false, cnull, cnull);
+    result = fossil_spino_merge(paths, 0, "dest", false, false, false, "overwrite", false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -80,7 +80,7 @@ FOSSIL_TEST(c_test_merge_single_file)
 
     // Merge single file
     const char *paths[] = {"merge_single_src.txt"};
-    int result = fossil_shark_merge(paths, 1, "merge_single_dest.txt", false, false, false, "overwrite", false, false, cnull, cnull);
+    int result = fossil_spino_merge(paths, 1, "merge_single_dest.txt", false, false, false, "overwrite", false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -99,7 +99,7 @@ FOSSIL_TEST(c_test_merge_multiple_files_overwrite)
 
     // Merge with overwrite strategy
     const char *paths[] = {"merge_file1.txt", "merge_file2.txt"};
-    int result = fossil_shark_merge(paths, 2, "merge_output.txt", false, false, false, "overwrite", false, false, cnull, cnull);
+    int result = fossil_spino_merge(paths, 2, "merge_output.txt", false, false, false, "overwrite", false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify output exists
@@ -126,7 +126,7 @@ FOSSIL_TEST(c_test_merge_directories_overwrite)
 
     // Merge directories
     const char *paths[] = {"merge_dir1", "merge_dir2"};
-    int result = fossil_shark_merge(paths, 2, "merge_dir_dest", false, false, false, "overwrite", false, false, cnull, cnull);
+    int result = fossil_spino_merge(paths, 2, "merge_dir_dest", false, false, false, "overwrite", false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -146,7 +146,7 @@ FOSSIL_TEST(c_test_merge_keep_both_strategy)
 
     // Merge with keep-both strategy
     const char *paths[] = {"keep_both_1.txt", "keep_both_2.txt"};
-    int result = fossil_shark_merge(paths, 2, "keep_both_dest", false, false, false, "keep-both", false, false, cnull, cnull);
+    int result = fossil_spino_merge(paths, 2, "keep_both_dest", false, false, false, "keep-both", false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -166,7 +166,7 @@ FOSSIL_TEST(c_test_merge_skip_strategy)
 
     // Merge with skip strategy
     const char *paths[] = {"skip_merge_src.txt"};
-    int result = fossil_shark_merge(paths, 1, "skip_merge_dest.txt", false, false, false, "skip", false, false, cnull, cnull);
+    int result = fossil_spino_merge(paths, 1, "skip_merge_dest.txt", false, false, false, "skip", false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -186,7 +186,7 @@ FOSSIL_TEST(c_test_merge_with_backup)
 
     // Merge with backup flag
     const char *paths[] = {"backup_merge_src.txt"};
-    int result = fossil_shark_merge(paths, 1, "backup_merge_dest.txt", false, false, true, "overwrite", false, false, cnull, cnull);
+    int result = fossil_spino_merge(paths, 1, "backup_merge_dest.txt", false, false, true, "overwrite", false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -202,7 +202,7 @@ FOSSIL_TEST(c_test_merge_dry_run)
 
     // Merge with dry_run flag
     const char *paths[] = {"dry_run_merge_src.txt"};
-    int result = fossil_shark_merge(paths, 1, "dry_run_merge_dest.txt", false, false, false, "overwrite", false, true, cnull, cnull);
+    int result = fossil_spino_merge(paths, 1, "dry_run_merge_dest.txt", false, false, false, "overwrite", false, true, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify destination was created (dry run still creates files)
@@ -230,7 +230,7 @@ FOSSIL_TEST(c_test_merge_with_exclude_pattern)
 
     // Merge with exclude pattern
     const char *paths[] = {"merge_exclude_src"};
-    int result = fossil_shark_merge(paths, 1, "merge_exclude_dest", false, false, false, "overwrite", false, false, "*.log", cnull);
+    int result = fossil_spino_merge(paths, 1, "merge_exclude_dest", false, false, false, "overwrite", false, false, "*.log", cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -252,7 +252,7 @@ FOSSIL_TEST(c_test_merge_with_include_pattern)
 
     // Merge with include pattern
     const char *paths[] = {"merge_include_src"};
-    int result = fossil_shark_merge(paths, 1, "merge_include_dest", false, false, false, "overwrite", false, false, cnull, "*.txt");
+    int result = fossil_spino_merge(paths, 1, "merge_include_dest", false, false, false, "overwrite", false, false, cnull, "*.txt");
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -265,7 +265,7 @@ FOSSIL_TEST(c_test_merge_nonexistent_source)
 {
     // Try to merge non-existent file - should succeed (no-op)
     const char *paths[] = {"nonexistent_merge_file_that_does_not_exist_12345.txt"};
-    int result = fossil_shark_merge(paths, 1, "dest", false, false, false, "overwrite", false, false, cnull, cnull);
+    int result = fossil_spino_merge(paths, 1, "dest", false, false, false, "overwrite", false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 }
 
@@ -277,7 +277,7 @@ FOSSIL_TEST(c_test_merge_invalid_strategy)
 
     // Merge with invalid strategy - succeeds (defaults to overwrite)
     const char *paths[] = {"invalid_strategy_src.txt"};
-    int result = fossil_shark_merge(paths, 1, "dest", false, false, false, "invalid_strategy_xyz", false, false, cnull, cnull);
+    int result = fossil_spino_merge(paths, 1, "dest", false, false, false, "invalid_strategy_xyz", false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -299,7 +299,7 @@ FOSSIL_TEST(c_test_merge_three_files)
 
     // Merge three files
     const char *paths[] = {"merge_three_1.txt", "merge_three_2.txt", "merge_three_3.txt"};
-    int result = fossil_shark_merge(paths, 3, "merge_three_dest.txt", false, false, false, "overwrite", false, false, cnull, cnull);
+    int result = fossil_spino_merge(paths, 3, "merge_three_dest.txt", false, false, false, "overwrite", false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -317,7 +317,7 @@ FOSSIL_TEST(c_test_merge_empty_files)
 
     // Merge empty files
     const char *paths[] = {"merge_empty_1.txt", "merge_empty_2.txt"};
-    int result = fossil_shark_merge(paths, 2, "merge_empty_dest.txt", false, false, false, "overwrite", false, false, cnull, cnull);
+    int result = fossil_spino_merge(paths, 2, "merge_empty_dest.txt", false, false, false, "overwrite", false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -338,7 +338,7 @@ FOSSIL_TEST(c_test_merge_force_overwrite)
 
     // Merge with force flag
     const char *paths[] = {"force_merge_src.txt"};
-    int result = fossil_shark_merge(paths, 1, "force_merge_dest.txt", true, false, false, "overwrite", false, false, cnull, cnull);
+    int result = fossil_spino_merge(paths, 1, "force_merge_dest.txt", true, false, false, "overwrite", false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up

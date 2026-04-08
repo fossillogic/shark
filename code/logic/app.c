@@ -210,9 +210,63 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    -d, --delimiter <c> Custom delimiter\n");
     fossil_io_printf("{bright_black}    --dry-run           Preview split\n");
 
+    fossil_io_printf("{cyan}  dedupe           {reset}Detect and remove duplicate files\n");
+    fossil_io_printf("{bright_black}    --hash             Use hash comparison\n");
+    fossil_io_printf("{bright_black}    --fast             Use size+timestamp\n");
+    fossil_io_printf("{bright_black}    -i, --interactive   Confirm deletions\n");
+    fossil_io_printf("{bright_black}    -d, --delete        Remove duplicates\n");
+    fossil_io_printf("{bright_black}    -l, --link          Replace duplicates with links\n");
+    fossil_io_printf("{bright_black}    --json              Output results in JSON\n");
+
+    fossil_io_printf("{cyan}  link             {reset}Create hard or symbolic links\n");
+    fossil_io_printf("{bright_black}    -s, --symbolic      Create symbolic link\n");
+    fossil_io_printf("{bright_black}    -h, --hard          Create hard link\n");
+    fossil_io_printf("{bright_black}    -r, --relative      Use relative paths\n");
+    fossil_io_printf("{bright_black}    -f, --force         Overwrite existing\n");
+
+    fossil_io_printf("{cyan}  undo             {reset}Revert previous file operations\n");
+    fossil_io_printf("{bright_black}    -n <count>          Undo last N operations\n");
+    fossil_io_printf("{bright_black}    -f <path>           Undo specific file\n");
+    fossil_io_printf("{bright_black}    -i, --interactive   Confirm each undo\n");
+    fossil_io_printf("{bright_black}    --dry-run           Preview undo actions\n");
+
+    fossil_io_printf("{cyan}  alias            {reset}Create or manage command aliases\n");
+    fossil_io_printf("{bright_black}    --set <name=cmd>    Define alias\n");
+    fossil_io_printf("{bright_black}    --remove <name>     Remove alias\n");
+    fossil_io_printf("{bright_black}    -l, --list          List aliases\n");
+    fossil_io_printf("{bright_black}    -g, --global        Apply globally\n");
+
+    fossil_io_printf("{cyan}  pipe             {reset}Chain commands and redirect streams\n");
+    fossil_io_printf("{bright_black}    -i <file>           Input file (default stdin)\n");
+    fossil_io_printf("{bright_black}    -o <file>           Output file (default stdout)\n");
+    fossil_io_printf("{bright_black}    -f <cmd>            Filter command\n");
+    fossil_io_printf("{bright_black}    -t, --tee           Output to console + file\n");
+    fossil_io_printf("{bright_black}    --json              JSON structured output\n");
+    fossil_io_printf("{bright_black}    -a, --append        Append to output file\n");
+
+    fossil_io_printf("{cyan}  snapshot         {reset}Capture file or directory state\n");
+    fossil_io_printf("{bright_black}    -f <file>           Target file\n");
+    fossil_io_printf("{bright_black}    -d <dir>            Target directory\n");
+    fossil_io_printf("{bright_black}    -l <label>          Snapshot label\n");
+    fossil_io_printf("{bright_black}    --json              Output snapshot as JSON\n");
+    fossil_io_printf("{bright_black}    --diff <label>      Compare with previous snapshot\n");
+    fossil_io_printf("{bright_black}    --compress          Compress snapshot\n");
+
+    fossil_io_printf("{cyan}  perm             {reset}Manage file or directory permissions\n");
+    fossil_io_printf("{bright_black}    -u <user>           Target user\n");
+    fossil_io_printf("{bright_black}    -g <group>          Target group\n");
+    fossil_io_printf("{bright_black}    --grant <perm>      Grant permissions\n");
+    fossil_io_printf("{bright_black}    --revoke <perm>     Revoke permissions\n");
+    fossil_io_printf("{bright_black}    -l, --list          Show current permissions\n");
+    fossil_io_printf("{bright_black}    -r, --recursive     Apply recursively\n");
+
+    fossil_io_printf("{cyan}  play            {reset}Launch a text-based game from the Spino tool\n");
+    fossil_io_printf("{bright_black}    --game <game>       Game name (e.g., guess_number, tic_tac_toe)\n");
+    fossil_io_printf("{bright_black}    --rounds <rounds>   Number of rounds to play\n");
+
     fossil_io_printf("\n{blue}Global Flags:{reset}\n");
     fossil_io_printf("{bright_black}  --help                Show command help\n");
-    fossil_io_printf("{bright_black}  --version             Display Shark Tool version\n");
+    fossil_io_printf("{bright_black}  --version             Display Spino Tool version\n");
     fossil_io_printf("{bright_black}  --name                Display application name\n");
     fossil_io_printf("{bright_black}  --verbose             Enable detailed output\n");
     fossil_io_printf("{bright_black}  --color [enable|disable|auto]  Colorize output\n");
@@ -237,9 +291,25 @@ bool app_entry(int argc, char **argv)
 {
     // List of supported commands for suggestion
     static ccstring supported_commands[] = {
-        "show", "move", "copy", "remove", "delete", "rename", "create", "search", "split",
-        "archive", "compare", "help", "sync", "cryptic", "merge",
-        "watch", "rewrite", "introspect", "grammar", "swap",
+        // Core file ops
+        "show", "merge", "swap", "move", "copy", "remove", "delete", "rename", "create",
+
+        // Search / archive / compare
+        "search", "archive", "compare",
+
+        // Utility / system
+        "help", "sync", "watch",
+
+        // Advanced processing
+        "rewrite", "introspect", "grammar", "cryptic",
+
+        // Other operations
+        "play", "alias", "pipe", "snapshot", "perm", "dedupe", "link", "undo",
+
+        // Data ops
+        "split",
+
+        // Global flags
         "--help", "--version", "--name", "--verbose", "--color", "--clear"};
     const int num_supported = sizeof(supported_commands) / sizeof(supported_commands[0]);
 
@@ -314,6 +384,16 @@ bool app_entry(int argc, char **argv)
             fossil_io_cstring_compare(argv[i], "rewrite") == 0 ||
             fossil_io_cstring_compare(argv[i], "introspect") == 0 ||
             fossil_io_cstring_compare(argv[i], "grammar") == 0 ||
+            fossil_io_cstring_compare(argv[i], "split") == 0 ||
+            fossil_io_cstring_compare(argv[i], "dedupe") == 0 ||
+            fossil_io_cstring_compare(argv[i], "link") == 0 ||
+            fossil_io_cstring_compare(argv[i], "undo") == 0 ||
+            fossil_io_cstring_compare(argv[i], "alias") == 0 ||
+            fossil_io_cstring_compare(argv[i], "pipe") == 0 ||
+            fossil_io_cstring_compare(argv[i], "play") == 0 ||
+            fossil_io_cstring_compare(argv[i], "snapshot") == 0 ||
+            fossil_io_cstring_compare(argv[i], "perm") == 0 ||
+            fossil_io_cstring_compare(argv[i], "help") == 0 ||
             fossil_io_cstring_compare(argv[i], "cryptic") == 0)
         {
             // Look ahead for path-like arguments and suggest corrections
@@ -453,7 +533,7 @@ bool app_entry(int argc, char **argv)
             }
             if (i + 1 < argc && argv[i + 1][0] != '-')
                 path = argv[++i];
-            fossil_shark_show(path, show_all, long_format, human_readable, recursive, format, show_time, depth, sort_key, match_pattern, size_filter, type_filter);
+            fossil_spino_show(path, show_all, long_format, human_readable, recursive, format, show_time, depth, sort_key, match_pattern, size_filter, type_filter);
         }
         else if (fossil_io_cstring_compare(argv[i], "merge") == 0)
         {
@@ -513,7 +593,7 @@ bool app_entry(int argc, char **argv)
             }
             if (num_paths > 0 && cnotnull(dest))
             {
-                fossil_shark_merge(paths, num_paths, dest, force, interactive, backup, strategy, progress, dry_run, exclude_pattern, include_pattern);
+                fossil_spino_merge(paths, num_paths, dest, force, interactive, backup, strategy, progress, dry_run, exclude_pattern, include_pattern);
             }
             free(paths);
         }
@@ -570,7 +650,7 @@ bool app_entry(int argc, char **argv)
                 i = j;
             }
             if (cnotnull(path1) && cnotnull(path2))
-                fossil_shark_swap(path1, path2, force, interactive, backup, atomic, progress, dry_run, temp_path, no_cross_device);
+                fossil_spino_swap(path1, path2, force, interactive, backup, atomic, progress, dry_run, temp_path, no_cross_device);
         }
         else if (fossil_io_cstring_compare(argv[i], "move") == 0)
         {
@@ -624,7 +704,7 @@ bool app_entry(int argc, char **argv)
                 i = j;
             }
             if (cnotnull(src) && cnotnull(dest))
-                fossil_shark_move(src, dest, force, interactive, backup, atomic, progress, dry_run, exclude_pattern, include_pattern);
+                fossil_spino_move(src, dest, force, interactive, backup, atomic, progress, dry_run, exclude_pattern, include_pattern);
         }
         else if (fossil_io_cstring_compare(argv[i], "copy") == 0)
         {
@@ -691,7 +771,7 @@ bool app_entry(int argc, char **argv)
                 i = j;
             }
             if (cnotnull(src) && cnotnull(dest))
-                fossil_shark_copy(src, dest, recursive, update, preserve, checksum, sparse, link, reflink, progress, dry_run, exclude_pattern, include_pattern);
+                fossil_spino_copy(src, dest, recursive, update, preserve, checksum, sparse, link, reflink, progress, dry_run, exclude_pattern, include_pattern);
         }
         else if (fossil_io_cstring_compare(argv[i], "remove") == 0 ||
                  fossil_io_cstring_compare(argv[i], "delete") == 0)
@@ -752,7 +832,7 @@ bool app_entry(int argc, char **argv)
                 i = j;
             }
             if (cnotnull(path))
-                fossil_shark_remove(path, recursive, force, interactive, use_trash, wipe, shred_passes, older_than, larger_than, empty_only, log_file);
+                fossil_spino_remove(path, recursive, force, interactive, use_trash, wipe, shred_passes, older_than, larger_than, empty_only, log_file);
         }
         else if (fossil_io_cstring_compare(argv[i], "rename") == 0)
         {
@@ -780,7 +860,7 @@ bool app_entry(int argc, char **argv)
                 i = j;
             }
             if (cnotnull(old_name) && cnotnull(new_name))
-                fossil_shark_rename(old_name, new_name, force, interactive);
+                fossil_spino_rename(old_name, new_name, force, interactive);
         }
         else if (fossil_io_cstring_compare(argv[i], "create") == 0)
         {
@@ -805,7 +885,7 @@ bool app_entry(int argc, char **argv)
                 i = j;
             }
             if (cnotnull(path))
-                fossil_shark_create(path, create_parents, type);
+                fossil_spino_create(path, create_parents, type);
         }
         else if (fossil_io_cstring_compare(argv[i], "search") == 0)
         {
@@ -843,7 +923,7 @@ bool app_entry(int argc, char **argv)
                 }
                 i = j;
             }
-            fossil_shark_search(path, recursive, name_pattern, content_pattern, ignore_case);
+            fossil_spino_search(path, recursive, name_pattern, content_pattern, ignore_case);
         }
         else if (fossil_io_cstring_compare(argv[i], "archive") == 0)
         {
@@ -894,7 +974,7 @@ bool app_entry(int argc, char **argv)
                 i = j;
             }
             if (cnotnull(path))
-                fossil_shark_archive(path, create, extract, list, format, password, compress_level, stdout_output, exclude_pattern);
+                fossil_spino_archive(path, create, extract, list, format, password, compress_level, stdout_output, exclude_pattern);
         }
         else if (fossil_io_cstring_compare(argv[i], "compare") == 0)
         {
@@ -931,7 +1011,7 @@ bool app_entry(int argc, char **argv)
                 i = j;
             }
             if (cnotnull(path1) && cnotnull(path2))
-                fossil_shark_compare(path1, path2, text_diff, binary_diff, context_lines, ignore_case);
+                fossil_spino_compare(path1, path2, text_diff, binary_diff, context_lines, ignore_case);
         }
         else if (fossil_io_cstring_compare(argv[i], "help") == 0)
         {
@@ -954,7 +1034,7 @@ bool app_entry(int argc, char **argv)
                 }
                 i = j;
             }
-            fossil_shark_help(command, show_examples, full_manual);
+            fossil_spino_help(command, show_examples, full_manual);
         }
         else if (fossil_io_cstring_compare(argv[i], "sync") == 0)
         {
@@ -985,7 +1065,7 @@ bool app_entry(int argc, char **argv)
                 i = j;
             }
             if (cnotnull(src) && cnotnull(dest))
-                fossil_shark_sync(src, dest, recursive, update, delete_flag);
+                fossil_spino_sync(src, dest, recursive, update, delete_flag);
         }
         else if (fossil_io_cstring_compare(argv[i], "watch") == 0)
         {
@@ -1015,7 +1095,7 @@ bool app_entry(int argc, char **argv)
                 i = j;
             }
             if (cnotnull(path))
-                fossil_shark_watch(path, recursive, events, interval);
+                fossil_spino_watch(path, recursive, events, interval);
         }
         else if (fossil_io_cstring_compare(argv[i], "rewrite") == 0)
         {
@@ -1061,7 +1141,7 @@ bool app_entry(int argc, char **argv)
 
             if (cnotnull(path))
             {
-                int rc = fossil_shark_rewrite(path, in_place, append, content, size, update_access, update_mod);
+                int rc = fossil_spino_rewrite(path, in_place, append, content, size, update_access, update_mod);
                 if (rc != 0)
                 {
                     fossil_io_printf("{red}Rewrite failed: %s{reset}\n", path);
@@ -1127,7 +1207,7 @@ bool app_entry(int argc, char **argv)
 
             if (cnotnull(path))
             {
-                int rc = fossil_shark_introspect(path, head_lines, tail_lines, count_lwb, count_lines_only, show_size, show_time, show_type, find_pattern, output_fson, output_json);
+                int rc = fossil_spino_introspect(path, head_lines, tail_lines, count_lwb, count_lines_only, show_size, show_time, show_type, find_pattern, output_fson, output_json);
                 if (rc != 0)
                 {
                     fossil_io_printf("{red}Introspect failed: %s{reset}\n", path);
@@ -1206,7 +1286,7 @@ bool app_entry(int argc, char **argv)
 
             if (cnotnull(file_path))
             {
-                int rc = fossil_shark_grammar(
+                int rc = fossil_spino_grammar(
                     file_path,
                     check,
                     correct,
@@ -1256,7 +1336,7 @@ bool app_entry(int argc, char **argv)
 
             if (cnotnull(text))
             {
-                int rc = fossil_shark_cryptic(text, encode, decode, cipher);
+                int rc = fossil_spino_cryptic(text, encode, decode, cipher);
                 if (rc != 0)
                 {
                     fossil_io_printf("{red}Cryptic operation failed{reset}\n");
@@ -1319,17 +1399,225 @@ bool app_entry(int argc, char **argv)
 
             if (cnotnull(file_path))
             {
-                int rc = fossil_shark_split(file_path, lines_per_file, bytes_per_file, num_segments, output_prefix, suffix_digits, numeric_suffix, delimiter, dry_run);
+                int rc = fossil_spino_split(file_path, lines_per_file, bytes_per_file, num_segments, output_prefix, suffix_digits, numeric_suffix, delimiter, dry_run);
                 if (rc != 0)
                 {
                     fossil_io_printf("{red}Split operation failed: %s{reset}\n", file_path);
                 }
             }
         }
+        else if (fossil_io_cstring_compare(argv[i], "perm") == 0)
+        {
+            ccstring path = cnull, user = cnull, group = cnull;
+            ccstring grant = cnull, revoke = cnull;
+            bool list = false, recursive = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "--user") == 0 && j + 1 < argc)
+                    user = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--group") == 0 && j + 1 < argc)
+                    group = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--grant") == 0 && j + 1 < argc)
+                    grant = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--revoke") == 0 && j + 1 < argc)
+                    revoke = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--list") == 0)
+                    list = true;
+                else if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--recursive") == 0)
+                    recursive = true;
+                else if (!cnotnull(path))
+                    path = argv[j];
+
+                i = j;
+            }
+
+            if (cnotnull(path))
+                fossil_spino_perm(path, user, group, grant, revoke, list, recursive);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "snapshot") == 0)
+        {
+            ccstring file = cnull, dir = cnull, label = cnull, compare = cnull;
+            bool json = false, compress = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "--file") == 0 && j + 1 < argc)
+                    file = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--dir") == 0 && j + 1 < argc)
+                    dir = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--label") == 0 && j + 1 < argc)
+                    label = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--compare") == 0 && j + 1 < argc)
+                    compare = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
+                    json = true;
+                else if (fossil_io_cstring_compare(argv[j], "--compress") == 0)
+                    compress = true;
+
+                i = j;
+            }
+
+            fossil_spino_snapshot(file, dir, label, json, compare, compress);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "pipe") == 0)
+        {
+            ccstring in = cnull, out = cnull, filter = cnull;
+            bool tee = false, json = false, append = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "--in") == 0 && j + 1 < argc)
+                    in = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--out") == 0 && j + 1 < argc)
+                    out = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--filter") == 0 && j + 1 < argc)
+                    filter = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--tee") == 0)
+                    tee = true;
+                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
+                    json = true;
+                else if (fossil_io_cstring_compare(argv[j], "--append") == 0)
+                    append = true;
+
+                i = j;
+            }
+
+            fossil_spino_pipe(in, out, filter, tee, json, append);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "alias") == 0)
+        {
+            ccstring set = cnull, remove = cnull;
+            bool list = false, global = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "--set") == 0 && j + 1 < argc)
+                    set = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--remove") == 0 && j + 1 < argc)
+                    remove = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--list") == 0)
+                    list = true;
+                else if (fossil_io_cstring_compare(argv[j], "--global") == 0)
+                    global = true;
+
+                i = j;
+            }
+
+            fossil_spino_alias(set, remove, list, global);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "undo") == 0)
+        {
+            ccstring path = cnull;
+            int last_n = 1;
+            bool interactive = false, dry_run = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "-n") == 0 && j + 1 < argc)
+                    last_n = atoi(argv[++j]);
+                else if (fossil_io_cstring_compare(argv[j], "-i") == 0)
+                    interactive = true;
+                else if (fossil_io_cstring_compare(argv[j], "--dry-run") == 0)
+                    dry_run = true;
+                else if (!cnotnull(path))
+                    path = argv[j];
+
+                i = j;
+            }
+
+            fossil_spino_undo(last_n, path, interactive, dry_run);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "link") == 0)
+        {
+            ccstring src = cnull, dest = cnull;
+            bool symbolic = false, hard = false, relative = false, overwrite = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--symbolic") == 0)
+                    symbolic = true;
+                else if (fossil_io_cstring_compare(argv[j], "-h") == 0 || fossil_io_cstring_compare(argv[j], "--hard") == 0)
+                    hard = true;
+                else if (fossil_io_cstring_compare(argv[j], "--relative") == 0)
+                    relative = true;
+                else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0)
+                    overwrite = true;
+                else if (!cnotnull(src))
+                    src = argv[j];
+                else if (!cnotnull(dest))
+                    dest = argv[j];
+
+                i = j;
+            }
+
+            if (cnotnull(src) && cnotnull(dest))
+                fossil_spino_link(src, dest, symbolic, hard, relative, overwrite);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "dedupe") == 0)
+        {
+            ccstring dir = cnull;
+            bool use_hash = false, interactive = false, del = false, link = false, json = false;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "--hash") == 0)
+                    use_hash = true;
+                else if (fossil_io_cstring_compare(argv[j], "-i") == 0)
+                    interactive = true;
+                else if (fossil_io_cstring_compare(argv[j], "--delete") == 0)
+                    del = true;
+                else if (fossil_io_cstring_compare(argv[j], "--link") == 0)
+                    link = true;
+                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
+                    json = true;
+                else if (!cnotnull(dir))
+                    dir = argv[j];
+
+                i = j;
+            }
+
+            if (cnotnull(dir))
+                fossil_spino_dedupe(dir, use_hash, interactive, del, link, json);
+        }
+        else if (fossil_io_cstring_compare(argv[i], "play") == 0)
+        {
+            ccstring game_name = cnull;
+            int rounds = 1;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "-g") == 0 || fossil_io_cstring_compare(argv[j], "--game") == 0)
+                {
+                    if (j + 1 < argc)
+                        game_name = argv[++j];
+                }
+                else if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--rounds") == 0)
+                {
+                    if (j + 1 < argc)
+                        rounds = atoi(argv[++j]);
+                }
+                i = j;
+            }
+
+            if (cnotnull(game_name))
+            {
+                int rc = fossil_spino_play(game_name, rounds);
+                if (rc != 0)
+                {
+                    fossil_io_printf("{red}Failed to play game: %s{reset}\n", game_name);
+                }
+            }
+            else
+            {
+                fossil_io_printf("{red}Game name is required for play command{reset}\n");
+                fossil_spino_help("play", false, false);
+            }
+        }
         else
         {
             fossil_io_printf("{red}Unknown command: %s{reset}\n", argv[i]);
-            fossil_shark_help(cnull, false, false);
+            fossil_spino_help(cnull, false, false);
             return 1;
         }
     }
