@@ -1,0 +1,25 @@
+name: shark
+base: core22
+version: '0.1.9'
+summary: Fossil Logic Shark Tool
+description: |
+  Shark Tool is the ultimate all-in-one file and system administration utility for admins, developers, and power users. It consolidates essential file management, automation, and analysis into a single command-line interface—eliminating tool fragmentation.
+  Built with Meson for performance and modularity.
+
+grade: stable
+confinement: strict
+
+apps:
+  shark:
+    command: shark
+    plugs:
+      - home
+      - network
+      - removable-media
+
+parts:
+  shark:
+    plugin: meson
+    source: .
+    meson-parameters:
+      - --buildtype=release
