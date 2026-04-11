@@ -7,19 +7,19 @@ COMMANDS = [
     "introspect", "grammar", "cryptic", "split"
 ]
 
-class SidebarWidget(tk.Frame):
-    def __init__(self, master, callback):
+class Sidebar(tk.Frame):
+    def __init__(self, master, on_command):
         super().__init__(master, bg=Theme.PANEL, width=200)
-        self.callback = callback
+        self.on_command = on_command
 
         for cmd in COMMANDS:
             btn = tk.Button(
                 self,
                 text=cmd,
-                fg=Theme.TEXT,
+                fg=Theme.ACCENT,
                 bg=Theme.PANEL,
                 activebackground="#1f2a3d",
                 relief="flat",
-                command=lambda c=cmd: self.callback(c)
+                command=lambda c=cmd: self.on_command(c)
             )
-            btn.pack(fill="x", padx=5, pady=2)
+            btn.pack(fill="x", padx=6, pady=2)
