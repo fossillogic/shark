@@ -1,7 +1,18 @@
-import os
 import pty
 import subprocess
 import threading
+import os
+import sys
+
+def get_binary_path():
+    # PyInstaller bundle support
+    if getattr(sys, 'frozen', False):
+        base = sys._MEIPASS
+        return os.path.join(base, "shark")
+
+    # dev mode
+    return os.path.join("builddir", "code", "logic", "shark")
+
 
 class EmbeddedTerminal:
     def __init__(self, on_output, binary="shark"):
