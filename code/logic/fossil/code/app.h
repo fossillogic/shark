@@ -29,7 +29,7 @@
 #include "commands.h"
 #include "magic.h"
 
-#define FOSSIL_APP_NAME "Spino Tool"
+#define FOSSIL_APP_NAME "Shark Tool"
 #define FOSSIL_APP_VERSION "0.1.9"
 
 #ifdef __cplusplus
