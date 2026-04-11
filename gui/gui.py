@@ -1,7 +1,7 @@
 import tkinter as tk
-from gui.widgets.console import ConsoleWidget
-from gui.widgets.sidebar import SidebarWidget
-from gui.widgets.inputbar import InputBarWidget
+from gui.console import ConsoleWidget
+from gui.sidebar import SidebarWidget
+from gui.input import InputBarWidget
 from gui.core_bridge import SharkBridge
 from gui.theme import Theme
 
