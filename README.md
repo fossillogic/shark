@@ -125,11 +125,9 @@ Ensure you have the following installed before starting:
 |-----------|-----------------|
 | `--help` | Show command help. |
 | `--version` | Display app version. |
-| `-v, --verbose` | Enable detailed output. |
-| `-q, --quiet` | Suppress standard output. |
-| `--dry-run` | Simulate actions without changes. |
+| `--verbose` | Enable detailed output. |
 | `--color` | Colorize output where applicable. |
-| `--time` | Display timestamps in output. |
+| `--clear` | Clear current output from terminal. |
 
 ---
 
