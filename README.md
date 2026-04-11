@@ -1,5 +1,5 @@
 <p align="center">
-    <img src=".github/logo.png" alt="Shark Tool Logo" width="620"/>
+    <img src=".github/995594D7-9C87-4415-9373-EB213B4FCFC8.png" alt="Shark Tool Logo" width="620"/>
 </p>
 
 ### A Command-Line Power Utility by **Fossil Logic**
