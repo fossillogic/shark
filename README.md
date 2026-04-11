@@ -22,7 +22,7 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 - **File comparison and inspection** — Diff analysis, introspection, and structured summaries
 
 
-## **Why Choose Spino Tool?**
+## **Why Choose Shark Tool?**
 
 Unlike traditional CLI utilities that require juggling multiple tools, Spino consolidates essential file and system operations into a single, intuitive command-line interface. Here's what sets it apart:
 
@@ -119,7 +119,7 @@ Ensure you have the following installed before starting:
 
 ---
 
-### Global Flags (Available to All Commands)
+### Global Flags
 
 | **Flag** | **Description** |
 |-----------|-----------------|
