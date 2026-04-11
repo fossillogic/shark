@@ -17,7 +17,7 @@ def get_binary_path():
 class EmbeddedTerminal:
     def __init__(self, on_output, binary="shark"):
         self.on_output = on_output
-        self.binary = binary
+        self.binary = get_binary_path()
 
         self.master_fd = None
         self.slave_fd = None
