@@ -1,10 +1,10 @@
 <p align="center">
-    <img src=".github/logo.png" alt="Spino Tool Logo" width="620"/>
+    <img src=".github/logo.png" alt="Shark Tool Logo" width="620"/>
 </p>
 
 ### A Command-Line Power Utility by **Fossil Logic**
 
-Spino Tool is the ultimate **all-in-one file and system administration utility** for admins, developers, and power users. It consolidates essential file management, automation, and analysis into a single command-line interface—eliminating tool fragmentation. Unique commands like `grammar` for text analysis, `introspect` for file inspection, and `cryptic` for encoding/decoding provide capabilities rarely found in traditional utilities, delivering the precision and flexibility professionals demand.
+Shark Tool is the ultimate **all-in-one file and system administration utility** for admins, developers, and power users. It consolidates essential file management, automation, and analysis into a single command-line interface—eliminating tool fragmentation. Unique commands like `grammar` for text analysis, `introspect` for file inspection, and `cryptic` for encoding/decoding provide capabilities rarely found in traditional utilities, delivering the precision and flexibility professionals demand.
 
 ---
 
@@ -53,8 +53,8 @@ Ensure you have the following installed before starting:
 1. **Clone the Repository**:
 
     ```sh
-    git clone https://github.com/fossillogic/spino.git
-    cd spino
+    git clone https://github.com/fossillogic/shark.git
+    cd shark
     ```
 
 2. **Configure the Build**:
@@ -78,7 +78,7 @@ Ensure you have the following installed before starting:
 5. **Run the Project**:
 
     ```sh
-    spino --help
+    shark --help
     ```
 
 ## Command Palette
@@ -137,25 +137,25 @@ Ensure you have the following installed before starting:
 
 | **Example** | **Description** |
 |---|---|
-| `spino show -a -l -h --as=tree --time` | List all files (including hidden) in long, human-readable format as a tree, with timestamps. |
-| `spino merge -i -b src1/ src2/ dest/` | Interactively merge two source directories into destination with backups. |
-| `spino swap -f -b file1.txt file2.txt` | Exchange the locations of two files, forcing the operation and creating backups. |
-| `spino move -i -b old.txt archive/old.txt` | Move a file interactively, creating a backup before moving. |
-| `spino copy -r -p src/ backup/` | Recursively copy with preserved permissions and timestamps. |
-| `spino remove -r --trash temp/` | Recursively move directory to system trash. |
-| `spino rename -i draft.md final.md` | Rename a file with confirmation before overwriting. |
-| `spino create -p -t dir logs/archive/2024/` | Create nested directory structure. |
-| `spino search -r -c "config"` | Recursively search for string "config" inside files. |
-| `spino archive -c -f tar project.tar src/` | Create a TAR archive from the src/ directory. |
-| `spino compare -t main_v1.c main_v2.c --context 5` | Show line-by-line diff with 5 lines of context. |
-| `spino help --examples` | Display command help with usage examples. |
-| `spino sync -ru src/ dest/` | Recursively synchronize, copying only newer files. |
-| `spino watch -r -e create,delete src/` | Monitor src/ recursively for creation and deletion events. |
-| `spino rewrite -a --in-place log.txt "New entry"` | Append new entry to log file in-place. |
-| `spino introspect --head 20 --tail 5 --type data.csv` | Show first 20 and last 5 lines, detect file type. |
-| `spino grammar --check --tone --score notes.txt` | Run grammar check, detect tone, display readability scores. |
-| `spino cryptic -e -c caesar "hello"` | Encode text using Caesar cipher. |
-| `spino split -l 100 -p chunk_ large_file.txt` | Split file into chunks of 100 lines with "chunk_" prefix. |
+| `shark show -a -l -h --as=tree --time` | List all files (including hidden) in long, human-readable format as a tree, with timestamps. |
+| `shark merge -i -b src1/ src2/ dest/` | Interactively merge two source directories into destination with backups. |
+| `shark swap -f -b file1.txt file2.txt` | Exchange the locations of two files, forcing the operation and creating backups. |
+| `shark move -i -b old.txt archive/old.txt` | Move a file interactively, creating a backup before moving. |
+| `shark copy -r -p src/ backup/` | Recursively copy with preserved permissions and timestamps. |
+| `shark remove -r --trash temp/` | Recursively move directory to system trash. |
+| `shark rename -i draft.md final.md` | Rename a file with confirmation before overwriting. |
+| `shark create -p -t dir logs/archive/2024/` | Create nested directory structure. |
+| `shark search -r -c "config"` | Recursively search for string "config" inside files. |
+| `shark archive -c -f tar project.tar src/` | Create a TAR archive from the src/ directory. |
+| `shark compare -t main_v1.c main_v2.c --context 5` | Show line-by-line diff with 5 lines of context. |
+| `shark help --examples` | Display command help with usage examples. |
+| `shark sync -ru src/ dest/` | Recursively synchronize, copying only newer files. |
+| `shark watch -r -e create,delete src/` | Monitor src/ recursively for creation and deletion events. |
+| `shark rewrite -a --in-place log.txt "New entry"` | Append new entry to log file in-place. |
+| `shark introspect --head 20 --tail 5 --type data.csv` | Show first 20 and last 5 lines, detect file type. |
+| `shark grammar --check --tone --score notes.txt` | Run grammar check, detect tone, display readability scores. |
+| `shark cryptic -e -c caesar "hello"` | Encode text using Caesar cipher. |
+| `shark split -l 100 -p chunk_ large_file.txt` | Split file into chunks of 100 lines with "chunk_" prefix. |
 
 
 ## Command Comparison (Spino vs Traditional Tools)
@@ -165,35 +165,35 @@ Below is a comparison between **Spino commands** and their traditional equivalen
 
 | **Spino Command** | **Traditional Commands** | **Purpose** |
 |---|---|---|
-| `spino show` | `ls`, `tree`, `stat` | Display files, directories, metadata, and structures with filtering, sorting, and multiple output formats. |
-| `spino merge` | `cp`, `rsync` (merge mode) | Combine multiple files or directories with conflict resolution strategies. |
-| `spino swap` | `mv` (with custom logic) | Exchange the locations of two files or directories atomically with backups. |
-| `spino move` | `mv` | Move or rename files/directories with atomic operations and filtering. |
-| `spino copy` | `cp` | Copy files or directories with verification, copy-on-write, and hardlinking. |
-| `spino remove` / `delete` | `rm`, `trash`, `shred` | Remove files with optional trash, secure multi-pass wipe, and filtering. |
-| `spino rename` | `mv`, `rename` | Rename files with safer overwrite controls and batch operations. |
-| `spino create` | `mkdir`, `touch` | Create directories or files with parent directory generation. |
-| `spino search` | `find`, `grep`, `locate` | Search files by name, path, or contents with case-insensitive matching. |
-| `spino archive` | `tar`, `zip`, `unzip`, `gzip` | Create, extract, or list archives with encryption and format support. |
-| `spino compare` | `diff`, `cmp` | Compare text or binary files with context and case-insensitive options. |
-| `spino help` | `man`, `--help` | Display command help and documentation with examples. |
-| `spino sync` | `rsync` | Synchronize directories with update checking and selective deletion. |
-| `spino watch` | `inotifywait`, `fswatch` | Monitor filesystem changes with event filtering and polling intervals. |
-| `spino rewrite` | `sed`, `truncate`, `touch` | Modify file contents or metadata including timestamps and size. |
-| `spino introspect` | `head`, `tail`, `wc`, `file`, `stat` | Inspect file contents, type, and metadata with structured output. |
-| `spino grammar` | *(no direct CLI equivalent)* | AI-assisted grammar, style, and tone analysis with multiple detection traits. |
-| `spino cryptic` | *(no direct CLI equivalent)* | Encode or decode text using classic and modern ciphers. |
-| `spino split` | `split` | Split files into segments by lines, bytes, or count with custom naming. |
+| `shark show` | `ls`, `tree`, `stat` | Display files, directories, metadata, and structures with filtering, sorting, and multiple output formats. |
+| `shark merge` | `cp`, `rsync` (merge mode) | Combine multiple files or directories with conflict resolution strategies. |
+| `shark swap` | `mv` (with custom logic) | Exchange the locations of two files or directories atomically with backups. |
+| `shark move` | `mv` | Move or rename files/directories with atomic operations and filtering. |
+| `shark copy` | `cp` | Copy files or directories with verification, copy-on-write, and hardlinking. |
+| `shark remove` / `delete` | `rm`, `trash`, `shred` | Remove files with optional trash, secure multi-pass wipe, and filtering. |
+| `shark rename` | `mv`, `rename` | Rename files with safer overwrite controls and batch operations. |
+| `shark create` | `mkdir`, `touch` | Create directories or files with parent directory generation. |
+| `shark search` | `find`, `grep`, `locate` | Search files by name, path, or contents with case-insensitive matching. |
+| `shark archive` | `tar`, `zip`, `unzip`, `gzip` | Create, extract, or list archives with encryption and format support. |
+| `shark compare` | `diff`, `cmp` | Compare text or binary files with context and case-insensitive options. |
+| `shark help` | `man`, `--help` | Display command help and documentation with examples. |
+| `shark sync` | `rsync` | Synchronize directories with update checking and selective deletion. |
+| `shark watch` | `inotifywait`, `fswatch` | Monitor filesystem changes with event filtering and polling intervals. |
+| `shark rewrite` | `sed`, `truncate`, `touch` | Modify file contents or metadata including timestamps and size. |
+| `shark introspect` | `head`, `tail`, `wc`, `file`, `stat` | Inspect file contents, type, and metadata with structured output. |
+| `shark grammar` | *(no direct CLI equivalent)* | AI-assisted grammar, style, and tone analysis with multiple detection traits. |
+| `shark cryptic` | *(no direct CLI equivalent)* | Encode or decode text using classic and modern ciphers. |
+| `shark split` | `split` | Split files into segments by lines, bytes, or count with custom naming. |
 
 ---
 
 ## **Contributing**
 
-Interested in contributing? Please open pull requests or create issues on the [GitHub repository](https://github.com/fossillogic/spino).
+Interested in contributing? Please open pull requests or create issues on the [GitHub repository](https://github.com/fossillogic/shark).
 
 ## **Feedback and Support**
 
-For issues, questions, or feedback, open an issue on the [GitHub repository](https://github.com/fossillogic/spino/issues).
+For issues, questions, or feedback, open an issue on the [GitHub repository](https://github.com/fossillogic/shark/issues).
 
 ## **License**
 
