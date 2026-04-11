@@ -124,7 +124,7 @@ Ensure you have the following installed before starting:
 | **Flag** | **Description** |
 |-----------|-----------------|
 | `--help` | Show command help. |
-| `--version` | Display Spino Tool version. |
+| `--version` | Display app version. |
 | `-v, --verbose` | Enable detailed output. |
 | `-q, --quiet` | Suppress standard output. |
 | `--dry-run` | Simulate actions without changes. |
