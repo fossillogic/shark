@@ -56,9 +56,7 @@ int fossil_spino_help(ccstring command, bool show_examples, bool full_manual)
         fossil_io_printf("  {cyan,bold}undo{normal}        - Revert previous file operations\n");
         fossil_io_printf("  {cyan,bold}alias{normal}       - Create or manage command aliases\n");
         fossil_io_printf("  {cyan,bold}pipe{normal}        - Chain commands and redirect streams\n");
-        fossil_io_printf("  {cyan,bold}snapshot{normal}    - Capture file/directory state\n");
         fossil_io_printf("  {cyan,bold}perm{normal}        - Manage file/directory permissions\n");
-        fossil_io_printf("  {cyan,bold}play{normal}        - Launch a text-based game from the Spino tool\n");
         fossil_io_printf("\n{blue,bold,underline}Global Flags & Special Commands:{normal}\n");
         fossil_io_printf("  {cyan,bold}--help{normal}      - Show command help\n");
         fossil_io_printf("  {cyan,bold}--version{normal}   - Display Spino Tool version\n");
@@ -335,17 +333,6 @@ int fossil_spino_help(ccstring command, bool show_examples, bool full_manual)
             fossil_io_printf("  {cyan,bold}--json{normal}           JSON structured output\n");
             fossil_io_printf("  {cyan,bold}-a, --append{normal}     Append to output file\n");
         }
-        else if (fossil_io_cstring_equals(command, "snapshot"))
-        {
-            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}snapshot [options]{normal}\n");
-            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
-            fossil_io_printf("  {cyan,bold}-f <file>{normal}        Target file\n");
-            fossil_io_printf("  {cyan,bold}-d <dir>{normal}         Target directory\n");
-            fossil_io_printf("  {cyan,bold}-l <label>{normal}       Snapshot label\n");
-            fossil_io_printf("  {cyan,bold}--json{normal}           Output JSON\n");
-            fossil_io_printf("  {cyan,bold}--diff <label>{normal}   Compare with snapshot\n");
-            fossil_io_printf("  {cyan,bold}--compress{normal}       Compress snapshot\n");
-        }
         else if (fossil_io_cstring_equals(command, "perm"))
         {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}perm [options] <path>{normal}\n");
@@ -356,13 +343,6 @@ int fossil_spino_help(ccstring command, bool show_examples, bool full_manual)
             fossil_io_printf("  {cyan,bold}--revoke <perm>{normal}  Revoke permissions\n");
             fossil_io_printf("  {cyan,bold}-l, --list{normal}       Show permissions\n");
             fossil_io_printf("  {cyan,bold}-r, --recursive{normal}  Apply recursively\n");
-        }
-        else if (fossil_io_cstring_equals(command, "play"))
-        {
-            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}play [options] <game>{normal}\n");
-            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
-            fossil_io_printf("  {cyan,bold}--game <name>{normal}       Game name or path\n");
-            fossil_io_printf("  {cyan,bold}--rounds <n>{normal}         Number of rounds\n");
         }
         else if (fossil_io_cstring_equals(command, "--help"))
         {
@@ -451,12 +431,8 @@ int fossil_spino_help(ccstring command, bool show_examples, bool full_manual)
                 fossil_io_printf("  {cyan,bold}spino alias --set ls=show -al{normal}\n");
             else if (fossil_io_cstring_equals(command, "pipe"))
                 fossil_io_printf("  {cyan,bold}spino pipe -i input.txt -o output.txt -f \"cryptic --encode\"{normal}\n");
-            else if (fossil_io_cstring_equals(command, "snapshot"))
-                fossil_io_printf("  {cyan,bold}spino snapshot -d ./project -l v1{normal}\n");
             else if (fossil_io_cstring_equals(command, "perm"))
                 fossil_io_printf("  {cyan,bold}spino perm --grant rwx -r ./scripts{normal}\n");
-            else if (fossil_io_cstring_equals(command, "play"))
-                fossil_io_printf("  {cyan,bold}spino play --game prs --rounds 5{normal}\n");
         }
 
         // Manual page output omitted for brevity, but should be updated similarly.
