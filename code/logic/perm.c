@@ -167,14 +167,14 @@ int fossil_spino_perm(
 {
     if (!path)
     {
-        fossil_io_fprintf(FOSSIL_IO_ERROR, "Error: path must be provided.\n");
+        fossil_io_fprintf(FOSSIL_STDERR, "Error: path must be provided.\n");
         return -1;
     }
 
     fossil_io_filesys_obj_t obj;
     if (fossil_io_filesys_stat(path, &obj) != 0)
     {
-        fossil_io_fprintf(FOSSIL_IO_ERROR, "Error: failed to stat path: %s\n", path);
+        fossil_io_fprintf(FOSSIL_STDERR, "Error: failed to stat path: %s\n", path);
         return -1;
     }
 
