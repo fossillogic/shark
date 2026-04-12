@@ -37,7 +37,7 @@ int fossil_spino_link(
 
     // Check source exists
     if (!fossil_io_filesys_exists(source_file)) {
-        fossil_io_fprintf(FOSSIL_ERROR, "Source file does not exist: %s\n", source_file);
+        fossil_io_fprintf(FOSSIL_IO_ERROR, "Source file does not exist: %s\n", source_file);
         return -2;
     }
 
@@ -47,7 +47,7 @@ int fossil_spino_link(
             int rc = fossil_io_filesys_remove(target_path, false);
             if (rc != 0) return rc;
         } else {
-            fossil_io_fprintf(FOSSIL_ERROR, "Target already exists: %s\n", target_path);
+            fossil_io_fprintf(FOSSIL_IO_ERROR, "Target already exists: %s\n", target_path);
             return -3;
         }
     }
@@ -76,7 +76,7 @@ int fossil_spino_link(
     } else if (hard) {
         rc = fossil_io_filesys_link_create(final_source, target_path, false);
     } else {
-        fossil_io_fprintf(FOSSIL_ERROR, "No link type specified (symbolic or hard)\n");
+        fossil_io_fprintf(FOSSIL_IO_ERROR, "No link type specified (symbolic or hard)\n");
         return -4;
     }
 
