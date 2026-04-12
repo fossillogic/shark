@@ -84,13 +84,13 @@ int fossil_spino_dedupe(
                 duplicate_found = true;
 
                 if (output_json)
-                    printf("{\"duplicate\":\"%s\",\"original\":\"%s\"}\n", obj->path, node->path);
+                    fossil_io_printf("{\"duplicate\":\"%s\",\"original\":\"%s\"}\n", obj->path, node->path);
                 else
-                    printf("Duplicate found: %s -> %s\n", obj->path, node->path);
+                    fossil_io_printf("Duplicate found: %s -> %s\n", obj->path, node->path);
 
                 bool do_delete = delete_files;
                 if (interactive) {
-                    printf("Delete %s? (y/n): ", obj->path);
+                    fossil_io_printf("Delete %s? (y/n): ", obj->path);
                     int c = getchar();
                     while (getchar() != '\n');
                     do_delete = (c == 'y' || c == 'Y');
