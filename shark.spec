@@ -40,7 +40,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name="shark-tool",
+    name="shark",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
