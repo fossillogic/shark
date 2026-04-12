@@ -105,7 +105,7 @@ int fossil_spino_alias(const char* set_alias, const char* remove_alias, bool lis
     if (set_alias) {
         const char* eq = strchr(set_alias, '=');
         if (!eq || eq == set_alias) {
-            fossil_io_fprintf(FOSSIL_ERROR, "Invalid alias format: %s\n", set_alias);
+            fossil_io_fprintf(FOSSIL_STDERR, "Invalid alias format: %s\n", set_alias);
             return -1;
         }
         char name[FOSSIL_SPINO_ALIAS_NAME_MAX] = {0};
