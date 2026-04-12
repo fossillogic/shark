@@ -60,7 +60,7 @@ void fossil_spino_undo_log_add(fossil_spino_op_type_t type, const char* src, con
 
 int fossil_spino_undo(int last_n, const char* file_path, bool interactive, bool dry_run) {
     if (_fossil_spino_undo_count == 0) {
-        fossil_io_fprintf(FOSSIL_ERROR, "Nothing to undo.\n");
+        fossil_io_fprintf(FOSSIL_IO_ERROR, "Nothing to undo.\n");
         return -1;
     }
 
@@ -93,12 +93,12 @@ int fossil_spino_undo(int last_n, const char* file_path, bool interactive, bool 
                     break;
                 case FOSSIL_SPINO_OP_REMOVE:
                     // Can't restore removed file without backup; skipping
-                    fossil_io_fprintf(FOSSIL_ERROR, "Cannot undo removal for %s without backup\n", op->src);
+                    fossil_io_fprintf(FOSSIL_IO_ERROR, "Cannot undo removal for %s without backup\n", op->src);
                     rc = -2;
                     break;
             }
             if (rc != 0) {
-                fossil_io_fprintf(FOSSIL_ERROR, "Failed to undo %s -> %s\n", op->src, op->dest[0] ? op->dest : "(removed)");
+                fossil_io_fprintf(FOSSIL_IO_ERROR, "Failed to undo %s -> %s\n", op->src, op->dest[0] ? op->dest : "(removed)");
                 continue;
             }
         }
