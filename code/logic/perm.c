@@ -98,7 +98,7 @@ static int fossil_spino_perm_apply(
 
     if (rc != 0)
     {
-        fossil_io_fprintf(FOSSIL_IO_ERROR, "Failed to set permissions on %s\n", obj->path);
+        fossil_io_fprintf(FOSSIL_ERROR, "Failed to set permissions on %s\n", obj->path);
         return rc;
     }
 
@@ -120,7 +120,7 @@ static int fossil_spino_perm_apply(
 
         if (rc != 0)
         {
-            fossil_io_fprintf(FOSSIL_IO_ERROR, "Failed to set owner/group on %s\n", obj->path);
+            fossil_io_fprintf(FOSSIL_ERROR, "Failed to set owner/group on %s\n", obj->path);
             return rc;
         }
     }
