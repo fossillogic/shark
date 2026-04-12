@@ -87,9 +87,9 @@ static int fossil_spino_alias_remove(const char* name) {
  * List all aliases
  * ------------------------------------------------------------ */
 static void fossil_spino_alias_list(void) {
-    printf("Aliases:\n");
+    fossil_io_printf("Aliases:\n");
     for (int i = 0; i < _fossil_spino_alias_count; i++) {
-        printf("  %s = %s %s\n",
+        fossil_io_printf("  %s = %s %s\n",
             _fossil_spino_aliases[i].name,
             _fossil_spino_aliases[i].cmd,
             _fossil_spino_aliases[i].global_scope ? "(global)" : "(local)");
@@ -105,7 +105,7 @@ int fossil_spino_alias(const char* set_alias, const char* remove_alias, bool lis
     if (set_alias) {
         const char* eq = strchr(set_alias, '=');
         if (!eq || eq == set_alias) {
-            fprintf(stderr, "Invalid alias format: %s\n", set_alias);
+            fossil_io_fprintf(FOSSIL_ERROR, "Invalid alias format: %s\n", set_alias);
             return -1;
         }
         char name[FOSSIL_SPINO_ALIAS_NAME_MAX] = {0};
