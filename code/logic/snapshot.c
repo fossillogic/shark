@@ -36,7 +36,7 @@ int fossil_spino_snapshot(
     bool compress
 ) {
     if (!file_path && !dir_path) {
-        fprintf(stderr, "Error: Either file_path or dir_path must be provided.\n");
+        fossil_io_fprintf(FOSSIL_ERROR, "Error: Either file_path or dir_path must be provided.\n");
         return -1;
     }
 
@@ -56,27 +56,27 @@ int fossil_spino_snapshot(
     }
 
     /* Simulate snapshot capture */
-    printf("Capturing snapshot for %s: %s\n", target_type, target);
-    printf("Snapshot label: %s\n", snapshot_label);
+    fossil_io_printf("Capturing snapshot for %s: %s\n", target_type, target);
+    fossil_io_printf("Snapshot label: %s\n", snapshot_label);
     if (compress) {
         printf("Compressing snapshot...\n");
     }
 
     /* Optionally compare with previous snapshot */
     if (compare_with) {
-        printf("Comparing with previous snapshot: %s\n", compare_with);
+        fossil_io_printf("Comparing with previous snapshot: %s\n", compare_with);
         /* In a real implementation, compute diff and report changes */
     }
 
     /* Output JSON if requested */
     if (output_json) {
-        printf("{\n");
-        printf("  \"target\": \"%s\",\n", target);
-        printf("  \"type\": \"%s\",\n", target_type);
-        printf("  \"label\": \"%s\",\n", snapshot_label);
-        printf("  \"compressed\": %s,\n", compress ? "true" : "false");
-        printf("  \"compare_with\": \"%s\"\n", compare_with ? compare_with : "");
-        printf("}\n");
+        fossil_io_printf("{\n");
+        fossil_io_printf("  \"target\": \"%s\",\n", target);
+        fossil_io_printf("  \"type\": \"%s\",\n", target_type);
+        fossil_io_printf("  \"label\": \"%s\",\n", snapshot_label);
+        fossil_io_printf("  \"compressed\": %s,\n", compress ? "true" : "false");
+        fossil_io_printf("  \"compare_with\": \"%s\"\n", compare_with ? compare_with : "");
+        fossil_io_printf("}\n");
     }
 
     /* Success */
