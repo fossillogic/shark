@@ -39,12 +39,17 @@ extern "C"
  * @param interactive Confirm each deletion if true
  * @param delete Remove duplicate files if true
  * @param link Replace duplicates with links if true
- * @param output_json Report duplicates in JSON if true
+ * @param media Report duplicates in a selected format type if true
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_dedupe(ccstring dir_path, bool use_hash,
-                         bool interactive, bool delete,
-                         bool link, bool output_json);
+int fossil_spino_dedupe(
+    const char* dir_path,
+    bool use_hash,
+    bool interactive,
+    bool delete_files,
+    bool link_files,
+    const char* media /* "text", "json", "fson" */
+);
 
 #ifdef __cplusplus
 }
