@@ -49,7 +49,7 @@ int fossil_spino_pipe(
     bool tee,
     const char* media,   /* "text", "json", "fson" */
     bool append
-)
+);
 
 #ifdef __cplusplus
 }
