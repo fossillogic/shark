@@ -41,7 +41,7 @@ extern "C"
  * @param ignore_case Perform case-insensitive matching
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_search(ccstring path, bool recursive,
+int fossil_shark_search(ccstring path, bool recursive,
                         ccstring name_pattern, ccstring content_pattern,
                         bool ignore_case);
 
