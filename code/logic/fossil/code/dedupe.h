@@ -42,7 +42,7 @@ extern "C"
  * @param media Report duplicates in a selected format type if true
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_dedupe(
+int fossil_shark_dedupe(
     const char* dir_path,
     bool use_hash,
     bool interactive,
