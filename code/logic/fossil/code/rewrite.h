@@ -43,7 +43,7 @@ extern "C"
  * @param update_mod_time Update file modification time
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_rewrite(ccstring path, bool in_place, bool append,
+int fossil_shark_rewrite(ccstring path, bool in_place, bool append,
                             ccstring new_content, size_t size,
                             bool update_access_time, bool update_mod_time);
 
