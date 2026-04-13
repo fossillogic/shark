@@ -25,7 +25,7 @@
 #include "fossil/code/rewrite.h"
 
 
-int fossil_spino_rewrite(const char *path, bool in_place, bool append,
+int fossil_shark_rewrite(const char *path, bool in_place, bool append,
                          const char *new_content, size_t size,
                          bool update_access_time, bool update_mod_time)
 {
