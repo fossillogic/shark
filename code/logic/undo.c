@@ -29,44 +29,45 @@
 #include <stdbool.h>
 
 typedef enum {
-    FOSSIL_SPINO_OP_MOVE,
-    FOSSIL_SPINO_OP_COPY,
-    FOSSIL_SPINO_OP_RENAME,
-    FOSSIL_SPINO_OP_REMOVE
-} fossil_spino_op_type_t;
+    FOSSIL_SHARK_OP_MOVE,
+    FOSSIL_SHARK_OP_COPY,
+    FOSSIL_SHARK_OP_SWAP,
+    FOSSIL_SHARK_OP_RENAME,
+    FOSSIL_SHARK_OP_REMOVE
+} fossil_shark_op_type_t;
 
-typedef struct fossil_spino_op {
+typedef struct fossil_shark_op {
     fossil_spino_op_type_t type;
     char src[FOSSIL_FILESYS_MAX_PATH];
     char dest[FOSSIL_FILESYS_MAX_PATH]; // For move/rename/copy
-} fossil_spino_op_t;
+} fossil_shark_op_t;
 
 // Simple undo log (fixed size for demo)
-#define FOSSIL_SPINO_UNDO_LOG_MAX 1024
-static fossil_spino_op_t _fossil_spino_undo_log[FOSSIL_SPINO_UNDO_LOG_MAX];
-static int _fossil_spino_undo_count = 0;
+#define FOSSIL_SHARK_UNDO_LOG_MAX 1024
+static fossil_shark_op_t _fossil_shark_undo_log[FOSSIL_SHARK_UNDO_LOG_MAX];
+static int _fossil_shark_undo_count = 0;
 
 /* ------------------------------------------------------------
     * Add operation to undo log (internal)
     * ------------------------------------------------------------ */
-void fossil_spino_undo_log_add(fossil_spino_op_type_t type, const char* src, const char* dest) {
-    if (_fossil_spino_undo_count >= FOSSIL_SPINO_UNDO_LOG_MAX) return;
-    fossil_spino_op_t* op = &_fossil_spino_undo_log[_fossil_spino_undo_count++];
+void fossil_shark_undo_log_add(fossil_shark_op_type_t type, const char* src, const char* dest) {
+    if (_fossil_spino_undo_count >= FOSSIL_SHARK_UNDO_LOG_MAX) return;
+    fossil_shark_op_t* op = &_fossil_shark_undo_log[_fossil_shark_undo_count++];
     op->type = type;
     strncpy(op->src, src, sizeof(op->src));
     if (dest) strncpy(op->dest, dest, sizeof(op->dest));
     else op->dest[0] = '\0';
 }
 
-int fossil_spino_undo(int last_n, const char* file_path, bool interactive, bool dry_run) {
-    if (_fossil_spino_undo_count == 0) {
+int fossil_shark_undo(int last_n, const char* file_path, bool interactive, bool dry_run) {
+    if (_fossil_shark_undo_count == 0) {
         fossil_io_fprintf(FOSSIL_STDERR, "Nothing to undo.\n");
         return -1;
     }
 
     int undone = 0;
-    for (int i = _fossil_spino_undo_count - 1; i >= 0 && undone < last_n; i--) {
-        fossil_spino_op_t* op = &_fossil_spino_undo_log[i];
+    for (int i = _fossil_shark_undo_count - 1; i >= 0 && undone < last_n; i--) {
+        fossil_shark_op_t* op = &_fossil_shark_undo_log[i];
 
         // Skip if a specific file_path is given
         if (file_path && strcmp(op->src, file_path) != 0 && strcmp(op->dest, file_path) != 0)
@@ -82,16 +83,19 @@ int fossil_spino_undo(int last_n, const char* file_path, bool interactive, bool 
         if (!dry_run) {
             int rc = 0;
             switch (op->type) {
-                case FOSSIL_SPINO_OP_MOVE:
+                case FOSSIL_SHARK_OP_MOVE:
                     rc = fossil_io_filesys_move(op->dest, op->src);
                     break;
-                case FOSSIL_SPINO_OP_RENAME:
+                case FOSSIL_SHARK_OP_RENAME:
                     rc = fossil_io_filesys_move(op->dest, op->src);
                     break;
-                case FOSSIL_SPINO_OP_COPY:
+                case FOSSIL_SHARK_OP_SWAP:
+                    rc = fossil_io_filesys_swap(op->dest, op->src);
+                    break;
+                case FOSSIL_SHARK_OP_COPY:
                     rc = fossil_io_filesys_remove(op->dest, false);
                     break;
-                case FOSSIL_SPINO_OP_REMOVE:
+                case FOSSIL_SHARK_OP_REMOVE:
                     // Can't restore removed file without backup; skipping
                     fossil_io_fprintf(FOSSIL_STDERR, "Cannot undo removal for %s without backup\n", op->src);
                     rc = -2;
