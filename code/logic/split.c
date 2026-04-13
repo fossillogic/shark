@@ -24,7 +24,7 @@
  */
 #include "fossil/code/split.h"
 
-int fossil_spino_split(ccstring file_path, size_t split_by_lines,
+int fossil_shark_split(ccstring file_path, size_t split_by_lines,
                        size_t split_by_bytes, size_t num_segments,
                        ccstring output_prefix, int suffix_digits,
                        bool numeric_suffix, ccstring delimiter,
