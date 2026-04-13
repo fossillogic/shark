@@ -122,7 +122,7 @@ int fossil_shark_sync(ccstring src, ccstring dest,
         {
             if (recursive)
             {
-                fossil_spino_sync(entry->path, dest_path, recursive, update, delete_flag);
+                fossil_shark_sync(entry->path, dest_path, recursive, update, delete_flag);
             }
         }
         else if (entry->type == FOSSIL_FILESYS_TYPE_FILE)
