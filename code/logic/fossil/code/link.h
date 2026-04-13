@@ -42,7 +42,7 @@ extern "C"
  * @param overwrite Replace existing links if true
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_link(ccstring source_file, ccstring target_path,
+int fossil_shark_link(ccstring source_file, ccstring target_path,
                       bool symbolic, bool hard,
                       bool relative, bool overwrite);
 
