@@ -46,7 +46,7 @@ extern "C"
  * @param no_cross_device Fail if paths are on different filesystems (--no-cross-device)
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_swap(ccstring path1, ccstring path2,
+int fossil_shark_swap(ccstring path1, ccstring path2,
                         bool force, bool interactive, bool backup,
                         bool atomic, bool progress, bool dry_run,
                         ccstring temp_path, bool no_cross_device);
