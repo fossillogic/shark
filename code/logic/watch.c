@@ -108,7 +108,7 @@ static wchar_t *fossil_utf8_to_wide(const char *s)
     return w;
 }
 
-static int fossil_spino_watch_windows_recursive(
+static int fossil_shark_watch_windows_recursive(
     const char *path,
     const char *events)
 {
