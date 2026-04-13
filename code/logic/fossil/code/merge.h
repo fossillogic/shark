@@ -47,7 +47,7 @@ extern "C"
  * @param include_pattern Pattern for files to include (--include)
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_merge(const char **paths, int num_paths, ccstring dest,
+int fossil_shark_merge(const char **paths, int num_paths, ccstring dest,
                         bool force, bool interactive, bool backup,
                         ccstring strategy, bool progress, bool dry_run,
                         ccstring exclude_pattern, ccstring include_pattern);
