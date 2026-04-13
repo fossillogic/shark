@@ -37,7 +37,7 @@ typedef enum {
 } fossil_shark_op_type_t;
 
 typedef struct fossil_shark_op {
-    fossil_spino_op_type_t type;
+    fossil_shark_op_type_t type;
     char src[FOSSIL_FILESYS_MAX_PATH];
     char dest[FOSSIL_FILESYS_MAX_PATH]; // For move/rename/copy
 } fossil_shark_op_t;
