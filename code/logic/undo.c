@@ -51,7 +51,7 @@ static int _fossil_shark_undo_count = 0;
     * Add operation to undo log (internal)
     * ------------------------------------------------------------ */
 void fossil_shark_undo_log_add(fossil_shark_op_type_t type, const char* src, const char* dest) {
-    if (_fossil_spino_undo_count >= FOSSIL_SHARK_UNDO_LOG_MAX) return;
+    if (_fossil_shark_undo_count >= FOSSIL_SHARK_UNDO_LOG_MAX) return;
     fossil_shark_op_t* op = &_fossil_shark_undo_log[_fossil_shark_undo_count++];
     op->type = type;
     strncpy(op->src, src, sizeof(op->src));
