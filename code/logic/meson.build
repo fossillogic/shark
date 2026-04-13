@@ -27,9 +27,7 @@ app_lib = static_library('app-code',
         'split.c',
         'perm.c',
         'pipe.c',
-        'play.c',
         'undo.c',
-        'snapshot.c',
         'alias.c',
         'link.c',
         'dedupe.c'
@@ -44,4 +42,4 @@ app_dep = declare_dependency(
     include_directories: dir)
 
 # This is the main executable for the app
-executable('spino', 'main.c', install: true, dependencies: [app_dep], include_directories: dir)
+executable('shark', 'main.c', install: true, dependencies: [app_dep], include_directories: dir)

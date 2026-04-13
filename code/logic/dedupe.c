@@ -32,13 +32,17 @@ int fossil_spino_dedupe(
     bool interactive,
     bool delete_files,
     bool link_files,
-    bool output_json
+    const char* media /* "text", "json", "fson" */
 )
 {
     if (!dir_path) return -1;
 
+    /* Default media */
+    const char* fmt = (media) ? media : "text";
+
     fossil_io_filesys_obj_t entries[1024];
     size_t count = 0;
+
     int rc = fossil_io_filesys_dir_list(dir_path, entries, 1024, &count);
     if (rc < 0) return rc;
 
@@ -50,47 +54,88 @@ int fossil_spino_dedupe(
 
     file_node_t* head = NULL;
 
+    /* Output helper */
+    #define OUTPUT_DUP(dup, orig)                                     \
+        do {                                                          \
+            if (strcmp(fmt, "json") == 0) {                           \
+                fossil_io_printf(                                     \
+                    "{\"duplicate\":\"%s\",\"original\":\"%s\"}\n",   \
+                    dup, orig                                         \
+                );                                                    \
+            } else if (strcmp(fmt, "fson") == 0) {                    \
+                fossil_io_printf(                                     \
+                    "duplicate:cstr=%s original:cstr=%s\n",                     \
+                    dup, orig                                         \
+                );                                                    \
+            } else {                                                  \
+                fossil_io_printf(                                     \
+                    "Duplicate found: %s -> %s\n",                    \
+                    dup, orig                                         \
+                );                                                    \
+            }                                                         \
+        } while (0)
+
     for (size_t i = 0; i < count; ++i) {
         fossil_io_filesys_obj_t* obj = &entries[i];
 
-        if (obj->type != FOSSIL_FILESYS_TYPE_FILE) continue;
+        if (obj->type != FOSSIL_FILESYS_TYPE_FILE)
+            continue;
 
         char file_hash[MAX_HASH_LEN] = {0};
+
         if (use_hash) {
-            // Read file contents
             fossil_io_filesys_file_t f = {0};
-            if (fossil_io_filesys_file_open(&f, obj->path, "rb") != 0) continue;
+
+            if (fossil_io_filesys_file_open(&f, obj->path, "rb") != 0)
+                continue;
 
             uint8_t* buffer = malloc(obj->size);
-            if (!buffer) { fossil_io_filesys_file_close(&f); continue; }
-            size_t read_bytes = fossil_io_filesys_file_read(&f, buffer, 1, obj->size);
+            if (!buffer) {
+                fossil_io_filesys_file_close(&f);
+                continue;
+            }
+
+            size_t read_bytes = fossil_io_filesys_file_read(
+                &f, buffer, 1, obj->size
+            );
+
             fossil_io_filesys_file_close(&f);
 
-            if (read_bytes != obj->size) { free(buffer); continue; }
+            if (read_bytes != obj->size) {
+                free(buffer);
+                continue;
+            }
 
-            fossil_cryptic_hash_compute("xor", "auto", "hex", file_hash, sizeof(file_hash), buffer, obj->size);
+            fossil_cryptic_hash_compute(
+                "xor", "auto", "hex",
+                file_hash, sizeof(file_hash),
+                buffer, obj->size
+            );
+
             free(buffer);
         } else {
-            // Use size+mtime as hash surrogate
-            snprintf(file_hash, sizeof(file_hash),
-         "%zu-%lld", obj->size, (long long)obj->modified_at);
+            snprintf(
+                file_hash,
+                sizeof(file_hash),
+                "%zu-%lld",
+                obj->size,
+                (long long)obj->modified_at
+            );
         }
 
-        // Compare against previously seen files
         file_node_t* node = head;
         bool duplicate_found = false;
+
         while (node) {
             if (strcmp(node->hash, file_hash) == 0) {
                 duplicate_found = true;
 
-                if (output_json)
-                    printf("{\"duplicate\":\"%s\",\"original\":\"%s\"}\n", obj->path, node->path);
-                else
-                    printf("Duplicate found: %s -> %s\n", obj->path, node->path);
+                OUTPUT_DUP(obj->path, node->path);
 
                 bool do_delete = delete_files;
+
                 if (interactive) {
-                    printf("Delete %s? (y/n): ", obj->path);
+                    fossil_io_printf("Delete %s? (y/n): ", obj->path);
                     int c = getchar();
                     while (getchar() != '\n');
                     do_delete = (c == 'y' || c == 'Y');
@@ -98,25 +143,38 @@ int fossil_spino_dedupe(
 
                 if (do_delete) {
                     fossil_io_filesys_remove(obj->path, false);
-                    if (link_files) fossil_io_filesys_link_create(node->path, obj->path, true);
+
+                    if (link_files) {
+                        fossil_io_filesys_link_create(
+                            node->path,
+                            obj->path,
+                            true
+                        );
+                    }
                 }
 
                 break;
             }
+
             node = node->next;
         }
 
         if (!duplicate_found) {
             file_node_t* new_node = malloc(sizeof(file_node_t));
             if (!new_node) continue;
-            strncpy(new_node->path, obj->path, sizeof(new_node->path));
-            strncpy(new_node->hash, file_hash, sizeof(new_node->hash));
+
+            strncpy(new_node->path, obj->path, sizeof(new_node->path) - 1);
+            new_node->path[sizeof(new_node->path) - 1] = '\0';
+
+            strncpy(new_node->hash, file_hash, sizeof(new_node->hash) - 1);
+            new_node->hash[sizeof(new_node->hash) - 1] = '\0';
+
             new_node->next = head;
             head = new_node;
         }
     }
 
-    // Free linked list
+    /* Cleanup */
     file_node_t* tmp;
     while (head) {
         tmp = head;

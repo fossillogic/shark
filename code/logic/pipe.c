@@ -45,27 +45,29 @@ static void* fossil_memmem(const void* haystack, size_t haystacklen,
 #endif
 
 /* ------------------------------------------------------------
- * Fossil Spino Pipe Command
+ * Fossil Spino Pipe Command (Media-Aware)
  * ------------------------------------------------------------ */
 int fossil_spino_pipe(
     const char* input_file,
     const char* output_file,
     const char* filter,
     bool tee,
-    bool output_json,
+    const char* media,   /* "text", "json", "fson" */
     bool append
 ) {
     FILE *in = stdin;
     FILE *out = stdout;
-    FILE *tmp_out = NULL;
+    FILE *tee_out = NULL;
 
     char buffer[4096];
     size_t n;
 
-    const char* needle = filter;
-    size_t needle_len = (filter) ? strlen(filter) : 0;
+    const char* fmt = (media) ? media : "text";
 
-    /* Open input file */
+    const char* needle = filter;
+    size_t needle_len = (needle) ? strlen(needle) : 0;
+
+    /* Open input */
     if (input_file) {
         in = fopen(input_file, "rb");
         if (!in) {
@@ -74,7 +76,7 @@ int fossil_spino_pipe(
         }
     }
 
-    /* Open output file */
+    /* Open output */
     if (output_file) {
         out = fopen(output_file, append ? "ab" : "wb");
         if (!out) {
@@ -84,18 +86,26 @@ int fossil_spino_pipe(
         }
     }
 
-    /* Tee support */
+    /* Tee setup */
     if (tee && output_file) {
-        tmp_out = stdout;
+        tee_out = stdout;
     }
 
-    /* Streaming buffer overlap (for boundary-safe matching) */
-    char overlap[256];  // supports filters up to 256 bytes safely
+    /* Overlap buffer for boundary-safe matching */
+    char overlap[256];
     size_t overlap_len = 0;
+
+    /* Stats (useful for structured output) */
+    size_t total_bytes = 0;
+    size_t total_chunks = 0;
+    size_t passed_chunks = 0;
 
     while ((n = fread(buffer, 1, sizeof(buffer), in)) > 0) {
 
-        /* Build combined buffer: overlap + current chunk */
+        total_bytes += n;
+        total_chunks++;
+
+        /* Combine overlap + current chunk */
         char combined[4096 + 256];
         size_t combined_len = 0;
 
@@ -117,25 +127,55 @@ int fossil_spino_pipe(
 
         if (pass) {
             fwrite(buffer, 1, n, out);
-            if (tmp_out) fwrite(buffer, 1, n, tmp_out);
+            if (tee_out) fwrite(buffer, 1, n, tee_out);
+            passed_chunks++;
         }
 
-        /* Save overlap for next iteration */
+        /* Maintain overlap */
         if (needle_len > 1) {
             overlap_len = (needle_len - 1 < combined_len)
-                          ? needle_len - 1
+                          ? (needle_len - 1)
                           : combined_len;
 
-            memcpy(overlap,
-                   combined + combined_len - overlap_len,
-                   overlap_len);
+            memcpy(
+                overlap,
+                combined + combined_len - overlap_len,
+                overlap_len
+            );
         }
     }
 
-    /* JSON output */
-    if (output_json) {
-        fprintf(out, "\n{\"status\":\"ok\"}\n");
-        if (tmp_out) fprintf(tmp_out, "\n{\"status\":\"ok\"}\n");
+    /* Emit structured footer (instead of raw JSON toggle) */
+    if (strcmp(fmt, "json") == 0) {
+        fprintf(out,
+            "\n{\"status\":\"ok\",\"bytes\":%zu,\"chunks\":%zu,\"passed\":%zu}\n",
+            total_bytes, total_chunks, passed_chunks
+        );
+        if (tee_out) {
+            fprintf(tee_out,
+                "\n{\"status\":\"ok\",\"bytes\":%zu,\"chunks\":%zu,\"passed\":%zu}\n",
+                total_bytes, total_chunks, passed_chunks
+            );
+        }
+
+    } else if (strcmp(fmt, "fson") == 0) {
+        fprintf(out,
+            "\nstatus:cstr=ok bytes:u32=%zu chunks:u32=%zu passed:u32=%zu\n",
+            total_bytes, total_chunks, passed_chunks
+        );
+        if (tee_out) {
+            fprintf(tee_out,
+                "\nstatus:cstr=ok bytes:u32=%zu chunks:u32=%zu passed:u32=%zu\n",
+                total_bytes, total_chunks, passed_chunks
+            );
+        }
+
+    } else {
+        /* text (default) — minimal, non-intrusive */
+        fprintf(out, "\n[shark:pipe] OK (%zu bytes processed)\n", total_bytes);
+        if (tee_out) {
+            fprintf(tee_out, "\n[shark:pipe] OK (%zu bytes processed)\n", total_bytes);
+        }
     }
 
     if (input_file) fclose(in);

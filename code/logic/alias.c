@@ -60,7 +60,7 @@ static int fossil_spino_alias_set(const char* name, const char* cmd, bool global
         return 0;
     }
     if (_fossil_spino_alias_count >= FOSSIL_SPINO_ALIAS_MAX) {
-        fprintf(stderr, "Alias table full\n");
+        fossil_io_fprintf(FOSSIL_STDERR, "Alias table full\n");
         return -1;
     }
     fossil_spino_alias_t* alias = &_fossil_spino_aliases[_fossil_spino_alias_count++];
@@ -87,9 +87,9 @@ static int fossil_spino_alias_remove(const char* name) {
  * List all aliases
  * ------------------------------------------------------------ */
 static void fossil_spino_alias_list(void) {
-    printf("Aliases:\n");
+    fossil_io_printf("Aliases:\n");
     for (int i = 0; i < _fossil_spino_alias_count; i++) {
-        printf("  %s = %s %s\n",
+        fossil_io_printf("  %s = %s %s\n",
             _fossil_spino_aliases[i].name,
             _fossil_spino_aliases[i].cmd,
             _fossil_spino_aliases[i].global_scope ? "(global)" : "(local)");
@@ -105,7 +105,7 @@ int fossil_spino_alias(const char* set_alias, const char* remove_alias, bool lis
     if (set_alias) {
         const char* eq = strchr(set_alias, '=');
         if (!eq || eq == set_alias) {
-            fprintf(stderr, "Invalid alias format: %s\n", set_alias);
+            fossil_io_fprintf(FOSSIL_STDERR, "Invalid alias format: %s\n", set_alias);
             return -1;
         }
         char name[FOSSIL_SPINO_ALIAS_NAME_MAX] = {0};

@@ -38,13 +38,18 @@ extern "C"
  * @param output_file Destination file (NULL for stdout)
  * @param filter Inline command filter (NULL for none)
  * @param tee Split output to console and file if true
- * @param output_json Structured JSON output if true
+ * @param media Structured media output if true
  * @param append Append to output file if true
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_pipe(ccstring input_file, ccstring output_file,
-                      ccstring filter, bool tee, bool output_json,
-                      bool append);
+int fossil_spino_pipe(
+    const char* input_file,
+    const char* output_file,
+    const char* filter,
+    bool tee,
+    const char* media,   /* "text", "json", "fson" */
+    bool append
+);
 
 #ifdef __cplusplus
 }

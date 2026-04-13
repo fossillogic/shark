@@ -43,15 +43,21 @@ extern "C"
  * @param show_time Display file timestamps (modified, created, accessed)
  * @param show_file_type Determine file type (e.g., MIME or description)
  * @param find_pattern Search for string or pattern in file
- * @param output_fson Output metadata in FSON structured format
- * @param output_json Output metadata in JSON structured format
+ * @param media Output structured media format
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_introspect(ccstring path, int show_head_lines,
-                            int show_tail_lines, bool count_lines_words_bytes,
-                            bool count_lines_only, bool show_size,
-                            bool show_time, bool show_file_type,
-                            ccstring find_pattern, bool output_fson, bool output_json);
+int fossil_spino_introspect(
+    ccstring path,
+    int show_head_lines,
+    int show_tail_lines,
+    bool count_lines_words_bytes,
+    bool count_lines_only,
+    bool show_size,
+    bool show_time,
+    bool show_file_type,
+    ccstring find_pattern,
+    const char* media /* "text", "json", "fson" */
+);
 
 #ifdef __cplusplus
 }

@@ -98,7 +98,7 @@ static int fossil_spino_perm_apply(
 
     if (rc != 0)
     {
-        fprintf(stderr, "Failed to set permissions on %s\n", obj->path);
+        fossil_io_fprintf(FOSSIL_STDERR, "Failed to set permissions on %s\n", obj->path);
         return rc;
     }
 
@@ -120,7 +120,7 @@ static int fossil_spino_perm_apply(
 
         if (rc != 0)
         {
-            fprintf(stderr, "Failed to set owner/group on %s\n", obj->path);
+            fossil_io_fprintf(FOSSIL_STDERR, "Failed to set owner/group on %s\n", obj->path);
             return rc;
         }
     }
@@ -167,14 +167,14 @@ int fossil_spino_perm(
 {
     if (!path)
     {
-        fprintf(stderr, "Error: path must be provided.\n");
+        fossil_io_fprintf(FOSSIL_STDERR, "Error: path must be provided.\n");
         return -1;
     }
 
     fossil_io_filesys_obj_t obj;
     if (fossil_io_filesys_stat(path, &obj) != 0)
     {
-        fprintf(stderr, "Error: failed to stat path: %s\n", path);
+        fossil_io_fprintf(FOSSIL_STDERR, "Error: failed to stat path: %s\n", path);
         return -1;
     }
 
@@ -183,15 +183,15 @@ int fossil_spino_perm(
      * -------------------------------------------------------- */
     if (list)
     {
-        printf("Path: %s\n", obj.path);
-        printf("Type: %s\n", fossil_io_filesys_type_string(obj.type));
-        printf("Permissions: [r=%d w=%d x=%d]\n",
+        fossil_io_printf("Path: %s\n", obj.path);
+        fossil_io_printf("Type: %s\n", fossil_io_filesys_type_string(obj.type));
+        fossil_io_printf("Permissions: [r=%d w=%d x=%d]\n",
                obj.perms.read,
                obj.perms.write,
                obj.perms.execute);
-        printf("Owner: %s\n", obj.owner);
-        printf("Group: %s\n", obj.group);
-        printf("Size: %zu\n", obj.size);
+        fossil_io_printf("Owner: %s\n", obj.owner);
+        fossil_io_printf("Group: %s\n", obj.group);
+        fossil_io_printf("Size: %zu\n", obj.size);
         return 0;
     }
 

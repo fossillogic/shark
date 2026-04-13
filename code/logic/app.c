@@ -175,8 +175,7 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    --time              Timestamps: modified, created, accessed\n");
     fossil_io_printf("{bright_black}    --type              Detect and display file type\n");
     fossil_io_printf("{bright_black}    --find <pattern>    Search for string or pattern\n");
-    fossil_io_printf("{bright_black}    --fson              FSON structured format output\n");
-    fossil_io_printf("{bright_black}    --json              JSON structured format output\n");
+    fossil_io_printf("{bright_black}    --media             Preferd structured media format text/fson/json\n");
 
     fossil_io_printf("{cyan}  grammar          {reset}Analyze/correct grammar/style\n");
     fossil_io_printf("{bright_black}    --check             Analyze\n");
@@ -216,7 +215,7 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    -i, --interactive   Confirm deletions\n");
     fossil_io_printf("{bright_black}    -d, --delete        Remove duplicates\n");
     fossil_io_printf("{bright_black}    -l, --link          Replace duplicates with links\n");
-    fossil_io_printf("{bright_black}    --json              Output results in JSON\n");
+    fossil_io_printf("{bright_black}    --media             Preferd structured media format text/fson/json\n");
 
     fossil_io_printf("{cyan}  link             {reset}Create hard or symbolic links\n");
     fossil_io_printf("{bright_black}    -s, --symbolic      Create symbolic link\n");
@@ -241,16 +240,8 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    -o <file>           Output file (default stdout)\n");
     fossil_io_printf("{bright_black}    -f <cmd>            Filter command\n");
     fossil_io_printf("{bright_black}    -t, --tee           Output to console + file\n");
-    fossil_io_printf("{bright_black}    --json              JSON structured output\n");
+    fossil_io_printf("{bright_black}    --media             Preferd structured media format text/fson/json\n");
     fossil_io_printf("{bright_black}    -a, --append        Append to output file\n");
-
-    fossil_io_printf("{cyan}  snapshot         {reset}Capture file or directory state\n");
-    fossil_io_printf("{bright_black}    -f <file>           Target file\n");
-    fossil_io_printf("{bright_black}    -d <dir>            Target directory\n");
-    fossil_io_printf("{bright_black}    -l <label>          Snapshot label\n");
-    fossil_io_printf("{bright_black}    --json              Output snapshot as JSON\n");
-    fossil_io_printf("{bright_black}    --diff <label>      Compare with previous snapshot\n");
-    fossil_io_printf("{bright_black}    --compress          Compress snapshot\n");
 
     fossil_io_printf("{cyan}  perm             {reset}Manage file or directory permissions\n");
     fossil_io_printf("{bright_black}    -u <user>           Target user\n");
@@ -259,10 +250,6 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    --revoke <perm>     Revoke permissions\n");
     fossil_io_printf("{bright_black}    -l, --list          Show current permissions\n");
     fossil_io_printf("{bright_black}    -r, --recursive     Apply recursively\n");
-
-    fossil_io_printf("{cyan}  play            {reset}Launch a text-based game from the Spino tool\n");
-    fossil_io_printf("{bright_black}    --game <game>       Game name (e.g., guess_number, tic_tac_toe)\n");
-    fossil_io_printf("{bright_black}    --rounds <rounds>   Number of rounds to play\n");
 
     fossil_io_printf("\n{blue}Global Flags:{reset}\n");
     fossil_io_printf("{bright_black}  --help                Show command help\n");
@@ -304,7 +291,7 @@ bool app_entry(int argc, char **argv)
         "rewrite", "introspect", "grammar", "cryptic",
 
         // Other operations
-        "play", "alias", "pipe", "snapshot", "perm", "dedupe", "link", "undo",
+        "alias", "pipe", "perm", "dedupe", "link", "undo",
 
         // Data ops
         "split",
@@ -390,8 +377,6 @@ bool app_entry(int argc, char **argv)
             fossil_io_cstring_compare(argv[i], "undo") == 0 ||
             fossil_io_cstring_compare(argv[i], "alias") == 0 ||
             fossil_io_cstring_compare(argv[i], "pipe") == 0 ||
-            fossil_io_cstring_compare(argv[i], "play") == 0 ||
-            fossil_io_cstring_compare(argv[i], "snapshot") == 0 ||
             fossil_io_cstring_compare(argv[i], "perm") == 0 ||
             fossil_io_cstring_compare(argv[i], "help") == 0 ||
             fossil_io_cstring_compare(argv[i], "cryptic") == 0)
@@ -1154,7 +1139,7 @@ bool app_entry(int argc, char **argv)
             int head_lines = 0, tail_lines = 0;
             bool count_lwb = false, count_lines_only = false;
             bool show_size = false, show_time = false, show_type = false;
-            bool output_fson = false, output_json = false;
+            cstring media = "text";
 
             for (int j = i + 1; j < argc; j++)
             {
@@ -1190,13 +1175,9 @@ bool app_entry(int argc, char **argv)
                 {
                     find_pattern = argv[++j];
                 }
-                else if (fossil_io_cstring_compare(argv[j], "--fson") == 0)
+                else if (fossil_io_cstring_compare(argv[j], "--media") == 0)
                 {
-                    output_fson = true;
-                }
-                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
-                {
-                    output_json = true;
+                    media = argv[++j];
                 }
                 else if (!cnotnull(path))
                 {
@@ -1207,7 +1188,7 @@ bool app_entry(int argc, char **argv)
 
             if (cnotnull(path))
             {
-                int rc = fossil_spino_introspect(path, head_lines, tail_lines, count_lwb, count_lines_only, show_size, show_time, show_type, find_pattern, output_fson, output_json);
+                int rc = fossil_spino_introspect(path, head_lines, tail_lines, count_lwb, count_lines_only, show_size, show_time, show_type, find_pattern, media);
                 if (rc != 0)
                 {
                     fossil_io_printf("{red}Introspect failed: %s{reset}\n", path);
@@ -1435,35 +1416,11 @@ bool app_entry(int argc, char **argv)
             if (cnotnull(path))
                 fossil_spino_perm(path, user, group, grant, revoke, list, recursive);
         }
-        else if (fossil_io_cstring_compare(argv[i], "snapshot") == 0)
-        {
-            ccstring file = cnull, dir = cnull, label = cnull, compare = cnull;
-            bool json = false, compress = false;
-
-            for (int j = i + 1; j < argc; j++)
-            {
-                if (fossil_io_cstring_compare(argv[j], "--file") == 0 && j + 1 < argc)
-                    file = argv[++j];
-                else if (fossil_io_cstring_compare(argv[j], "--dir") == 0 && j + 1 < argc)
-                    dir = argv[++j];
-                else if (fossil_io_cstring_compare(argv[j], "--label") == 0 && j + 1 < argc)
-                    label = argv[++j];
-                else if (fossil_io_cstring_compare(argv[j], "--compare") == 0 && j + 1 < argc)
-                    compare = argv[++j];
-                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
-                    json = true;
-                else if (fossil_io_cstring_compare(argv[j], "--compress") == 0)
-                    compress = true;
-
-                i = j;
-            }
-
-            fossil_spino_snapshot(file, dir, label, json, compare, compress);
-        }
         else if (fossil_io_cstring_compare(argv[i], "pipe") == 0)
         {
             ccstring in = cnull, out = cnull, filter = cnull;
-            bool tee = false, json = false, append = false;
+            cstring media = "text";
+            bool tee = false, append = false;
 
             for (int j = i + 1; j < argc; j++)
             {
@@ -1475,15 +1432,15 @@ bool app_entry(int argc, char **argv)
                     filter = argv[++j];
                 else if (fossil_io_cstring_compare(argv[j], "--tee") == 0)
                     tee = true;
-                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
-                    json = true;
+                else if (fossil_io_cstring_compare(argv[j], "--media") == 0)
+                    media = argv[++j];
                 else if (fossil_io_cstring_compare(argv[j], "--append") == 0)
                     append = true;
 
                 i = j;
             }
 
-            fossil_spino_pipe(in, out, filter, tee, json, append);
+            fossil_spino_pipe(in, out, filter, tee, media, append);
         }
         else if (fossil_io_cstring_compare(argv[i], "alias") == 0)
         {
@@ -1557,7 +1514,8 @@ bool app_entry(int argc, char **argv)
         else if (fossil_io_cstring_compare(argv[i], "dedupe") == 0)
         {
             ccstring dir = cnull;
-            bool use_hash = false, interactive = false, del = false, link = false, json = false;
+            cstring media = "text";
+            bool use_hash = false, interactive = false, del = false, link = false;
 
             for (int j = i + 1; j < argc; j++)
             {
@@ -1569,8 +1527,8 @@ bool app_entry(int argc, char **argv)
                     del = true;
                 else if (fossil_io_cstring_compare(argv[j], "--link") == 0)
                     link = true;
-                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
-                    json = true;
+                else if (fossil_io_cstring_compare(argv[j], "--media") == 0)
+                    media = argv[j];
                 else if (!cnotnull(dir))
                     dir = argv[j];
 
@@ -1578,41 +1536,7 @@ bool app_entry(int argc, char **argv)
             }
 
             if (cnotnull(dir))
-                fossil_spino_dedupe(dir, use_hash, interactive, del, link, json);
-        }
-        else if (fossil_io_cstring_compare(argv[i], "play") == 0)
-        {
-            ccstring game_name = cnull;
-            int rounds = 1;
-
-            for (int j = i + 1; j < argc; j++)
-            {
-                if (fossil_io_cstring_compare(argv[j], "-g") == 0 || fossil_io_cstring_compare(argv[j], "--game") == 0)
-                {
-                    if (j + 1 < argc)
-                        game_name = argv[++j];
-                }
-                else if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--rounds") == 0)
-                {
-                    if (j + 1 < argc)
-                        rounds = atoi(argv[++j]);
-                }
-                i = j;
-            }
-
-            if (cnotnull(game_name))
-            {
-                int rc = fossil_spino_play(game_name, rounds);
-                if (rc != 0)
-                {
-                    fossil_io_printf("{red}Failed to play game: %s{reset}\n", game_name);
-                }
-            }
-            else
-            {
-                fossil_io_printf("{red}Game name is required for play command{reset}\n");
-                fossil_spino_help("play", false, false);
-            }
+                fossil_spino_dedupe(dir, use_hash, interactive, del, link, media);
         }
         else
         {
