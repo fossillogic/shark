@@ -175,8 +175,7 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    --time              Timestamps: modified, created, accessed\n");
     fossil_io_printf("{bright_black}    --type              Detect and display file type\n");
     fossil_io_printf("{bright_black}    --find <pattern>    Search for string or pattern\n");
-    fossil_io_printf("{bright_black}    --fson              FSON structured format output\n");
-    fossil_io_printf("{bright_black}    --json              JSON structured format output\n");
+    fossil_io_printf("{bright_black}    --media             Preferd structured media format text/fson/json\n");
 
     fossil_io_printf("{cyan}  grammar          {reset}Analyze/correct grammar/style\n");
     fossil_io_printf("{bright_black}    --check             Analyze\n");
@@ -216,7 +215,7 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    -i, --interactive   Confirm deletions\n");
     fossil_io_printf("{bright_black}    -d, --delete        Remove duplicates\n");
     fossil_io_printf("{bright_black}    -l, --link          Replace duplicates with links\n");
-    fossil_io_printf("{bright_black}    --json              Output results in JSON\n");
+    fossil_io_printf("{bright_black}    --media             Preferd structured media format text/fson/json\n");
 
     fossil_io_printf("{cyan}  link             {reset}Create hard or symbolic links\n");
     fossil_io_printf("{bright_black}    -s, --symbolic      Create symbolic link\n");
@@ -241,7 +240,7 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    -o <file>           Output file (default stdout)\n");
     fossil_io_printf("{bright_black}    -f <cmd>            Filter command\n");
     fossil_io_printf("{bright_black}    -t, --tee           Output to console + file\n");
-    fossil_io_printf("{bright_black}    --json              JSON structured output\n");
+    fossil_io_printf("{bright_black}    --media             Preferd structured media format text/fson/json\n");
     fossil_io_printf("{bright_black}    -a, --append        Append to output file\n");
 
     fossil_io_printf("{cyan}  perm             {reset}Manage file or directory permissions\n");
@@ -1140,7 +1139,7 @@ bool app_entry(int argc, char **argv)
             int head_lines = 0, tail_lines = 0;
             bool count_lwb = false, count_lines_only = false;
             bool show_size = false, show_time = false, show_type = false;
-            bool output_fson = false, output_json = false;
+            cstring media = "text";
 
             for (int j = i + 1; j < argc; j++)
             {
@@ -1176,13 +1175,9 @@ bool app_entry(int argc, char **argv)
                 {
                     find_pattern = argv[++j];
                 }
-                else if (fossil_io_cstring_compare(argv[j], "--fson") == 0)
+                else if (fossil_io_cstring_compare(argv[j], "--media") == 0)
                 {
-                    output_fson = true;
-                }
-                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
-                {
-                    output_json = true;
+                    media = argv[++j];
                 }
                 else if (!cnotnull(path))
                 {
@@ -1193,7 +1188,7 @@ bool app_entry(int argc, char **argv)
 
             if (cnotnull(path))
             {
-                int rc = fossil_spino_introspect(path, head_lines, tail_lines, count_lwb, count_lines_only, show_size, show_time, show_type, find_pattern, output_fson, output_json);
+                int rc = fossil_spino_introspect(path, head_lines, tail_lines, count_lwb, count_lines_only, show_size, show_time, show_type, find_pattern, media);
                 if (rc != 0)
                 {
                     fossil_io_printf("{red}Introspect failed: %s{reset}\n", path);
@@ -1424,6 +1419,7 @@ bool app_entry(int argc, char **argv)
         else if (fossil_io_cstring_compare(argv[i], "pipe") == 0)
         {
             ccstring in = cnull, out = cnull, filter = cnull;
+            cstring media = "text";
             bool tee = false, json = false, append = false;
 
             for (int j = i + 1; j < argc; j++)
@@ -1436,15 +1432,15 @@ bool app_entry(int argc, char **argv)
                     filter = argv[++j];
                 else if (fossil_io_cstring_compare(argv[j], "--tee") == 0)
                     tee = true;
-                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
-                    json = true;
+                else if (fossil_io_cstring_compare(argv[j], "--media") == 0)
+                    media = argv[++j];
                 else if (fossil_io_cstring_compare(argv[j], "--append") == 0)
                     append = true;
 
                 i = j;
             }
 
-            fossil_spino_pipe(in, out, filter, tee, json, append);
+            fossil_spino_pipe(in, out, filter, tee, media, append);
         }
         else if (fossil_io_cstring_compare(argv[i], "alias") == 0)
         {
@@ -1518,7 +1514,8 @@ bool app_entry(int argc, char **argv)
         else if (fossil_io_cstring_compare(argv[i], "dedupe") == 0)
         {
             ccstring dir = cnull;
-            bool use_hash = false, interactive = false, del = false, link = false, json = false;
+            cstring media = "text";
+            bool use_hash = false, interactive = false, del = false, link = false;
 
             for (int j = i + 1; j < argc; j++)
             {
@@ -1530,8 +1527,8 @@ bool app_entry(int argc, char **argv)
                     del = true;
                 else if (fossil_io_cstring_compare(argv[j], "--link") == 0)
                     link = true;
-                else if (fossil_io_cstring_compare(argv[j], "--json") == 0)
-                    json = true;
+                else if (fossil_io_cstring_compare(argv[j], "--media") == 0)
+                    media = argv[j];
                 else if (!cnotnull(dir))
                     dir = argv[j];
 
@@ -1539,7 +1536,7 @@ bool app_entry(int argc, char **argv)
             }
 
             if (cnotnull(dir))
-                fossil_spino_dedupe(dir, use_hash, interactive, del, link, json);
+                fossil_spino_dedupe(dir, use_hash, interactive, del, link, media);
         }
         else
         {
