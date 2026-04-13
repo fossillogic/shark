@@ -239,101 +239,119 @@ static ccstring get_mime_type(ccstring path)
     return "application/octet-stream";
 }
 
-int fossil_spino_introspect(ccstring path, int show_head_lines,
-                            int show_tail_lines, bool count_lines_words_bytes,
-                            bool count_lines_only, bool show_size,
-                            bool show_time, bool show_file_type,
-                            ccstring find_pattern, bool output_fson, bool output_json)
-{
+int fossil_spino_introspect(
+    ccstring path,
+    int show_head_lines,
+    int show_tail_lines,
+    bool count_lines_words_bytes,
+    bool count_lines_only,
+    bool show_size,
+    bool show_time,
+    bool show_file_type,
+    ccstring find_pattern,
+    const char* media /* "text", "json", "fson" */
+) {
     if (!cnotnull(path))
         return -1;
+
+    const char* fmt = (media) ? media : "text";
 
     fossil_io_filesys_obj_t fsobj;
     if (fossil_io_filesys_stat(path, &fsobj) != 0)
         return errno;
 
     fossil_io_filesys_file_t file_stream;
-    bool need_open = (show_head_lines > 0 || show_tail_lines > 0 || count_lines_words_bytes || count_lines_only || cnotnull(find_pattern));
-    if (need_open && fossil_io_filesys_file_open(&file_stream, path, "r") != 0)
+    bool need_open =
+        (show_head_lines > 0 || show_tail_lines > 0 ||
+         count_lines_words_bytes || count_lines_only ||
+         cnotnull(find_pattern));
+
+    if (need_open &&
+        fossil_io_filesys_file_open(&file_stream, path, "r") != 0)
         return errno;
 
     unsigned long lines = 0, words = 0, bytes = 0, pattern_matches = 0;
+
     char buffer[4096];
     cstring *tail_buffer = cnull;
     int tail_index = 0;
 
-    if (show_tail_lines > 0)
-    {
-        tail_buffer = (cstring *)fossil_sys_memory_alloc(sizeof(cstring) * show_tail_lines);
-        if (!cnotnull(tail_buffer))
-        {
+    /* Tail buffer setup */
+    if (show_tail_lines > 0) {
+        tail_buffer = (cstring*)fossil_sys_memory_alloc(
+            sizeof(cstring) * show_tail_lines
+        );
+        if (!cnotnull(tail_buffer)) {
             if (need_open && file_stream.is_open)
                 fossil_io_filesys_file_close(&file_stream);
             return -1;
         }
+
         for (int i = 0; i < show_tail_lines; i++)
             tail_buffer[i] = cnull;
     }
 
     int head_count = 0;
-    while (need_open && file_stream.is_open &&
-           fossil_io_filesys_file_read(&file_stream, buffer, 1, sizeof(buffer)) > 0)
-    {
-        buffer[sizeof(buffer) - 1] = '\0';
-        char *line = buffer;
-        size_t len = strlen(line);
-        bytes += len;
-        if (count_lines_words_bytes || count_lines_only || show_head_lines > 0 || show_tail_lines > 0 || cnotnull(find_pattern))
-            lines++;
 
-        if (count_lines_words_bytes)
-        {
-            char *p = line;
+    while (need_open && file_stream.is_open &&
+           fossil_io_filesys_file_read(&file_stream, buffer, 1, sizeof(buffer) - 1) > 0) {
+
+        buffer[sizeof(buffer) - 1] = '\0';
+
+        char* line = buffer;
+        size_t len = strlen(line);
+
+        bytes += len;
+        lines++;
+
+        /* Word count */
+        if (count_lines_words_bytes) {
+            char* p = line;
             bool in_word = false;
-            while (*p)
-            {
-                if (isspace((unsigned char)*p))
-                {
-                    if (in_word)
-                        words++;
+
+            while (*p) {
+                if (isspace((unsigned char)*p)) {
+                    if (in_word) words++;
                     in_word = false;
-                }
-                else
-                {
+                } else {
                     in_word = true;
                 }
                 p++;
             }
-            if (in_word)
-                words++;
+            if (in_word) words++;
         }
 
-        if (cnotnull(find_pattern) && strstr(line, find_pattern) != cnull)
-        {
+        /* Pattern matching */
+        if (cnotnull(find_pattern) &&
+            strstr(line, find_pattern) != cnull) {
             pattern_matches++;
         }
 
-        if (show_head_lines > 0 && head_count < show_head_lines)
-        {
+        /* Head output (text only) */
+        if (strcmp(fmt, "text") == 0 &&
+            show_head_lines > 0 &&
+            head_count < show_head_lines) {
+
             fossil_io_printf("{green,bold}%s{normal}", line);
             head_count++;
         }
 
-        if (show_tail_lines > 0)
-        {
+        /* Tail buffering */
+        if (show_tail_lines > 0) {
             if (cnotnull(tail_buffer[tail_index]))
                 fossil_io_cstring_free(tail_buffer[tail_index]);
+
             tail_buffer[tail_index] = fossil_io_cstring_dup(line);
             tail_index = (tail_index + 1) % show_tail_lines;
         }
     }
 
-    if (show_tail_lines > 0)
-    {
+    /* Tail output (text only) */
+    if (strcmp(fmt, "text") == 0 && show_tail_lines > 0) {
         fossil_io_printf("\n{yellow,bold}-- Tail last %d lines --{normal}\n", show_tail_lines);
+
         int start = tail_index;
-        for (int i = 0; i < show_tail_lines; i++)
-        {
+        for (int i = 0; i < show_tail_lines; i++) {
             int idx = (start + i) % show_tail_lines;
             if (cnotnull(tail_buffer[idx]))
                 fossil_io_printf("{yellow}%s{normal}", tail_buffer[idx]);
@@ -343,108 +361,105 @@ int fossil_spino_introspect(ccstring path, int show_head_lines,
     if (need_open && file_stream.is_open)
         fossil_io_filesys_file_close(&file_stream);
 
-    if (output_fson)
-    {
-        puts("{");
-        fossil_io_printf("  {blue,bold}path: {cyan}cstr:{reset} \"%s\",\n", path);
+    /* ---------------- MEDIA OUTPUT ---------------- */
+
+    if (strcmp(fmt, "json") == 0) {
+
+        fossil_io_printf("{\n");
+        fossil_io_printf("  \"path\": \"%s\",\n", path);
+
         if (show_size)
-        {
-            fossil_io_printf("  {blue,bold}size: {cyan}i64:{reset} %lld,\n", (long long)fsobj.size);
-        }
+            fossil_io_printf("  \"size\": %lld,\n", (long long)fsobj.size);
+
         if (count_lines_only || count_lines_words_bytes)
-        {
-            fossil_io_printf("  {blue,bold}lines: {cyan}u64:{reset} %lu,\n", lines);
+            fossil_io_printf("  \"lines\": %lu,\n", lines);
+
+        if (count_lines_words_bytes) {
+            fossil_io_printf("  \"words\": %lu,\n", words);
+            fossil_io_printf("  \"bytes\": %lu,\n", bytes);
         }
-        if (count_lines_words_bytes)
-        {
-            fossil_io_printf("  {blue,bold}words: {cyan}u64:{reset} %lu,\n", words);
-            fossil_io_printf("  {blue,bold}bytes: {cyan}u64:{reset} %lu,\n", bytes);
+
+        if (show_time) {
+            fossil_io_printf("  \"modified\": %lld,\n", (long long)fsobj.modified_at);
+            fossil_io_printf("  \"accessed\": %lld,\n", (long long)fsobj.accessed_at);
+            fossil_io_printf("  \"created\": %lld,\n", (long long)fsobj.created_at);
         }
-        if (show_time)
-        {
-            fossil_io_printf("  {blue,bold}modified: {cyan}i64:{reset} %lld,\n", (long long)fsobj.modified_at);
-            fossil_io_printf("  {blue,bold}accessed: {cyan}i64:{reset} %lld,\n", (long long)fsobj.accessed_at);
-            fossil_io_printf("  {blue,bold}created: {cyan}i64:{reset} %lld,\n", (long long)fsobj.created_at);
+
+        if (cnotnull(find_pattern)) {
+            fossil_io_printf("  \"pattern\": \"%s\",\n", find_pattern);
+            fossil_io_printf("  \"matches\": %lu,\n", pattern_matches);
         }
-        if (cnotnull(find_pattern))
-        {
-            fossil_io_printf("  {blue,bold}pattern: {cyan}cstr:{reset} \"%s\",\n", find_pattern);
-            fossil_io_printf("  {blue,bold}matches: {cyan}u64:{reset} %lu,\n", pattern_matches);
-        }
+
         if (show_file_type)
-        {
-            fossil_io_printf("  {blue,bold}type: {cyan}cstr:{reset} \"%s\"", get_mime_type(path));
-        }
-        fossil_io_printf("\n}\n");
-    }
-    else if (output_json)
-    {
-        puts("{");
-        fossil_io_printf("  {blue,bold}\"path\"{reset}: {cyan}\"%s\"{reset},\n", path);
+            fossil_io_printf("  \"type\": \"%s\"\n", get_mime_type(path));
+
+        fossil_io_printf("}\n");
+
+    } else if (strcmp(fmt, "fson") == 0) {
+
+        fossil_io_printf("{\n");
+        fossil_io_printf("  path:cstr=\"%s\"\n", path);
+
         if (show_size)
-        {
-            fossil_io_printf("  {blue,bold}\"size\"{reset}: {cyan}%lld{reset},\n", (long long)fsobj.size);
-        }
+            fossil_io_printf("  size:i64=%lld\n", (long long)fsobj.size);
+
         if (count_lines_only || count_lines_words_bytes)
-        {
-            fossil_io_printf("  {blue,bold}\"lines\"{reset}: {cyan}%lu{reset},\n", lines);
+            fossil_io_printf("  lines:u32=%lu\n", lines);
+
+        if (count_lines_words_bytes) {
+            fossil_io_printf("  words:u32=%lu\n", words);
+            fossil_io_printf("  bytes:u32=%lu\n", bytes);
         }
-        if (count_lines_words_bytes)
-        {
-            fossil_io_printf("  {blue,bold}\"words\"{reset}: {cyan}%lu{reset},\n", words);
-            fossil_io_printf("  {blue,bold}\"bytes\"{reset}: {cyan}%lu{reset},\n", bytes);
+
+        if (show_time) {
+            fossil_io_printf("  modified:i64=%lld\n", (long long)fsobj.modified_at);
+            fossil_io_printf("  accessed:i64=%lld\n", (long long)fsobj.accessed_at);
+            fossil_io_printf("  created:i64=%lld\n", (long long)fsobj.created_at);
         }
-        if (show_time)
-        {
-            fossil_io_printf("  {blue,bold}\"modified\"{reset}: {cyan}%lld{reset},\n", (long long)fsobj.modified_at);
-            fossil_io_printf("  {blue,bold}\"accessed\"{reset}: {cyan}%lld{reset},\n", (long long)fsobj.accessed_at);
-            fossil_io_printf("  {blue,bold}\"created\"{reset}: {cyan}%lld{reset},\n", (long long)fsobj.created_at);
+
+        if (cnotnull(find_pattern)) {
+            fossil_io_printf("  pattern:cstr=\"%s\"\n", find_pattern);
+            fossil_io_printf("  matches:u32=%lu\n", pattern_matches);
         }
-        if (cnotnull(find_pattern))
-        {
-            fossil_io_printf("  {blue,bold}\"pattern\"{reset}: {cyan}\"%s\"{reset},\n", find_pattern);
-            fossil_io_printf("  {blue,bold}\"matches\"{reset}: {cyan}%lu{reset},\n", pattern_matches);
-        }
+
         if (show_file_type)
-        {
-            fossil_io_printf("  {blue,bold}\"type\"{reset}: {cyan}\"%s\"{reset}\n", get_mime_type(path));
-        }
-        fossil_io_printf("\n}\n");
-    }
-    else
-    {
+            fossil_io_printf("  type:cstr=\"%s\"\n", get_mime_type(path));
+
+        fossil_io_printf("}\n");
+
+    } else {
+        /* TEXT OUTPUT */
+
         fossil_io_printf("{blue,bold}File: %s{normal}\n", path);
+
         if (show_size)
-        {
-            fossil_io_printf("{blue,bold}Size: %lld bytes{normal}\n", (long long)fsobj.size);
-        }
+            fossil_io_printf("{blue,bold}Size: %lld bytes{normal}\n",
+                             (long long)fsobj.size);
+
         if (count_lines_only)
-        {
             fossil_io_printf("{blue,bold}Lines: %lu{normal}\n", lines);
-        }
         else if (count_lines_words_bytes)
-        {
-            fossil_io_printf("{blue,bold}Lines: %lu Words: %lu Bytes: %lu{normal}\n", lines, words, bytes);
-        }
+            fossil_io_printf("{blue,bold}Lines: %lu Words: %lu Bytes: %lu{normal}\n",
+                             lines, words, bytes);
+
         if (show_time)
-        {
             fossil_io_printf("{blue,bold}Modified: %lld Accessed: %lld Created: %lld{normal}\n",
-                             (long long)fsobj.modified_at, (long long)fsobj.accessed_at, (long long)fsobj.created_at);
-        }
+                             (long long)fsobj.modified_at,
+                             (long long)fsobj.accessed_at,
+                             (long long)fsobj.created_at);
+
         if (cnotnull(find_pattern))
-        {
-            fossil_io_printf("{blue,bold}Pattern '%s' found: %lu times{normal}\n", find_pattern, pattern_matches);
-        }
+            fossil_io_printf("{blue,bold}Pattern '%s' found: %lu times{normal}\n",
+                             find_pattern, pattern_matches);
+
         if (show_file_type)
-        {
-            fossil_io_printf("{blue,bold}Type: %s{normal}\n", get_mime_type(path));
-        }
+            fossil_io_printf("{blue,bold}Type: %s{normal}\n",
+                             get_mime_type(path));
     }
 
-    if (cnotnull(tail_buffer))
-    {
-        for (int i = 0; i < show_tail_lines; i++)
-        {
+    /* Cleanup */
+    if (cnotnull(tail_buffer)) {
+        for (int i = 0; i < show_tail_lines; i++) {
             if (cnotnull(tail_buffer[i]))
                 fossil_io_cstring_free(tail_buffer[i]);
         }
