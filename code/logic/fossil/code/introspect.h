@@ -57,7 +57,7 @@ int fossil_spino_introspect(
     bool show_file_type,
     ccstring find_pattern,
     const char* media /* "text", "json", "fson" */
-)
+);
 
 #ifdef __cplusplus
 }
