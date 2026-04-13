@@ -52,7 +52,7 @@ static int fossil_shark_alias_find(const char* name) {
 /* ------------------------------------------------------------
  * Add or update an alias
  * ------------------------------------------------------------ */
-static int fossil_spino_alias_set(const char* name, const char* cmd, bool global_scope) {
+static int fossil_shark_alias_set(const char* name, const char* cmd, bool global_scope) {
     int idx = fossil_spino_alias_find(name);
     if (idx >= 0) {
         strncpy(_fossil_shark_aliases[idx].cmd, cmd, FOSSIL_SHARK_ALIAS_CMD_MAX);
