@@ -137,7 +137,7 @@ static int perm_walk_cb(const fossil_io_filesys_obj_t* obj, void* user_data)
 {
     perm_ctx_t* ctx = (perm_ctx_t*)user_data;
 
-    return fossil_spino_perm_apply(
+    return fossil_shark_perm_apply(
         obj,
         ctx->user,
         ctx->group,
