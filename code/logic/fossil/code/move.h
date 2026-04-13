@@ -46,7 +46,7 @@ extern "C"
  * @param include_pattern Pattern for files to include (--include)
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_move(ccstring src, ccstring dest,
+int fossil_shark_move(ccstring src, ccstring dest,
                         bool force, bool interactive, bool backup,
                         bool atomic, bool progress, bool dry_run,
                         ccstring exclude_pattern, ccstring include_pattern);
