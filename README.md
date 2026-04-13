@@ -114,6 +114,7 @@ Ensure you have the following installed before starting:
 | `undo` | Revert previous file operations (move, copy, rename, remove). | `--last <n>` (revert last n operations)<br>`--file <path>` (specific target)<br>`--interactive` (confirm each undo)<br>`--dry-run` (preview undo) |
 | `link` | Create hard or symbolic links between files or directories. | `--file <source>` (source file)<br>`--target <dest>` (destination path)<br>`--symbolic` (create symlink)<br>`--hard` (create hardlink)<br>`--relative` (use relative paths)<br>`--overwrite` (replace existing links) |
 | `dedupe` | Detect and optionally remove duplicate files. | `--dir <path>` (target directory)<br>`--hash` (compare via file hash)<br>`--interactive` (confirm deletions)<br>`--delete` (remove duplicates)<br>`--link` (replace duplicates with links)<br>`--media` (media format output text/fson/json) |
+| `scan` | Analyze files for low-quality or AI-generated ("AI slop") content. | `-r`, `--recursive` (scan subdirectories)<br>`--ai` (use AI-assisted detection via API)<br>`--score` (output slop likelihood score)<br>`--threshold <n>` (flag if score exceeds threshold)<br>`--patterns` (show matched patterns)<br>`--summary` (concise report)<br>`--format` (structured output: text/fson/json)<br>`--ignore-case` (case-insensitive scan)<br>`--context <n>` (show surrounding lines)<br>`--batch` (aggregate results across files) |
 
 ---
 
