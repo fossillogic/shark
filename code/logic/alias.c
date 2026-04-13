@@ -63,7 +63,7 @@ static int fossil_shark_alias_set(const char* name, const char* cmd, bool global
         fossil_io_fprintf(FOSSIL_STDERR, "Alias table full\n");
         return -1;
     }
-    fossil_spino_alias_t* alias = &_fossil_shark_aliases[_fossil_shark_alias_count++];
+    fossil_shark_alias_t* alias = &_fossil_shark_aliases[_fossil_shark_alias_count++];
     strncpy(alias->name, name, FOSSIL_SHARK_ALIAS_NAME_MAX);
     strncpy(alias->cmd, cmd, FOSSIL_SHARK_ALIAS_CMD_MAX);
     alias->global_scope = global_scope;
