@@ -249,8 +249,7 @@ int fossil_spino_help(ccstring command, bool show_examples, bool full_manual)
             fossil_io_printf("  {cyan,bold}--time{normal}                Timestamps: modified, created, accessed\n");
             fossil_io_printf("  {cyan,bold}--type{normal}                Detect and display file type\n");
             fossil_io_printf("  {cyan,bold}--find <pattern>{normal}     Search for string or pattern\n");
-            fossil_io_printf("  {cyan,bold}--fson{normal}                FSON structured format output\n");
-            fossil_io_printf("  {cyan,bold}--json{normal}                JSON structured format output\n");
+            fossil_io_printf("  {cyan,bold}--media <text/fson/json>{normal}   Outputs as selected type text by default\n");
         }
         else if (fossil_io_cstring_equals(command, "grammar"))
         {
@@ -302,7 +301,7 @@ int fossil_spino_help(ccstring command, bool show_examples, bool full_manual)
             fossil_io_printf("  {cyan,bold}-i, --interactive{normal} Confirm deletions\n");
             fossil_io_printf("  {cyan,bold}-d, --delete{normal}     Remove duplicates\n");
             fossil_io_printf("  {cyan,bold}-l, --link{normal}       Replace duplicates with links\n");
-            fossil_io_printf("  {cyan,bold}--json{normal}           Output results in JSON\n");
+            fossil_io_printf("  {cyan,bold}--media <text/fson/json>{normal}  Outputs as selected type text by default\n");
         }
         else if (fossil_io_cstring_equals(command, "link"))
         {
@@ -330,7 +329,7 @@ int fossil_spino_help(ccstring command, bool show_examples, bool full_manual)
             fossil_io_printf("  {cyan,bold}-o <file>{normal}        Output file (default stdout)\n");
             fossil_io_printf("  {cyan,bold}-f <cmd>{normal}         Filter command\n");
             fossil_io_printf("  {cyan,bold}-t, --tee{normal}        Output to console + file\n");
-            fossil_io_printf("  {cyan,bold}--json{normal}           JSON structured output\n");
+            fossil_io_printf("  {cyan,bold}--media <text/fson/json>{normal} Outputs as selected type text by default\n");
             fossil_io_printf("  {cyan,bold}-a, --append{normal}     Append to output file\n");
         }
         else if (fossil_io_cstring_equals(command, "perm"))
