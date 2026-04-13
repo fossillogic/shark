@@ -45,7 +45,7 @@ extern "C"
  * @param exclude_pattern Pattern for files to exclude
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_archive(ccstring path, bool create, bool extract,
+int fossil_shark_archive(ccstring path, bool create, bool extract,
                             bool list, ccstring format, ccstring password,
                             int compress_level, bool stdout_output,
                             ccstring exclude_pattern);
