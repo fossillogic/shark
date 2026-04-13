@@ -413,7 +413,7 @@ int fossil_spino_help(ccstring command, bool show_examples, bool full_manual)
             else if (fossil_io_cstring_equals(command, "rewrite"))
                 fossil_io_printf("  {cyan,bold}spino rewrite --in-place --append log.txt \"New entry\"{normal}\n");
             else if (fossil_io_cstring_equals(command, "introspect"))
-                fossil_io_printf("  {cyan,bold}spino introspect --type --fson report.pdf{normal}\n");
+                fossil_io_printf("  {cyan,bold}spino introspect --type --media fson report.pdf{normal}\n");
             else if (fossil_io_cstring_equals(command, "grammar"))
                 fossil_io_printf("  {cyan,bold}spino grammar --check --tone notes.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "cryptic"))
