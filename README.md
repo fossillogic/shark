@@ -154,10 +154,10 @@ Ensure you have the following installed before starting:
 | `shark split -l 100 -p chunk_ large_file.txt` | Split file into chunks of 100 lines with "chunk_" prefix. |
 
 
-## Command Comparison (Spino vs Traditional Tools)
+## Command Comparison (Shark vs Traditional Tools)
 
-Spino Tool consolidates many common command-line utilities into a **single consistent interface**.  
-Below is a comparison between **Spino commands** and their traditional equivalents.
+Shark Tool consolidates many common command-line utilities into a **single consistent interface**.  
+Below is a comparison between **Shark commands** and their traditional equivalents.
 
 | **Spino Command** | **Traditional Commands** | **Purpose** |
 |---|---|---|
