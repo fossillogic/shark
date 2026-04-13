@@ -1420,7 +1420,7 @@ bool app_entry(int argc, char **argv)
         {
             ccstring in = cnull, out = cnull, filter = cnull;
             cstring media = "text";
-            bool tee = false, json = false, append = false;
+            bool tee = false, append = false;
 
             for (int j = i + 1; j < argc; j++)
             {
