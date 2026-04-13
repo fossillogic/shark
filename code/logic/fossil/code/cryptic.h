@@ -40,7 +40,7 @@ extern "C"
  * @param cipher Cipher type to use ("caesar", "vigenere", "base64", "base32", "binary", "morse", "baconian", "railfence", "haxor", "leet", "rot13", "atbash")
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_cryptic(ccstring text, bool encode, bool decode,
+int fossil_shark_cryptic(ccstring text, bool encode, bool decode,
                             ccstring cipher);
 
 #ifdef __cplusplus
