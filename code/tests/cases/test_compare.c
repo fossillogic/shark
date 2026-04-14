@@ -61,15 +61,15 @@ FOSSIL_TEARDOWN(c_compare_command_suite)
 FOSSIL_TEST(c_test_compare_null_parameters)
 {
     // Test with null path1
-    int result = fossil_spino_compare(cnull, "test.txt", true, false, 0, false);
+    int result = fossil_shark_compare(cnull, "test.txt", true, false, 0, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with null path2
-    result = fossil_spino_compare("test.txt", cnull, true, false, 0, false);
+    result = fossil_shark_compare("test.txt", cnull, true, false, 0, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with both null
-    result = fossil_spino_compare(cnull, cnull, true, false, 0, false);
+    result = fossil_shark_compare(cnull, cnull, true, false, 0, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -87,7 +87,7 @@ FOSSIL_TEST(c_test_compare_identical_text_files)
     fclose(file2);
 
     // Compare identical files
-    int result = fossil_spino_compare("identical1.txt", "identical2.txt", true, false, 0, false);
+    int result = fossil_shark_compare("identical1.txt", "identical2.txt", true, false, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -109,7 +109,7 @@ FOSSIL_TEST(c_test_compare_different_text_files)
     fclose(file2);
 
     // Compare different files
-    int result = fossil_spino_compare("different1.txt", "different2.txt", true, false, 0, false);
+    int result = fossil_shark_compare("different1.txt", "different2.txt", true, false, 0, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
@@ -132,7 +132,7 @@ FOSSIL_TEST(c_test_compare_identical_binary_files)
     fclose(file2);
 
     // Compare identical binary files
-    int result = fossil_spino_compare("binary1.bin", "binary2.bin", false, true, 0, false);
+    int result = fossil_shark_compare("binary1.bin", "binary2.bin", false, true, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -156,7 +156,7 @@ FOSSIL_TEST(c_test_compare_different_binary_files)
     fclose(file2);
 
     // Compare different binary files
-    int result = fossil_spino_compare("binary_diff1.bin", "binary_diff2.bin", false, true, 0, false);
+    int result = fossil_shark_compare("binary_diff1.bin", "binary_diff2.bin", false, true, 0, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
@@ -178,7 +178,7 @@ FOSSIL_TEST(c_test_compare_case_sensitive)
     fclose(file2);
 
     // Compare with case sensitivity (should find differences)
-    int result = fossil_spino_compare("case1.txt", "case2.txt", true, false, 0, false);
+    int result = fossil_shark_compare("case1.txt", "case2.txt", true, false, 0, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
@@ -200,7 +200,7 @@ FOSSIL_TEST(c_test_compare_case_insensitive)
     fclose(file2);
 
     // Compare with case insensitivity (should be identical)
-    int result = fossil_spino_compare("case_ignore1.txt", "case_ignore2.txt", true, false, 0, true);
+    int result = fossil_shark_compare("case_ignore1.txt", "case_ignore2.txt", true, false, 0, true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -222,7 +222,7 @@ FOSSIL_TEST(c_test_compare_with_context_lines)
     fclose(file2);
 
     // Compare with context lines
-    int result = fossil_spino_compare("context1.txt", "context2.txt", true, false, 2, false);
+    int result = fossil_shark_compare("context1.txt", "context2.txt", true, false, 2, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
@@ -242,7 +242,7 @@ FOSSIL_TEST(c_test_compare_empty_files)
     fclose(file2);
 
     // Compare empty files
-    int result = fossil_spino_compare("empty1.txt", "empty2.txt", true, false, 0, false);
+    int result = fossil_shark_compare("empty1.txt", "empty2.txt", true, false, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -264,7 +264,7 @@ FOSSIL_TEST(c_test_compare_different_length_files)
     fclose(file2);
 
     // Compare files with different lengths
-    int result = fossil_spino_compare("short.txt", "long.txt", true, false, 0, false);
+    int result = fossil_shark_compare("short.txt", "long.txt", true, false, 0, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
@@ -275,7 +275,7 @@ FOSSIL_TEST(c_test_compare_different_length_files)
 FOSSIL_TEST(c_test_compare_nonexistent_files)
 {
     // Try to compare non-existent files
-    int result = fossil_spino_compare("nonexistent1.txt", "nonexistent2.txt", true, false, 0, false);
+    int result = fossil_shark_compare("nonexistent1.txt", "nonexistent2.txt", true, false, 0, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -288,7 +288,7 @@ FOSSIL_TEST(c_test_compare_one_nonexistent_file)
     fclose(file1);
 
     // Try to compare existing file with non-existent file
-    int result = fossil_spino_compare("exists.txt", "nonexistent.txt", true, false, 0, false);
+    int result = fossil_shark_compare("exists.txt", "nonexistent.txt", true, false, 0, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
@@ -309,7 +309,7 @@ FOSSIL_TEST(c_test_compare_neither_text_nor_binary)
     fclose(file2);
 
     // Try to compare without specifying text or binary mode
-    int result = fossil_spino_compare("neither1.txt", "neither2.txt", false, false, 0, false);
+    int result = fossil_shark_compare("neither1.txt", "neither2.txt", false, false, 0, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
@@ -337,7 +337,7 @@ FOSSIL_TEST(c_test_compare_large_files)
     fclose(file2);
 
     // Compare large identical files
-    int result = fossil_spino_compare("large1.txt", "large2.txt", true, false, 0, false);
+    int result = fossil_shark_compare("large1.txt", "large2.txt", true, false, 0, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up

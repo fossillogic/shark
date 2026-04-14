@@ -43,7 +43,7 @@ extern "C"
  * @param recursive Apply changes recursively if true
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_perm(ccstring path, ccstring user, ccstring group,
+int fossil_shark_perm(ccstring path, ccstring user, ccstring group,
                       ccstring grant_perm, ccstring revoke_perm,
                       bool list, bool recursive);
 

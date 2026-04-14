@@ -42,7 +42,7 @@ extern "C"
  * @param ignore_case Ignore case differences in text comparison
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_compare(ccstring path1, ccstring path2,
+int fossil_shark_compare(ccstring path1, ccstring path2,
                             bool text_diff, bool binary_diff,
                             int context_lines, bool ignore_case);
 

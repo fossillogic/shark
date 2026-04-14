@@ -48,7 +48,7 @@ extern "C"
  * @param type_filter Filter by type: "file", "dir", "link"
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_show(ccstring path, bool show_all, bool long_format,
+int fossil_shark_show(ccstring path, bool show_all, bool long_format,
                         bool human_readable, bool recursive,
                         ccstring format, bool show_time, int depth,
                         ccstring sort_key, ccstring match_pattern,

@@ -46,7 +46,7 @@ extern "C"
  * @param media Output structured media format
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_introspect(
+int fossil_shark_introspect(
     ccstring path,
     int show_head_lines,
     int show_tail_lines,

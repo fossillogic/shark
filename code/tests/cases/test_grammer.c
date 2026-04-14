@@ -59,13 +59,13 @@ FOSSIL_TEARDOWN(c_grammer_command_suite)
 FOSSIL_TEST(c_test_grammar_check_valid_text)
 {
     // Create test file with valid grammar
-    int res = fossil_spino_create("valid_grammar.txt", false, "file");
+    int res = fossil_shark_create("valid_grammar.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("valid_grammar.txt", "This is a well-written sentence.\n");
 
     // Check grammar
-    int result = fossil_spino_grammar("valid_grammar.txt", true, false, false, false, false, false, false, cnull, 0, cnull, false, false, false);
+    int result = fossil_shark_grammar("valid_grammar.txt", true, false, false, false, false, false, false, cnull, 0, cnull, false, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -75,13 +75,13 @@ FOSSIL_TEST(c_test_grammar_check_valid_text)
 FOSSIL_TEST(c_test_grammar_correct_text)
 {
     // Create test file with grammar errors
-    int res = fossil_spino_create("incorrect_grammar.txt", false, "file");
+    int res = fossil_shark_create("incorrect_grammar.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("incorrect_grammar.txt", "This are a sentence with error.\n");
 
     // Correct grammar
-    int result = fossil_spino_grammar("incorrect_grammar.txt", false, true, false, false, false, false, false, cnull, 0, cnull, false, false, false);
+    int result = fossil_shark_grammar("incorrect_grammar.txt", false, true, false, false, false, false, false, cnull, 0, cnull, false, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -91,13 +91,13 @@ FOSSIL_TEST(c_test_grammar_correct_text)
 FOSSIL_TEST(c_test_grammar_detect_tone)
 {
     // Create test file with specific tone
-    int res = fossil_spino_create("tone_text.txt", false, "file");
+    int res = fossil_shark_create("tone_text.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("tone_text.txt", "I absolutely love this amazing product!\n");
 
     // Detect tone
-    int result = fossil_spino_grammar("tone_text.txt", false, false, true, false, false, false, false, cnull, 0, cnull, false, false, false);
+    int result = fossil_shark_grammar("tone_text.txt", false, false, true, false, false, false, false, cnull, 0, cnull, false, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -107,13 +107,13 @@ FOSSIL_TEST(c_test_grammar_detect_tone)
 FOSSIL_TEST(c_test_grammar_sanitize_text)
 {
     // Create test file with unsafe content
-    int res = fossil_spino_create("unsafe_text.txt", false, "file");
+    int res = fossil_shark_create("unsafe_text.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("unsafe_text.txt", "This contains inappropriate language here.\n");
 
     // Sanitize text
-    int result = fossil_spino_grammar("unsafe_text.txt", false, false, false, true, false, false, false, cnull, 0, cnull, false, false, false);
+    int result = fossil_shark_grammar("unsafe_text.txt", false, false, false, true, false, false, false, cnull, 0, cnull, false, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -123,13 +123,13 @@ FOSSIL_TEST(c_test_grammar_sanitize_text)
 FOSSIL_TEST(c_test_grammar_suggest_improvements)
 {
     // Create test file
-    int res = fossil_spino_create("suggest_text.txt", false, "file");
+    int res = fossil_shark_create("suggest_text.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("suggest_text.txt", "This text could be better.\n");
 
     // Get suggestions
-    int result = fossil_spino_grammar("suggest_text.txt", false, false, false, false, true, false, false, cnull, 0, cnull, false, false, false);
+    int result = fossil_shark_grammar("suggest_text.txt", false, false, false, false, true, false, false, cnull, 0, cnull, false, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -139,13 +139,13 @@ FOSSIL_TEST(c_test_grammar_suggest_improvements)
 FOSSIL_TEST(c_test_grammar_summarize_text)
 {
     // Create test file with lengthy content
-    int res = fossil_spino_create("long_text.txt", false, "file");
+    int res = fossil_shark_create("long_text.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("long_text.txt", "This is a long paragraph with many sentences. It contains detailed information. The text explains various concepts. Multiple ideas are presented here.\n");
 
     // Summarize text
-    int result = fossil_spino_grammar("long_text.txt", false, false, false, false, false, true, false, cnull, 0, cnull, false, false, false);
+    int result = fossil_shark_grammar("long_text.txt", false, false, false, false, false, true, false, cnull, 0, cnull, false, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -155,13 +155,13 @@ FOSSIL_TEST(c_test_grammar_summarize_text)
 FOSSIL_TEST(c_test_grammar_score_readability)
 {
     // Create test file
-    int res = fossil_spino_create("score_text.txt", false, "file");
+    int res = fossil_shark_create("score_text.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("score_text.txt", "Clear and simple writing improves readability.\n");
 
     // Score readability
-    int result = fossil_spino_grammar("score_text.txt", false, false, false, false, false, false, true, cnull, 0, cnull, false, false, false);
+    int result = fossil_shark_grammar("score_text.txt", false, false, false, false, false, false, true, cnull, 0, cnull, false, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -171,13 +171,13 @@ FOSSIL_TEST(c_test_grammar_score_readability)
 FOSSIL_TEST(c_test_grammar_detect_spam)
 {
     // Create test file with spam-like content
-    int res = fossil_spino_create("spam_text.txt", false, "file");
+    int res = fossil_shark_create("spam_text.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("spam_text.txt", "Click here now! USD 1000000 free! Act now!!!\n");
 
     // Detect spam
-    int result = fossil_spino_grammar("spam_text.txt", false, false, false, false, false, false, false, "spam", 0, cnull, false, false, false);
+    int result = fossil_shark_grammar("spam_text.txt", false, false, false, false, false, false, false, "spam", 0, cnull, false, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -187,13 +187,13 @@ FOSSIL_TEST(c_test_grammar_detect_spam)
 FOSSIL_TEST(c_test_grammar_reflow_text)
 {
     // Create test file with long lines
-    int res = fossil_spino_create("long_lines.txt", false, "file");
+    int res = fossil_shark_create("long_lines.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("long_lines.txt", "This is a very long line that needs to be reflowed to a specific width for better readability.\n");
 
     // Reflow to 80 characters
-    int result = fossil_spino_grammar("long_lines.txt", false, false, false, false, false, false, false, cnull, 80, cnull, false, false, false);
+    int result = fossil_shark_grammar("long_lines.txt", false, false, false, false, false, false, false, cnull, 80, cnull, false, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -203,13 +203,13 @@ FOSSIL_TEST(c_test_grammar_reflow_text)
 FOSSIL_TEST(c_test_grammar_capitalize_sentences)
 {
     // Create test file with lowercase sentences
-    int res = fossil_spino_create("lowercase.txt", false, "file");
+    int res = fossil_shark_create("lowercase.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("lowercase.txt", "this is a sentence. another sentence here.\n");
 
     // Capitalize sentences
-    int result = fossil_spino_grammar("lowercase.txt", false, false, false, false, false, false, false, cnull, 0, "sentence", false, false, false);
+    int result = fossil_shark_grammar("lowercase.txt", false, false, false, false, false, false, false, cnull, 0, "sentence", false, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -219,13 +219,13 @@ FOSSIL_TEST(c_test_grammar_capitalize_sentences)
 FOSSIL_TEST(c_test_grammar_format_text)
 {
     // Create test file
-    int res = fossil_spino_create("format_text.txt", false, "file");
+    int res = fossil_shark_create("format_text.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("format_text.txt", "Text that needs formatting and structure.\n");
 
     // Format text
-    int result = fossil_spino_grammar("format_text.txt", false, false, false, false, false, false, false, cnull, 0, cnull, true, false, false);
+    int result = fossil_shark_grammar("format_text.txt", false, false, false, false, false, false, false, cnull, 0, cnull, true, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -235,13 +235,13 @@ FOSSIL_TEST(c_test_grammar_format_text)
 FOSSIL_TEST(c_test_grammar_declutter_text)
 {
     // Create test file with poor spacing
-    int res = fossil_spino_create("cluttered.txt", false, "file");
+    int res = fossil_shark_create("cluttered.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("cluttered.txt", "Text  with   irregular   spacing and boundaries.\n");
 
     // Declutter
-    int result = fossil_spino_grammar("cluttered.txt", false, false, false, false, false, false, false, cnull, 0, cnull, false, true, false);
+    int result = fossil_shark_grammar("cluttered.txt", false, false, false, false, false, false, false, cnull, 0, cnull, false, true, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -251,13 +251,13 @@ FOSSIL_TEST(c_test_grammar_declutter_text)
 FOSSIL_TEST(c_test_grammar_punctuate_text)
 {
     // Create test file with irregular punctuation
-    int res = fossil_spino_create("punct_text.txt", false, "file");
+    int res = fossil_shark_create("punct_text.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("punct_text.txt", "This sentence needs punctuation   This one too\n");
 
     // Normalize punctuation
-    int result = fossil_spino_grammar("punct_text.txt", false, false, false, false, false, false, false, cnull, 0, cnull, false, false, true);
+    int result = fossil_shark_grammar("punct_text.txt", false, false, false, false, false, false, false, cnull, 0, cnull, false, false, true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -267,13 +267,13 @@ FOSSIL_TEST(c_test_grammar_punctuate_text)
 FOSSIL_TEST(c_test_grammar_combined_operations)
 {
     // Create test file
-    int res = fossil_spino_create("combined.txt", false, "file");
+    int res = fossil_shark_create("combined.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     FOSSIL_SANITY_SYS_WRITE_FILE("combined.txt", "this text needs correction  and formatting.\n");
 
     // Apply multiple operations
-    int result = fossil_spino_grammar("combined.txt", true, true, false, false, false, false, false, cnull, 0, "sentence", true, true, true);
+    int result = fossil_shark_grammar("combined.txt", true, true, false, false, false, false, false, cnull, 0, "sentence", true, true, true);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -283,18 +283,18 @@ FOSSIL_TEST(c_test_grammar_combined_operations)
 FOSSIL_TEST(c_test_grammar_null_file_path)
 {
     // Should handle null path gracefully
-    int result = fossil_spino_grammar(cnull, true, false, false, false, false, false, false, cnull, 0, cnull, false, false, false);
+    int result = fossil_shark_grammar(cnull, true, false, false, false, false, false, false, cnull, 0, cnull, false, false, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
 FOSSIL_TEST(c_test_grammar_empty_file)
 {
     // Create empty file
-    int res = fossil_spino_create("empty_grammar.txt", false, "file");
+    int res = fossil_shark_create("empty_grammar.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res);
 
     // Process empty file
-    int result = fossil_spino_grammar("empty_grammar.txt", true, false, false, false, false, false, false, cnull, 0, cnull, false, false, false);
+    int result = fossil_shark_grammar("empty_grammar.txt", true, false, false, false, false, false, false, cnull, 0, cnull, false, false, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up

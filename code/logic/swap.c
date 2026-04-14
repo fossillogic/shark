@@ -88,7 +88,7 @@ static int swap_with_temp(ccstring path1, ccstring path2, ccstring temp_path)
     return fossil_io_filesys_remove(temp_path, false) < 0 ? 1 : 0;
 }
 
-int fossil_spino_swap(ccstring path1, ccstring path2,
+int fossil_shark_swap(ccstring path1, ccstring path2,
                       bool force, bool interactive, bool backup,
                       bool atomic, bool progress, bool dry_run,
                       ccstring temp_path, bool no_cross_device)

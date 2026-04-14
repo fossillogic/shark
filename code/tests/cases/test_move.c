@@ -61,15 +61,15 @@ FOSSIL_TEARDOWN(c_move_command_suite)
 FOSSIL_TEST(c_test_move_null_parameters)
 {
     // Test with null source
-    int result = fossil_spino_move(cnull, "dest.txt", false, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_move(cnull, "dest.txt", false, false, false, false, false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with null destination
-    result = fossil_spino_move("src.txt", cnull, false, false, false, false, false, false, cnull, cnull);
+    result = fossil_shark_move("src.txt", cnull, false, false, false, false, false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with both null
-    result = fossil_spino_move(cnull, cnull, false, false, false, false, false, false, cnull, cnull);
+    result = fossil_shark_move(cnull, cnull, false, false, false, false, false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -82,7 +82,7 @@ FOSSIL_TEST(c_test_move_simple_file)
     fclose(src_file);
 
     // Move file
-    int result = fossil_spino_move("move_source.txt", "move_dest.txt", false, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("move_source.txt", "move_dest.txt", false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify source no longer exists
@@ -98,7 +98,7 @@ FOSSIL_TEST(c_test_move_simple_file)
 FOSSIL_TEST(c_test_move_nonexistent_source)
 {
     // Try to move non-existent file
-    int result = fossil_spino_move("nonexistent_file.txt", "dest.txt", false, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("nonexistent_file.txt", "dest.txt", false, false, false, false, false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -116,7 +116,7 @@ FOSSIL_TEST(c_test_move_overwrite_without_force)
     fclose(dest_file);
 
     // Try to move without force - should fail
-    int result = fossil_spino_move("overwrite_src.txt", "overwrite_dest.txt", false, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("overwrite_src.txt", "overwrite_dest.txt", false, false, false, false, false, false, cnull, cnull);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
@@ -138,7 +138,7 @@ FOSSIL_TEST(c_test_move_overwrite_with_force)
     fclose(dest_file);
 
     // Move with force - should succeed
-    int result = fossil_spino_move("force_src.txt", "force_dest.txt", true, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("force_src.txt", "force_dest.txt", true, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify source no longer exists
@@ -162,7 +162,7 @@ FOSSIL_TEST(c_test_move_with_backup)
     fclose(dest_file);
 
     // Move with backup
-    int result = fossil_spino_move("backup_src.txt", "backup_dest.txt", false, false, true, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("backup_src.txt", "backup_dest.txt", false, false, true, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify backup exists
@@ -182,7 +182,7 @@ FOSSIL_TEST(c_test_move_rename_same_directory)
     fclose(src_file);
 
     // Rename file
-    int result = fossil_spino_move("rename_original.txt", "rename_new.txt", false, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("rename_original.txt", "rename_new.txt", false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify original name no longer exists
@@ -203,7 +203,7 @@ FOSSIL_TEST(c_test_move_empty_file)
     fclose(src_file);
 
     // Move empty file
-    int result = fossil_spino_move("empty_src.txt", "empty_dest.txt", false, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("empty_src.txt", "empty_dest.txt", false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify move completed
@@ -226,7 +226,7 @@ FOSSIL_TEST(c_test_move_large_file)
     fclose(src_file);
 
     // Move large file
-    int result = fossil_spino_move("large_src.txt", "large_dest.txt", false, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("large_src.txt", "large_dest.txt", false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify move completed
@@ -246,7 +246,7 @@ FOSSIL_TEST(c_test_move_special_characters)
     fclose(src_file);
 
     // Move to destination with special characters
-    int result = fossil_spino_move("special_chars_src.txt", "special_chars_dest.txt", false, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("special_chars_src.txt", "special_chars_dest.txt", false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify move completed
@@ -266,7 +266,7 @@ FOSSIL_TEST(c_test_move_to_existing_directory)
     fclose(src_file);
 
     // Try to move to current directory (should work as rename)
-    int result = fossil_spino_move("dir_move_src.txt", "dir_move_dest.txt", false, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("dir_move_src.txt", "dir_move_dest.txt", false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -282,7 +282,7 @@ FOSSIL_TEST(c_test_move_same_source_and_dest)
     fclose(src_file);
 
     // Try to move file to itself
-    int result = fossil_spino_move("same_path.txt", "same_path.txt", false, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("same_path.txt", "same_path.txt", false, false, false, false, false, false, cnull, cnull);
     // This might succeed (no-op) or fail depending on implementation
     // We don't assert the result value since behavior may vary
     (void)result; // Suppress unused variable warning
@@ -303,7 +303,7 @@ FOSSIL_TEST(c_test_move_dry_run_no_actual_move)
     fclose(src_file);
 
     // Perform dry run move
-    int result = fossil_spino_move("dryrun_src.txt", "dryrun_dest.txt", false, false, false, false, false, true, cnull, cnull);
+    int result = fossil_shark_move("dryrun_src.txt", "dryrun_dest.txt", false, false, false, false, false, true, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify source still exists (dry run should not move)
@@ -325,7 +325,7 @@ FOSSIL_TEST(c_test_move_with_atomic_operation)
     fclose(src_file);
 
     // Perform atomic move
-    int result = fossil_spino_move("atomic_src.txt", "atomic_dest.txt", false, false, false, true, false, false, cnull, cnull);
+    int result = fossil_shark_move("atomic_src.txt", "atomic_dest.txt", false, false, false, true, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify move completed
@@ -345,7 +345,7 @@ FOSSIL_TEST(c_test_move_with_progress_reporting)
     fclose(src_file);
 
     // Perform move with progress
-    int result = fossil_spino_move("progress_src.txt", "progress_dest.txt", false, false, false, false, true, false, cnull, cnull);
+    int result = fossil_shark_move("progress_src.txt", "progress_dest.txt", false, false, false, false, true, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify move completed
@@ -365,7 +365,7 @@ FOSSIL_TEST(c_test_move_with_exclude_pattern)
     fclose(src_file);
 
     // Move with exclude pattern that matches
-    int result = fossil_spino_move("excludetest.txt", "excluded_dest.txt", false, false, false, false, false, false, "exclude", cnull);
+    int result = fossil_shark_move("excludetest.txt", "excluded_dest.txt", false, false, false, false, false, false, "exclude", cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // File should still exist due to exclude pattern
@@ -384,7 +384,7 @@ FOSSIL_TEST(c_test_move_with_include_pattern)
     fclose(src_file);
 
     // Move with include pattern that matches
-    int result = fossil_spino_move("include_test.txt", "included_dest.txt", false, false, false, false, false, false, cnull, "include");
+    int result = fossil_shark_move("include_test.txt", "included_dest.txt", false, false, false, false, false, false, cnull, "include");
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify move completed with matching include pattern
@@ -404,7 +404,7 @@ FOSSIL_TEST(c_test_move_with_non_matching_include_pattern)
     fclose(src_file);
 
     // Move with include pattern that does not match
-    int result = fossil_spino_move("nomatch.txt", "nomatch_dest.txt", false, false, false, false, false, false, cnull, "xyz");
+    int result = fossil_shark_move("nomatch.txt", "nomatch_dest.txt", false, false, false, false, false, false, cnull, "xyz");
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // File should still exist due to non-matching include pattern
@@ -428,7 +428,7 @@ FOSSIL_TEST(c_test_move_backup_with_force)
     fclose(dest_file);
 
     // Move with both backup and force
-    int result = fossil_spino_move("backup_force_src.txt", "backup_force_dest.txt", true, false, true, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("backup_force_src.txt", "backup_force_dest.txt", true, false, true, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify backup exists
@@ -448,7 +448,7 @@ FOSSIL_TEST(c_test_move_atomic_with_progress)
     fclose(src_file);
 
     // Perform move with both atomic and progress
-    int result = fossil_spino_move("atomic_progress_src.txt", "atomic_progress_dest.txt", false, false, false, true, true, false, cnull, cnull);
+    int result = fossil_shark_move("atomic_progress_src.txt", "atomic_progress_dest.txt", false, false, false, true, true, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Atomic operation takes precedence, verify move completed
@@ -468,7 +468,7 @@ FOSSIL_TEST(c_test_move_path_normalization_windows_style)
     fclose(src_file);
 
     // Move with forward slashes (should be normalized)
-    int result = fossil_spino_move("norm_src.txt", "norm_dest.txt", false, false, false, false, false, false, cnull, cnull);
+    int result = fossil_shark_move("norm_src.txt", "norm_dest.txt", false, false, false, false, false, false, cnull, cnull);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Verify move completed despite path style

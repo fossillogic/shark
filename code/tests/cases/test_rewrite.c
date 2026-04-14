@@ -59,14 +59,14 @@ FOSSIL_TEARDOWN(c_rewrite_command_suite)
 FOSSIL_TEST(c_test_rewrite_null_path)
 {
     // Should handle null path gracefully
-    int result = fossil_spino_rewrite(NULL, false, false, "content", 0, false, false);
+    int result = fossil_shark_rewrite(NULL, false, false, "content", 0, false, false);
     ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
 FOSSIL_TEST(c_test_rewrite_nonexistent_path)
 {
     // Should handle non-existent path gracefully
-    int result = fossil_spino_rewrite("/nonexistent/file.txt", false, false, "content", 0, false, false);
+    int result = fossil_shark_rewrite("/nonexistent/file.txt", false, false, "content", 0, false, false);
     ASSUME_NOT_EQUAL_I32(result, 0);
 }
 
@@ -79,7 +79,7 @@ FOSSIL_TEST(c_test_rewrite_overwrite_content)
     fclose(temp);
 
     // Overwrite file content
-    int result = fossil_spino_rewrite("rewrite_test.txt", false, false, "New content\n", 0, false, false);
+    int result = fossil_shark_rewrite("rewrite_test.txt", false, false, "New content\n", 0, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
 
     // Cleanup
@@ -95,7 +95,7 @@ FOSSIL_TEST(c_test_rewrite_append_content)
     fclose(temp);
 
     // Append content to file
-    int result = fossil_spino_rewrite("rewrite_append_test.txt", false, true, "Appended content\n", 0, false, false);
+    int result = fossil_shark_rewrite("rewrite_append_test.txt", false, true, "Appended content\n", 0, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
 
     // Cleanup
@@ -111,7 +111,7 @@ FOSSIL_TEST(c_test_rewrite_truncate_file)
     fclose(temp);
 
     // Truncate file to smaller size
-    int result = fossil_spino_rewrite("rewrite_truncate_test.txt", false, false, NULL, 10, false, false);
+    int result = fossil_shark_rewrite("rewrite_truncate_test.txt", false, false, NULL, 10, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
 
     // Cleanup
@@ -127,7 +127,7 @@ FOSSIL_TEST(c_test_rewrite_extend_file)
     fclose(temp);
 
     // Extend file to larger size
-    int result = fossil_spino_rewrite("rewrite_extend_test.txt", false, false, NULL, 100, false, false);
+    int result = fossil_shark_rewrite("rewrite_extend_test.txt", false, false, NULL, 100, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
 
     // Cleanup
@@ -143,7 +143,7 @@ FOSSIL_TEST(c_test_rewrite_update_access_time)
     fclose(temp);
 
     // Update access time only
-    int result = fossil_spino_rewrite("rewrite_atime_test.txt", false, false, NULL, 0, true, false);
+    int result = fossil_shark_rewrite("rewrite_atime_test.txt", false, false, NULL, 0, true, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
 
     // Cleanup
@@ -159,7 +159,7 @@ FOSSIL_TEST(c_test_rewrite_update_mod_time)
     fclose(temp);
 
     // Update modification time only
-    int result = fossil_spino_rewrite("rewrite_mtime_test.txt", false, false, NULL, 0, false, true);
+    int result = fossil_shark_rewrite("rewrite_mtime_test.txt", false, false, NULL, 0, false, true);
     ASSUME_ITS_EQUAL_I32(result, 0);
 
     // Cleanup
@@ -175,7 +175,7 @@ FOSSIL_TEST(c_test_rewrite_update_both_times)
     fclose(temp);
 
     // Update both access and modification times
-    int result = fossil_spino_rewrite("rewrite_both_times_test.txt", false, false, NULL, 0, true, true);
+    int result = fossil_shark_rewrite("rewrite_both_times_test.txt", false, false, NULL, 0, true, true);
     ASSUME_ITS_EQUAL_I32(result, 0);
 
     // Cleanup
@@ -191,7 +191,7 @@ FOSSIL_TEST(c_test_rewrite_inplace_modification)
     fclose(temp);
 
     // In-place modification
-    int result = fossil_spino_rewrite("rewrite_inplace_test.txt", true, false, "Modified in-place\n", 0, false, false);
+    int result = fossil_shark_rewrite("rewrite_inplace_test.txt", true, false, "Modified in-place\n", 0, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
 
     // Cleanup
@@ -207,7 +207,7 @@ FOSSIL_TEST(c_test_rewrite_null_content_no_operation)
     fclose(temp);
 
     // Null content with no size or time updates should succeed (no-op)
-    int result = fossil_spino_rewrite("rewrite_null_content_test.txt", false, false, NULL, 0, false, false);
+    int result = fossil_shark_rewrite("rewrite_null_content_test.txt", false, false, NULL, 0, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
 
     // Cleanup
@@ -223,7 +223,7 @@ FOSSIL_TEST(c_test_rewrite_empty_string_content)
     fclose(temp);
 
     // Overwrite with empty string
-    int result = fossil_spino_rewrite("rewrite_empty_content_test.txt", false, false, "", 0, false, false);
+    int result = fossil_shark_rewrite("rewrite_empty_content_test.txt", false, false, "", 0, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
 
     // Cleanup
@@ -245,7 +245,7 @@ FOSSIL_TEST(c_test_rewrite_large_content)
     large_content[9999] = '\0';
 
     // Write large content
-    int result = fossil_spino_rewrite("rewrite_large_content_test.txt", false, false, large_content, 0, false, false);
+    int result = fossil_shark_rewrite("rewrite_large_content_test.txt", false, false, large_content, 0, false, false);
     ASSUME_ITS_EQUAL_I32(result, 0);
 
     // Cleanup

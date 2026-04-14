@@ -112,7 +112,7 @@ static int merge_file(const char *src, const char *dest, bool force)
     return 0;
 }
 
-int fossil_spino_merge(const char **paths, int num_paths, ccstring dest,
+int fossil_shark_merge(const char **paths, int num_paths, ccstring dest,
                        bool force, bool interactive, bool backup,
                        ccstring strategy, bool progress, bool dry_run,
                        ccstring exclude_pattern, ccstring include_pattern)

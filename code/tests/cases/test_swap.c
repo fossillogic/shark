@@ -61,15 +61,15 @@ FOSSIL_TEARDOWN(c_swap_command_suite)
 FOSSIL_TEST(c_test_swap_null_parameters)
 {
     // Test with null path1
-    int result = fossil_spino_swap(cnull, "file2.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap(cnull, "file2.txt", false, false, false, false, false, false, cnull, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with null path2
-    result = fossil_spino_swap("file1.txt", cnull, false, false, false, false, false, false, cnull, false);
+    result = fossil_shark_swap("file1.txt", cnull, false, false, false, false, false, false, cnull, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Test with both null
-    result = fossil_spino_swap(cnull, cnull, false, false, false, false, false, false, cnull, false);
+    result = fossil_shark_swap(cnull, cnull, false, false, false, false, false, false, cnull, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 }
 
@@ -87,7 +87,7 @@ FOSSIL_TEST(c_test_swap_simple_file)
     fclose(file2);
 
     // Swap files
-    int result = fossil_spino_swap("swap_file1.txt", "swap_file2.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_file1.txt", "swap_file2.txt", false, false, false, false, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -103,7 +103,7 @@ FOSSIL_TEST(c_test_swap_nonexistent_source)
     fprintf(file1, "This file exists\n");
     fclose(file1);
 
-    int result = fossil_spino_swap("swap_exists.txt", "swap_nonexistent.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_exists.txt", "swap_nonexistent.txt", false, false, false, false, false, false, cnull, false);
     ASSUME_NOT_EQUAL_I32(0, result);
 
     // Clean up
@@ -123,7 +123,7 @@ FOSSIL_TEST(c_test_swap_overwrite_without_force)
     fprintf(file2, "File 2\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_no_force1.txt", "swap_no_force2.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_no_force1.txt", "swap_no_force2.txt", false, false, false, false, false, false, cnull, false);
     (void)result;
 
     // Clean up
@@ -143,7 +143,7 @@ FOSSIL_TEST(c_test_swap_overwrite_with_force)
     fprintf(file2, "File 2\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_force1.txt", "swap_force2.txt", true, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_force1.txt", "swap_force2.txt", true, false, false, false, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -163,7 +163,7 @@ FOSSIL_TEST(c_test_swap_with_backup)
     fprintf(file2, "File 2 content\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_backup1.txt", "swap_backup2.txt", false, false, true, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_backup1.txt", "swap_backup2.txt", false, false, true, false, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up - backup files may exist
@@ -185,7 +185,7 @@ FOSSIL_TEST(c_test_swap_rename_same_directory)
     fprintf(file2, "Renamed\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_rename1.txt", "swap_rename2.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_rename1.txt", "swap_rename2.txt", false, false, false, false, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -204,7 +204,7 @@ FOSSIL_TEST(c_test_swap_empty_file)
     fprintf(file2, "Not empty\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_empty1.txt", "swap_empty2.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_empty1.txt", "swap_empty2.txt", false, false, false, false, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -227,7 +227,7 @@ FOSSIL_TEST(c_test_swap_large_file)
     fprintf(file2, "Small file\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_large1.txt", "swap_large2.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_large1.txt", "swap_large2.txt", false, false, false, false, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -247,7 +247,7 @@ FOSSIL_TEST(c_test_swap_special_characters)
     fprintf(file2, "Another special file\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_special1.txt", "swap_special2.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_special1.txt", "swap_special2.txt", false, false, false, false, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -267,7 +267,7 @@ FOSSIL_TEST(c_test_swap_to_existing_directory)
     fprintf(file2, "Another file\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_dir_file.txt", "swap_dir_file2.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_dir_file.txt", "swap_dir_file2.txt", false, false, false, false, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -283,7 +283,7 @@ FOSSIL_TEST(c_test_swap_same_source_and_dest)
     fclose(file);
 
     // Try to swap file with itself
-    int result = fossil_spino_swap("swap_same_file.txt", "swap_same_file.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_same_file.txt", "swap_same_file.txt", false, false, false, false, false, false, cnull, false);
     (void)result;
 
     // File should still exist (using io_filesys)
@@ -305,7 +305,7 @@ FOSSIL_TEST(c_test_swap_dry_run_no_actual_swap)
     fprintf(file2, "File 2 dry run\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_dry1.txt", "swap_dry2.txt", false, false, false, false, false, true, cnull, false);
+    int result = fossil_shark_swap("swap_dry1.txt", "swap_dry2.txt", false, false, false, false, false, true, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Both files should still exist (no actual swap, using io_filesys)
@@ -329,7 +329,7 @@ FOSSIL_TEST(c_test_swap_with_atomic_operation)
     fprintf(file2, "Atomic swap 2\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_atomic1.txt", "swap_atomic2.txt", false, false, false, true, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_atomic1.txt", "swap_atomic2.txt", false, false, false, true, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -349,7 +349,7 @@ FOSSIL_TEST(c_test_swap_with_progress_reporting)
     fprintf(file2, "Progress test 2\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_progress1.txt", "swap_progress2.txt", false, false, false, false, true, false, cnull, false);
+    int result = fossil_shark_swap("swap_progress1.txt", "swap_progress2.txt", false, false, false, false, true, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -369,7 +369,7 @@ FOSSIL_TEST(c_test_swap_with_exclude_pattern)
     fprintf(file2, "Another file\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_exclude1.txt", "swap_exclude2.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_exclude1.txt", "swap_exclude2.txt", false, false, false, false, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -389,7 +389,7 @@ FOSSIL_TEST(c_test_swap_with_include_pattern)
     fprintf(file2, "Another file\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_include1.txt", "swap_include2.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_include1.txt", "swap_include2.txt", false, false, false, false, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -409,7 +409,7 @@ FOSSIL_TEST(c_test_swap_with_non_matching_include_pattern)
     fprintf(file2, "Another non-matching file\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_nomatch1.txt", "swap_nomatch2.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_nomatch1.txt", "swap_nomatch2.txt", false, false, false, false, false, false, cnull, false);
     (void)result;
 
     // Clean up
@@ -429,7 +429,7 @@ FOSSIL_TEST(c_test_swap_backup_with_force)
     fprintf(file2, "File 2 with backup and force\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_bak_force1.txt", "swap_bak_force2.txt", true, false, true, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_bak_force1.txt", "swap_bak_force2.txt", true, false, true, false, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -451,7 +451,7 @@ FOSSIL_TEST(c_test_swap_atomic_with_progress)
     fprintf(file2, "Atomic with progress 2\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_atom_prog1.txt", "swap_atom_prog2.txt", false, false, false, true, true, false, cnull, false);
+    int result = fossil_shark_swap("swap_atom_prog1.txt", "swap_atom_prog2.txt", false, false, false, true, true, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up
@@ -471,7 +471,7 @@ FOSSIL_TEST(c_test_swap_path_normalization_windows_style)
     fprintf(file2, "Path normalization test 2\n");
     fclose(file2);
 
-    int result = fossil_spino_swap("swap_norm1.txt", "swap_norm2.txt", false, false, false, false, false, false, cnull, false);
+    int result = fossil_shark_swap("swap_norm1.txt", "swap_norm2.txt", false, false, false, false, false, false, cnull, false);
     ASSUME_ITS_EQUAL_I32(0, result);
 
     // Clean up

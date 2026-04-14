@@ -26,7 +26,7 @@
 
 #define MAX_HASH_LEN 128
 
-int fossil_spino_dedupe(
+int fossil_shark_dedupe(
     const char* dir_path,
     bool use_hash,
     bool interactive,

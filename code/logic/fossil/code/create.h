@@ -40,10 +40,10 @@ extern "C"
  * @return 0 on success, non-zero on error
  *
  * Sample usage:
- *   fossil_spino_create("/path/to/newfile.txt", false, "file")
- *   fossil_spino_create("/path/to/nested/dir", true, "dir")
+ *   fossil_shark_create("/path/to/newfile.txt", false, "file")
+ *   fossil_shark_create("/path/to/nested/dir", true, "dir")
  */
-int fossil_spino_create(ccstring path, bool create_parents,
+int fossil_shark_create(ccstring path, bool create_parents,
                         ccstring type); // "file" or "dir"
 
 #ifdef __cplusplus

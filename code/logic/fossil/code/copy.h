@@ -49,7 +49,7 @@ extern "C"
  * @param include_pattern Pattern for files to include (--include)
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_copy(ccstring src, ccstring dest,
+int fossil_shark_copy(ccstring src, ccstring dest,
                         bool recursive, bool update, bool preserve,
                         bool checksum, bool sparse, bool link, bool reflink,
                         bool progress, bool dry_run,

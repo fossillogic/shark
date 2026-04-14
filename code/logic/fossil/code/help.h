@@ -39,7 +39,7 @@ extern "C"
  * @param full_manual Show complete manual instead of brief help
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_help(ccstring command, bool show_examples, bool full_manual);
+int fossil_shark_help(ccstring command, bool show_examples, bool full_manual);
 
 #ifdef __cplusplus
 }

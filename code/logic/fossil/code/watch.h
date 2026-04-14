@@ -40,7 +40,7 @@ extern "C"
  * @param interval Poll interval in seconds
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_watch(ccstring path, bool recursive,
+int fossil_shark_watch(ccstring path, bool recursive,
                         ccstring events, int interval);
 
 #ifdef __cplusplus

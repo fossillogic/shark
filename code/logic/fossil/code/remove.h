@@ -47,7 +47,7 @@ extern "C"
  * @param log_file Write deletion log to specified file (NULL for no logging)
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_remove(ccstring path, bool recursive, bool force,
+int fossil_shark_remove(ccstring path, bool recursive, bool force,
                         bool interactive, bool use_trash, bool wipe,
                         int shred_passes, ccstring older_than,
                         size_t larger_than, bool empty_only,

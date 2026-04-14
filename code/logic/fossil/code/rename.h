@@ -40,7 +40,7 @@ extern "C"
  * @param interactive Prompt before overwriting existing files
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_rename(ccstring old_name, ccstring new_name,
+int fossil_shark_rename(ccstring old_name, ccstring new_name,
                         bool force, bool interactive);
 
 #ifdef __cplusplus

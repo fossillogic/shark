@@ -53,7 +53,7 @@ extern "C"
  * @param punctuate Normalize punctuation (--punctuate)
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_grammar(ccstring file_path,
+int fossil_shark_grammar(ccstring file_path,
                             bool check,
                             bool correct,
                             bool tone,

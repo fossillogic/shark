@@ -40,7 +40,7 @@ extern "C"
  * @param dry_run Preview undo without executing
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_undo(int last_n, ccstring file_path,
+int fossil_shark_undo(int last_n, ccstring file_path,
                       bool interactive, bool dry_run);
 
 #ifdef __cplusplus

@@ -24,7 +24,7 @@
  */
 #include "fossil/code/help.h"
 
-int fossil_spino_help(ccstring command, bool show_examples, bool full_manual)
+int fossil_shark_help(ccstring command, bool show_examples, bool full_manual)
 {
     // Show overview if command is NULL or "all"
     if (!command || fossil_io_cstring_equals(command, "all"))

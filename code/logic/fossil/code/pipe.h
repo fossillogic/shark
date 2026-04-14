@@ -42,7 +42,7 @@ extern "C"
  * @param append Append to output file if true
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_pipe(
+int fossil_shark_pipe(
     const char* input_file,
     const char* output_file,
     const char* filter,

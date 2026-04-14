@@ -40,7 +40,7 @@ extern "C"
  * @param global_scope Apply alias globally if true
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_alias(ccstring set_alias, ccstring remove_alias,
+int fossil_shark_alias(ccstring set_alias, ccstring remove_alias,
                        bool list, bool global_scope);
 
 #ifdef __cplusplus

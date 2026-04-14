@@ -41,7 +41,7 @@ extern "C"
  * @param delete Remove extraneous files from target
  * @return 0 on success, non-zero on error
  */
-int fossil_spino_sync(ccstring src, ccstring dest,
+int fossil_shark_sync(ccstring src, ccstring dest,
                         bool recursive, bool update, bool delete);
 
 #ifdef __cplusplus
