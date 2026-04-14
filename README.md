@@ -152,14 +152,19 @@ Ensure you have the following installed before starting:
 | `shark grammar --check --tone --score notes.txt` | Run grammar check, detect tone, display readability scores. |
 | `shark cryptic -e -c caesar "hello"` | Encode text using Caesar cipher. |
 | `shark split -l 100 -p chunk_ large_file.txt` | Split file into chunks of 100 lines with "chunk_" prefix. |
-
+| `shark perm --file script.sh --grant +x` | Grant execute permission to a file. |
+| `shark pipe --input log.txt --tee --append --output archive.log` | Output to console and append to a file simultaneously. |
+| `shark alias --set ll="show -l -h"` | Create a shortcut alias for detailed listing. |
+| `shark undo --file important.txt --interactive` | Interactively undo changes to a specific file. |
+| `shark link --file data.bin --target data.hard --hard` | Create a hard link. |
+| `shark dedupe --dir ./storage --hash --delete` | Remove duplicate files based on hash comparison. |
 
 ## Command Comparison (Shark vs Traditional Tools)
 
 Shark Tool consolidates many common command-line utilities into a **single consistent interface**.  
 Below is a comparison between **Shark commands** and their traditional equivalents.
 
-| **Spino Command** | **Traditional Commands** | **Purpose** |
+| **Shark Command** | **Traditional Commands** | **Purpose** |
 |---|---|---|
 | `shark show` | `ls`, `tree`, `stat` | Display files, directories, metadata, and structures with filtering, sorting, and multiple output formats. |
 | `shark merge` | `cp`, `rsync` (merge mode) | Combine multiple files or directories with conflict resolution strategies. |
@@ -180,6 +185,12 @@ Below is a comparison between **Shark commands** and their traditional equivalen
 | `shark grammar` | *(no direct CLI equivalent)* | AI-assisted grammar, style, and tone analysis with multiple detection traits. |
 | `shark cryptic` | *(no direct CLI equivalent)* | Encode or decode text using classic and modern ciphers. |
 | `shark split` | `split` | Split files into segments by lines, bytes, or count with custom naming. |
+| `shark perm` | `chmod`, `chown`, `ls -l` | View and modify file permissions with recursive and user/group controls. |
+| `shark pipe` | `|`, `tee`, shell redirection (`>`, `>>`) | Chain commands, redirect output, and process streams in a unified interface. |
+| `shark alias` | `alias`, shell config files | Create and manage command shortcuts across sessions. |
+| `shark undo` | *(no direct equivalent)* | Revert previous file operations safely with history tracking. |
+| `shark link` | `ln` | Create symbolic or hard links with overwrite and relative path options. |
+| `shark dedupe` | `fdupes`, `rdfind` | Detect and manage duplicate files with options to delete or link duplicates. |
 
 ---
 
