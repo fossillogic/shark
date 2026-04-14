@@ -41,14 +41,6 @@ FOSSIL_TEARDOWN(c_alias_command_suite)
     // Cleanup alias state if persisted
 }
 
-// Helper: simple alias definition
-static void create_alias(const char* name, const char* cmd)
-{
-    char buffer[256];
-    snprintf(buffer, sizeof(buffer), "%s=%s", name, cmd);
-    fossil_shark_alias(buffer, cnull, false, false);
-}
-
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Test Cases
 // * * * * * * * * * * * * * * * * * * * * * * * *
