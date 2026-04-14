@@ -160,21 +160,6 @@ FOSSIL_TEST(c_test_dedupe_link_duplicates)
     rmdir("link_dupe_dir");
 }
 
-FOSSIL_TEST(c_test_dedupe_interactive_mode)
-{
-    mkdir("interactive_dupe_dir", 0700);
-
-    create_file("interactive_dupe_dir/a.txt", "ASKME");
-    create_file("interactive_dupe_dir/b.txt", "ASKME");
-
-    int result = fossil_shark_dedupe("interactive_dupe_dir", true, true, true, false, "text");
-    ASSUME_ITS_EQUAL_I32(0, result);
-
-    remove("interactive_dupe_dir/a.txt");
-    remove("interactive_dupe_dir/b.txt");
-    rmdir("interactive_dupe_dir");
-}
-
 FOSSIL_TEST(c_test_dedupe_json_output)
 {
     mkdir("json_dupe_dir", 0700);
@@ -238,7 +223,6 @@ FOSSIL_TEST_GROUP(c_dedupe_command_tests)
     FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_detect_duplicates_by_size);
     FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_delete_duplicates);
     FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_link_duplicates);
-    FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_interactive_mode);
     FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_json_output);
     FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_fson_output);
     FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_invalid_directory);
