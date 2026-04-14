@@ -81,6 +81,12 @@ Ensure you have the following installed before starting:
     shark --help
     ```
 
+## **Tkinter GUI Interface**
+
+The **Tkinter-based graphical interface for Shark Tool** provides a modern, embedded terminal experience that enhances usability without compromising the power of the command-line core. Designed with a dark theme and light blue accents, the UI integrates a fully functional terminal directly within the application, allowing users to execute all Shark commands in real time while viewing structured, colorized output.
+
+A sidebar offers quick access to commonly used commands, while the input bar supports direct command entry, preserving the flexibility of the CLI. Rather than replacing the command-line workflow, the interface acts as a visual layer—improving discoverability, enabling persistent monitoring, and making complex operations like synchronization, inspection, and comparison easier to interpret and manage.
+
 ## Command Palette
 
 ---
