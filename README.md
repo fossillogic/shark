@@ -115,8 +115,6 @@ A sidebar offers quick access to commonly used commands, while the input bar sup
 | `cryptic` | Encode or decode text using various ciphers. | `-e`, `--encode` (encode text)<br>`-d`, `--decode` (decode text)<br>`-c`, `--cipher <type>` (cipher: `caesar`, `vigenere`, `base64`, `base32`, `binary`, `morse`, `baconian`, `railfence`, `haxor`, `leet`, `rot13`, `atbash`) |
 | `split` | Split files into smaller segments. | `-l`, `--lines <n>` (split by line count)<br>`-b`, `--bytes <n>` (split by byte size)<br>`-n`, `--number <n>` (number of segments)<br>`-p`, `--prefix <name>` (output prefix)<br>`-s`, `--suffix <n>` (suffix digits)<br>`--numeric-suffix` (use numeric suffix)<br>`-d`, `--delimiter <char>` (custom delimiter)<br>`--dry-run` (preview split) |
 | `perm` | Adjust or view file/directory permissions. | `--user <name>` (user-specific)<br>`--group <name>` (group-specific)<br>`--file <path>` (target file/directory)<br>`--grant <perm>` (add permission)<br>`--revoke <perm>` (remove permission)<br>`--list` (show current permissions)<br>`--recursive` (apply to all nested files/dirs) |
-| `pipe` | Chain commands, redirect outputs, or process streams. | `--input <file>` (source)<br>`--output <file>` (destination)<br>`--filter <cmd>` (inline filter)<br>`--tee` (split output to console and file)<br>`--media` (structured output)<br>`--append` (append to existing file) |
-| `alias` | Create or manage command shortcuts. | `--set <name>=<cmd>` (define alias)<br>`--list` (show all aliases)<br>`--remove <name>` (delete alias)<br>`--global` (apply for all sessions) |
 | `undo` | Revert previous file operations (move, copy, rename, remove). | `--last <n>` (revert last n operations)<br>`--file <path>` (specific target)<br>`--interactive` (confirm each undo)<br>`--dry-run` (preview undo) |
 | `link` | Create hard or symbolic links between files or directories. | `--file <source>` (source file)<br>`--target <dest>` (destination path)<br>`--symbolic` (create symlink)<br>`--hard` (create hardlink)<br>`--relative` (use relative paths)<br>`--overwrite` (replace existing links) |
 | `dedupe` | Detect and optionally remove duplicate files. | `--dir <path>` (target directory)<br>`--hash` (compare via file hash)<br>`--interactive` (confirm deletions)<br>`--delete` (remove duplicates)<br>`--link` (replace duplicates with links)<br>`--media` (media format output text/fson/json) |
@@ -159,8 +157,6 @@ A sidebar offers quick access to commonly used commands, while the input bar sup
 | `shark cryptic -e -c caesar "hello"` | Encode text using Caesar cipher. |
 | `shark split -l 100 -p chunk_ large_file.txt` | Split file into chunks of 100 lines with "chunk_" prefix. |
 | `shark perm --file script.sh --grant +x` | Grant execute permission to a file. |
-| `shark pipe --input log.txt --tee --append --output archive.log` | Output to console and append to a file simultaneously. |
-| `shark alias --set ll="show -l -h"` | Create a shortcut alias for detailed listing. |
 | `shark undo --file important.txt --interactive` | Interactively undo changes to a specific file. |
 | `shark link --file data.bin --target data.hard --hard` | Create a hard link. |
 | `shark dedupe --dir ./storage --hash --delete` | Remove duplicate files based on hash comparison. |
@@ -192,8 +188,6 @@ Below is a comparison between **Shark commands** and their traditional equivalen
 | `shark cryptic` | *(no direct CLI equivalent)* | Encode or decode text using classic and modern ciphers. |
 | `shark split` | `split` | Split files into segments by lines, bytes, or count with custom naming. |
 | `shark perm` | `chmod`, `chown`, `ls -l` | View and modify file permissions with recursive and user/group controls. |
-| `shark pipe` | `|`, `tee`, shell redirection (`>`, `>>`) | Chain commands, redirect output, and process streams in a unified interface. |
-| `shark alias` | `alias`, shell config files | Create and manage command shortcuts across sessions. |
 | `shark undo` | *(no direct equivalent)* | Revert previous file operations safely with history tracking. |
 | `shark link` | `ln` | Create symbolic or hard links with overwrite and relative path options. |
 | `shark dedupe` | `fdupes`, `rdfind` | Detect and manage duplicate files with options to delete or link duplicates. |

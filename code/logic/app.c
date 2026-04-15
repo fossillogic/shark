@@ -229,20 +229,6 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    -i, --interactive   Confirm each undo\n");
     fossil_io_printf("{bright_black}    --dry-run           Preview undo actions\n");
 
-    fossil_io_printf("{cyan}  alias            {reset}Create or manage command aliases\n");
-    fossil_io_printf("{bright_black}    --set <name=cmd>    Define alias\n");
-    fossil_io_printf("{bright_black}    --remove <name>     Remove alias\n");
-    fossil_io_printf("{bright_black}    -l, --list          List aliases\n");
-    fossil_io_printf("{bright_black}    -g, --global        Apply globally\n");
-
-    fossil_io_printf("{cyan}  pipe             {reset}Chain commands and redirect streams\n");
-    fossil_io_printf("{bright_black}    -i <file>           Input file (default stdin)\n");
-    fossil_io_printf("{bright_black}    -o <file>           Output file (default stdout)\n");
-    fossil_io_printf("{bright_black}    -f <cmd>            Filter command\n");
-    fossil_io_printf("{bright_black}    -t, --tee           Output to console + file\n");
-    fossil_io_printf("{bright_black}    --media             Preferd structured media format text/fson/json\n");
-    fossil_io_printf("{bright_black}    -a, --append        Append to output file\n");
-
     fossil_io_printf("{cyan}  perm             {reset}Manage file or directory permissions\n");
     fossil_io_printf("{bright_black}    -u <user>           Target user\n");
     fossil_io_printf("{bright_black}    -g <group>          Target group\n");
@@ -291,7 +277,7 @@ bool app_entry(int argc, char **argv)
         "rewrite", "introspect", "grammar", "cryptic",
 
         // Other operations
-        "alias", "pipe", "perm", "dedupe", "link", "undo",
+        "perm", "dedupe", "link", "undo",
 
         // Data ops
         "split",
@@ -375,8 +361,6 @@ bool app_entry(int argc, char **argv)
             fossil_io_cstring_compare(argv[i], "dedupe") == 0 ||
             fossil_io_cstring_compare(argv[i], "link") == 0 ||
             fossil_io_cstring_compare(argv[i], "undo") == 0 ||
-            fossil_io_cstring_compare(argv[i], "alias") == 0 ||
-            fossil_io_cstring_compare(argv[i], "pipe") == 0 ||
             fossil_io_cstring_compare(argv[i], "perm") == 0 ||
             fossil_io_cstring_compare(argv[i], "help") == 0 ||
             fossil_io_cstring_compare(argv[i], "cryptic") == 0)
@@ -1415,53 +1399,6 @@ bool app_entry(int argc, char **argv)
 
             if (cnotnull(path))
                 fossil_shark_perm(path, user, group, grant, revoke, list, recursive);
-        }
-        else if (fossil_io_cstring_compare(argv[i], "pipe") == 0)
-        {
-            ccstring in = cnull, out = cnull, filter = cnull;
-            cstring media = "text";
-            bool tee = false, append = false;
-
-            for (int j = i + 1; j < argc; j++)
-            {
-                if (fossil_io_cstring_compare(argv[j], "--in") == 0 && j + 1 < argc)
-                    in = argv[++j];
-                else if (fossil_io_cstring_compare(argv[j], "--out") == 0 && j + 1 < argc)
-                    out = argv[++j];
-                else if (fossil_io_cstring_compare(argv[j], "--filter") == 0 && j + 1 < argc)
-                    filter = argv[++j];
-                else if (fossil_io_cstring_compare(argv[j], "--tee") == 0)
-                    tee = true;
-                else if (fossil_io_cstring_compare(argv[j], "--media") == 0)
-                    media = argv[++j];
-                else if (fossil_io_cstring_compare(argv[j], "--append") == 0)
-                    append = true;
-
-                i = j;
-            }
-
-            fossil_shark_pipe(in, out, filter, tee, media, append);
-        }
-        else if (fossil_io_cstring_compare(argv[i], "alias") == 0)
-        {
-            ccstring set = cnull, remove = cnull;
-            bool list = false, global = false;
-
-            for (int j = i + 1; j < argc; j++)
-            {
-                if (fossil_io_cstring_compare(argv[j], "--set") == 0 && j + 1 < argc)
-                    set = argv[++j];
-                else if (fossil_io_cstring_compare(argv[j], "--remove") == 0 && j + 1 < argc)
-                    remove = argv[++j];
-                else if (fossil_io_cstring_compare(argv[j], "--list") == 0)
-                    list = true;
-                else if (fossil_io_cstring_compare(argv[j], "--global") == 0)
-                    global = true;
-
-                i = j;
-            }
-
-            fossil_shark_alias(set, remove, list, global);
         }
         else if (fossil_io_cstring_compare(argv[i], "undo") == 0)
         {

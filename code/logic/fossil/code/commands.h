@@ -47,9 +47,7 @@
 #include "introspect.h"
 #include "split.h"
 #include "perm.h"
-#include "pipe.h"
 #include "undo.h"
-#include "alias.h"
 #include "link.h"
 #include "dedupe.h"
 
