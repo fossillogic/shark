@@ -54,7 +54,6 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual)
         fossil_io_printf("  {cyan,bold}dedupe{normal}      - Detect and remove duplicate files\n");
         fossil_io_printf("  {cyan,bold}link{normal}        - Create hard or symbolic links\n");
         fossil_io_printf("  {cyan,bold}undo{normal}        - Revert previous file operations\n");
-        fossil_io_printf("  {cyan,bold}alias{normal}       - Create or manage command aliases\n");
         fossil_io_printf("  {cyan,bold}pipe{normal}        - Chain commands and redirect streams\n");
         fossil_io_printf("  {cyan,bold}perm{normal}        - Manage file/directory permissions\n");
         fossil_io_printf("\n{blue,bold,underline}Global Flags & Special Commands:{normal}\n");
@@ -312,15 +311,6 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual)
             fossil_io_printf("  {cyan,bold}-r, --relative{normal}   Use relative paths\n");
             fossil_io_printf("  {cyan,bold}-f, --force{normal}      Overwrite existing\n");
         }
-        else if (fossil_io_cstring_equals(command, "alias"))
-        {
-            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}alias [options]{normal}\n");
-            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
-            fossil_io_printf("  {cyan,bold}--set <name=cmd>{normal} Define alias\n");
-            fossil_io_printf("  {cyan,bold}--remove <name>{normal}  Remove alias\n");
-            fossil_io_printf("  {cyan,bold}-l, --list{normal}       List aliases\n");
-            fossil_io_printf("  {cyan,bold}-g, --global{normal}     Apply globally\n");
-        }
         else if (fossil_io_cstring_equals(command, "pipe"))
         {
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}pipe [options]{normal}\n");
@@ -426,8 +416,6 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual)
                 fossil_io_printf("  {cyan,bold}spino link -s source.txt link.txt{normal}\n");
             else if (fossil_io_cstring_equals(command, "undo"))
                 fossil_io_printf("  {cyan,bold}spino undo -n 3 --dry-run{normal}\n");
-            else if (fossil_io_cstring_equals(command, "alias"))
-                fossil_io_printf("  {cyan,bold}spino alias --set ls=show -al{normal}\n");
             else if (fossil_io_cstring_equals(command, "pipe"))
                 fossil_io_printf("  {cyan,bold}spino pipe -i input.txt -o output.txt -f \"cryptic --encode\"{normal}\n");
             else if (fossil_io_cstring_equals(command, "perm"))
