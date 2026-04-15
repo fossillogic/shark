@@ -2,7 +2,7 @@ ALLOWED_COMMANDS = [
     "show", "copy", "move", "delete", "rename", "create",
     "search", "archive", "compare", "sync", "watch",
     "rewrite", "introspect", "grammar", "cryptic", "split",
-    "perm", "pipe", "undo", "link", "dedupe",
+    "perm", "undo", "link", "dedupe",
     "help"
 ]
 
