@@ -28,7 +28,6 @@ app_lib = static_library('app-code',
         'perm.c',
         'pipe.c',
         'undo.c',
-        'alias.c',
         'link.c',
         'dedupe.c'
     ),
