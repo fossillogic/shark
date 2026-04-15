@@ -3,7 +3,7 @@ ALLOWED_COMMANDS = [
     "search", "archive", "compare", "sync", "watch",
     "rewrite", "introspect", "grammar", "cryptic", "split",
     "perm", "pipe", "undo", "link", "dedupe",
-    "help", "version"
+    "help"
 ]
 
 def is_allowed(cmd: str) -> bool:
