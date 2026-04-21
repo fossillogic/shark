@@ -56,7 +56,7 @@ FOSSIL_TEARDOWN(c_create_command_suite)
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-// Test cases for fossil_spino_create function
+// Test cases for fossil_shark_create function
 
 FOSSIL_TEST(c_test_create_null_parameters)
 {

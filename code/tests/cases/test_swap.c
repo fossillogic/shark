@@ -56,7 +56,7 @@ FOSSIL_TEARDOWN(c_swap_command_suite)
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-// Test cases for fossil_spino_move function
+// Test cases for fossil_shark_move function
 
 FOSSIL_TEST(c_test_swap_null_parameters)
 {

@@ -56,7 +56,7 @@ FOSSIL_TEARDOWN(c_compare_command_suite)
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-// Test cases for fossil_spino_compare function
+// Test cases for fossil_shark_compare function
 
 FOSSIL_TEST(c_test_compare_null_parameters)
 {
