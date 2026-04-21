@@ -239,7 +239,7 @@ void show_commands(char *app_name)
 
     fossil_io_printf("\n{blue}Global Flags:{reset}\n");
     fossil_io_printf("{bright_black}  --help                Show command help\n");
-    fossil_io_printf("{bright_black}  --version             Display Spino Tool version\n");
+    fossil_io_printf("{bright_black}  --version             Display Shark Tool version\n");
     fossil_io_printf("{bright_black}  --name                Display application name\n");
     fossil_io_printf("{bright_black}  --verbose             Enable detailed output\n");
     fossil_io_printf("{bright_black}  --color [enable|disable|auto]  Colorize output\n");

@@ -56,7 +56,7 @@ FOSSIL_TEARDOWN(c_remove_command_suite)
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-// Test cases for fossil_spino_remove function
+// Test cases for fossil_shark_remove function
 
 FOSSIL_TEST(c_test_remove_null_path)
 {

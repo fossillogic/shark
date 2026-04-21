@@ -27,7 +27,7 @@
 ### Help System Enhancements
 - [ ] Add `--ask` flag to `help` command
 - [ ] Allow natural language queries:
-  - [ ] `spino help show --ask "how do I filter by size?"`
+  - [ ] `shark help show --ask "how do I filter by size?"`
 - [ ] Provide contextual answers based on command flags
 - [ ] Integrate examples into responses
 - [ ] Add fuzzy matching for command lookup
@@ -80,7 +80,7 @@
 - [ ] Update all command docs for `--media`
 - [ ] Add advanced usage examples per command
 - [ ] Document internal architecture (for contributors)
-- [ ] Add “Spino vs Traditional Tools” expanded section
+- [ ] Add “Shark vs Traditional Tools” expanded section
 - [ ] Provide CLI cheat sheet
 
 ---
@@ -108,5 +108,5 @@
 - [ ] Add command history + replay system
 - [ ] Add session awareness (stateful operations)
 - [ ] Add scripting mode for chaining commands
-- [ ] Introduce config file support (`spino.toml` or similar)
+- [ ] Introduce config file support (`shark.toml` or similar)
 - [ ] Add AI-assisted suggestions (optional feature)

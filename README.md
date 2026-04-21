@@ -24,7 +24,7 @@ Shark Tool is the ultimate **all-in-one file and system administration utility**
 
 ## **Why Choose Shark Tool?**
 
-Unlike traditional CLI utilities that require juggling multiple tools, Spino consolidates essential file and system operations into a single, intuitive command-line interface. Here's what sets it apart:
+Unlike traditional CLI utilities that require juggling multiple tools, Shark consolidates essential file and system operations into a single, intuitive command-line interface. Here's what sets it apart:
 
 - **All-in-One Solution**: Eliminate tool switching. File management, archiving, searching, synchronization, and analysis all in one place.
 - **Unique Advanced Features**: Commands like `grammar` for intelligent text analysis, `summary` for structured insights, and `introspect` for deep file inspection go beyond standard utilities.
@@ -33,7 +33,7 @@ Unlike traditional CLI utilities that require juggling multiple tools, Spino con
 - **Intelligent Defaults**: Smart handling of timestamps, metadata, and file permissions with optional fine-grained control.
 - **Modern Architecture**: Built with Meson and designed for performance and extensibility.
 
-Spino Tool is the unified solution for professionals who demand more from their command-line utilities.
+Shark Tool is the unified solution for professionals who demand more from their command-line utilities.
 
 ---
 
@@ -80,12 +80,6 @@ Ensure you have the following installed before starting:
     ```sh
     shark --help
     ```
-
-## **Tkinter GUI Interface**
-
-The **Tkinter-based graphical interface for Shark Tool** provides a modern, embedded terminal experience that enhances usability without compromising the power of the command-line core. Designed with a dark theme and light blue accents, the UI integrates a fully functional terminal directly within the application, allowing users to execute all Shark commands in real time while viewing structured, colorized output.
-
-A sidebar offers quick access to commonly used commands, while the input bar supports direct command entry, preserving the flexibility of the CLI. Rather than replacing the command-line workflow, the interface acts as a visual layer—improving discoverability, enabling persistent monitoring, and making complex operations like synchronization, inspection, and comparison easier to interpret and manage.
 
 ## Command Palette
 

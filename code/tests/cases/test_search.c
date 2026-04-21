@@ -56,7 +56,7 @@ FOSSIL_TEARDOWN(c_search_command_suite)
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-// Test cases for fossil_spino_search function
+// Test cases for fossil_shark_search function
 
 FOSSIL_TEST(c_test_search_null_path)
 {
@@ -74,7 +74,7 @@ FOSSIL_TEST(c_test_search_invalid_path)
 
 FOSSIL_TEST(c_test_search_by_name_pattern)
 {
-    // Create test files using fossil_spino_create
+    // Create test files using fossil_shark_create
     int res1 = fossil_shark_create("test_file.txt", false, "file");
     ASSUME_ITS_EQUAL_I32(0, res1);
 

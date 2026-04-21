@@ -56,7 +56,7 @@ FOSSIL_TEARDOWN(c_rename_command_suite)
 // as samples for library usage.
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
-// Test cases for fossil_spino_rename function
+// Test cases for fossil_shark_rename function
 
 FOSSIL_TEST(c_test_rename_null_parameters)
 {
