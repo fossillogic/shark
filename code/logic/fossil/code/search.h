@@ -34,15 +34,20 @@ extern "C"
 
 /**
  * Search for files by name patterns or content matching
+ *
  * @param path Root path to start searching from
  * @param recursive Search subdirectories recursively
- * @param name_pattern Pattern to match against file names (supports regex)
- * @param content_pattern Pattern to search within file contents (supports regex)
+ *
+ * @param name_pattern Pattern to match against file names
+ * @param content_pattern Pattern to search within file contents
  * @param ignore_case Perform case-insensitive matching
+ *
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_search(ccstring path, bool recursive,
-                        ccstring name_pattern, ccstring content_pattern,
+int fossil_shark_search(ccstring path,
+                        bool recursive,
+                        ccstring name_pattern,
+                        ccstring content_pattern,
                         bool ignore_case);
 
 #ifdef __cplusplus
