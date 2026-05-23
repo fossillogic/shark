@@ -429,17 +429,17 @@ FOSSIL_TEST_GROUP(c_search_command_tests)
     FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_recursive_basic);
     FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_non_recursive);
     FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_unreadable_file);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_extension_match)
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_character_class)
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_alternation)
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_line_anchor_start)
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_line_anchor_end)
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_wildcard)    
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_optional_quantifier)
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_escape_literals)
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_invalid_regex)
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_binary_file_skip)
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_plain_string_bug)
+    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_extension_match);
+    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_character_class);
+    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_alternation);
+    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_line_anchor_start);
+    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_line_anchor_end);
+    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_wildcard);
+    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_optional_quantifier);
+    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_escape_literals);
+    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_invalid_regex);
+    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_binary_file_skip);
+    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_plain_string_bug);
 
     FOSSIL_TEST_REGISTER(c_search_command_suite);
 }
