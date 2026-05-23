@@ -39,11 +39,7 @@ extern "C"
  * @param recursive Search subdirectories recursively
  *
  * @param name_pattern Pattern to match against file names
- * @param name_is_regex If true, treat name_pattern as regex
- *
  * @param content_pattern Pattern to search within file contents
- * @param content_is_regex If true, treat content_pattern as regex
- *
  * @param ignore_case Perform case-insensitive matching
  *
  * @return 0 on success, non-zero on error
@@ -51,9 +47,7 @@ extern "C"
 int fossil_shark_search(ccstring path,
                         bool recursive,
                         ccstring name_pattern,
-                        bool name_is_regex,
                         ccstring content_pattern,
-                        bool content_is_regex,
                         bool ignore_case);
 
 #ifdef __cplusplus
