@@ -245,32 +245,32 @@ FOSSIL_TEST(c_test_cryptic_mixed_case)
 
 FOSSIL_TEST_GROUP(c_cryptic_command_tests)
 {
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_null_text);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_null_cipher);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_no_operations);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_caesar_encode);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_rot13_encode);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_base64_encode);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_base32_encode);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_atbash_encode);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_vigenere_with_key);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_vigenere_without_key);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_binary_encode);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_morse_encode);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_baconian_encode);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_railfence_encode);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_haxor_encode);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_leet_encode);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_unsupported_cipher);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_empty_text);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_special_characters);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_long_text);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_unicode_text);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_base64_decode);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_rot13_roundtrip);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_whitespace_text);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_numeric_text);
-    FOSSIL_TEST_ADD(c_cryptic_command_suite, c_test_cryptic_mixed_case);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_null_text);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_null_cipher);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_no_operations);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_caesar_encode);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_rot13_encode);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_base64_encode);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_base32_encode);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_atbash_encode);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_vigenere_with_key);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_vigenere_without_key);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_binary_encode);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_morse_encode);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_baconian_encode);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_railfence_encode);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_haxor_encode);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_leet_encode);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_unsupported_cipher);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_empty_text);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_special_characters);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_long_text);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_unicode_text);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_base64_decode);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_rot13_roundtrip);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_whitespace_text);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_numeric_text);
+    FOSSIL_SUITE_ADD(c_cryptic_command_suite, c_test_cryptic_mixed_case);
 
     FOSSIL_TEST_REGISTER(c_cryptic_command_suite);
 }

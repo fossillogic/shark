@@ -485,27 +485,27 @@ FOSSIL_TEST(c_test_swap_path_normalization_windows_style)
 
 FOSSIL_TEST_GROUP(c_swap_command_tests)
 {
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_null_parameters);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_simple_file);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_nonexistent_source);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_overwrite_without_force);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_overwrite_with_force);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_with_backup);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_rename_same_directory);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_empty_file);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_large_file);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_special_characters);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_to_existing_directory);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_same_source_and_dest);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_dry_run_no_actual_swap);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_with_atomic_operation);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_with_progress_reporting);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_with_exclude_pattern);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_with_include_pattern);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_with_non_matching_include_pattern);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_backup_with_force);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_atomic_with_progress);
-    FOSSIL_TEST_ADD(c_swap_command_suite, c_test_swap_path_normalization_windows_style);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_null_parameters);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_simple_file);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_nonexistent_source);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_overwrite_without_force);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_overwrite_with_force);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_with_backup);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_rename_same_directory);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_empty_file);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_large_file);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_special_characters);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_to_existing_directory);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_same_source_and_dest);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_dry_run_no_actual_swap);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_with_atomic_operation);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_with_progress_reporting);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_with_exclude_pattern);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_with_include_pattern);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_with_non_matching_include_pattern);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_backup_with_force);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_atomic_with_progress);
+    FOSSIL_SUITE_ADD(c_swap_command_suite, c_test_swap_path_normalization_windows_style);
 
     FOSSIL_TEST_REGISTER(c_swap_command_suite);
 }

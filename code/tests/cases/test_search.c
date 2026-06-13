@@ -416,30 +416,30 @@ FOSSIL_TEST(c_test_search_plain_string_bug)
 
 FOSSIL_TEST_GROUP(c_search_command_tests)
 {
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_null_path);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_invalid_path);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_by_name_pattern);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_by_content_pattern);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_case_insensitive_name);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_case_insensitive_content);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_combined_patterns);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_no_matches);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_empty_file);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_no_patterns);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_recursive_basic);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_non_recursive);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_unreadable_file);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_extension_match);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_character_class);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_alternation);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_line_anchor_start);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_line_anchor_end);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_wildcard);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_optional_quantifier);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_regex_escape_literals);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_invalid_regex);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_binary_file_skip);
-    FOSSIL_TEST_ADD(c_search_command_suite, c_test_search_plain_string_bug);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_null_path);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_invalid_path);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_by_name_pattern);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_by_content_pattern);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_case_insensitive_name);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_case_insensitive_content);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_combined_patterns);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_no_matches);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_empty_file);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_no_patterns);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_recursive_basic);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_non_recursive);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_unreadable_file);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_regex_extension_match);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_regex_character_class);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_regex_alternation);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_regex_line_anchor_start);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_regex_line_anchor_end);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_regex_wildcard);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_regex_optional_quantifier);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_regex_escape_literals);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_invalid_regex);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_binary_file_skip);
+    FOSSIL_SUITE_ADD(c_search_command_suite, c_test_search_plain_string_bug);
 
     FOSSIL_TEST_REGISTER(c_search_command_suite);
 }

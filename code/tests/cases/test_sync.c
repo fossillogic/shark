@@ -158,15 +158,15 @@ FOSSIL_TEST(c_test_sync_identical_files)
 
 FOSSIL_TEST_GROUP(c_sync_command_tests)
 {
-    FOSSIL_TEST_ADD(c_sync_command_suite, c_test_sync_null_source);
-    FOSSIL_TEST_ADD(c_sync_command_suite, c_test_sync_null_destination);
-    FOSSIL_TEST_ADD(c_sync_command_suite, c_test_sync_nonexistent_source);
-    FOSSIL_TEST_ADD(c_sync_command_suite, c_test_sync_single_file);
-    FOSSIL_TEST_ADD(c_sync_command_suite, c_test_sync_directory_non_recursive);
-    FOSSIL_TEST_ADD(c_sync_command_suite, c_test_sync_directory_recursive);
-    FOSSIL_TEST_ADD(c_sync_command_suite, c_test_sync_update_flag);
-    FOSSIL_TEST_ADD(c_sync_command_suite, c_test_sync_delete_flag);
-    FOSSIL_TEST_ADD(c_sync_command_suite, c_test_sync_identical_files);
+    FOSSIL_SUITE_ADD(c_sync_command_suite, c_test_sync_null_source);
+    FOSSIL_SUITE_ADD(c_sync_command_suite, c_test_sync_null_destination);
+    FOSSIL_SUITE_ADD(c_sync_command_suite, c_test_sync_nonexistent_source);
+    FOSSIL_SUITE_ADD(c_sync_command_suite, c_test_sync_single_file);
+    FOSSIL_SUITE_ADD(c_sync_command_suite, c_test_sync_directory_non_recursive);
+    FOSSIL_SUITE_ADD(c_sync_command_suite, c_test_sync_directory_recursive);
+    FOSSIL_SUITE_ADD(c_sync_command_suite, c_test_sync_update_flag);
+    FOSSIL_SUITE_ADD(c_sync_command_suite, c_test_sync_delete_flag);
+    FOSSIL_SUITE_ADD(c_sync_command_suite, c_test_sync_identical_files);
 
     FOSSIL_TEST_REGISTER(c_sync_command_suite);
 }
