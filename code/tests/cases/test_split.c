@@ -275,20 +275,20 @@ FOSSIL_TEST(c_test_split_alphabetic_suffix)
 
 FOSSIL_TEST_GROUP(c_split_command_tests)
 {
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_null_parameters);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_by_lines);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_by_bytes);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_by_segments);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_numeric_suffix);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_with_suffix_digits);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_with_delimiter);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_dry_run);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_nonexistent_file);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_empty_file);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_large_file);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_single_line);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_zero_split_param);
-    FOSSIL_SUITE_ADD(c_split_command_suite, c_test_split_alphabetic_suffix);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_null_parameters);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_by_lines);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_by_bytes);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_by_segments);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_numeric_suffix);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_with_suffix_digits);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_with_delimiter);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_dry_run);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_nonexistent_file);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_empty_file);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_large_file);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_single_line);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_zero_split_param);
+    FOSSIL_ADD_TEST(c_split_command_suite, c_test_split_alphabetic_suffix);
 
-    FOSSIL_TEST_REGISTER(c_split_command_suite);
+    FOSSIL_ADD_SUITE(c_split_command_suite);
 }

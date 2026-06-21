@@ -259,19 +259,19 @@ FOSSIL_TEST(c_test_rewrite_large_content)
 
 FOSSIL_TEST_GROUP(c_rewrite_command_tests)
 {
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_null_path);
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_nonexistent_path);
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_overwrite_content);
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_append_content);
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_truncate_file);
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_extend_file);
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_update_access_time);
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_update_mod_time);
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_update_both_times);
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_inplace_modification);
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_null_content_no_operation);
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_empty_string_content);
-    FOSSIL_SUITE_ADD(c_rewrite_command_suite, c_test_rewrite_large_content);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_null_path);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_nonexistent_path);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_overwrite_content);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_append_content);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_truncate_file);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_extend_file);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_update_access_time);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_update_mod_time);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_update_both_times);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_inplace_modification);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_null_content_no_operation);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_empty_string_content);
+    FOSSIL_ADD_TEST(c_rewrite_command_suite, c_test_rewrite_large_content);
 
-    FOSSIL_TEST_REGISTER(c_rewrite_command_suite);
+    FOSSIL_ADD_SUITE(c_rewrite_command_suite);
 }

@@ -303,21 +303,21 @@ FOSSIL_TEST(c_test_remove_with_log)
 
 FOSSIL_TEST_GROUP(c_remove_command_tests)
 {
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_null_path);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_nonexistent_file);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_nonexistent_file_force);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_single_file);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_empty_directory);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_directory_recursive);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_directory_recursive_to_trash);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_multiple_files_force);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_nested_directory_structure);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_readonly_file_force);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_special_characters_filename);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_large_directory_structure);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_with_wipe);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_interactive_mode);
-    FOSSIL_SUITE_ADD(c_remove_command_suite, c_test_remove_with_log);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_null_path);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_nonexistent_file);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_nonexistent_file_force);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_single_file);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_empty_directory);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_directory_recursive);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_directory_recursive_to_trash);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_multiple_files_force);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_nested_directory_structure);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_readonly_file_force);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_special_characters_filename);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_large_directory_structure);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_with_wipe);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_interactive_mode);
+    FOSSIL_ADD_TEST(c_remove_command_suite, c_test_remove_with_log);
 
-    FOSSIL_TEST_REGISTER(c_remove_command_suite);
+    FOSSIL_ADD_SUITE(c_remove_command_suite);
 }

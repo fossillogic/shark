@@ -307,22 +307,22 @@ FOSSIL_TEST(c_test_grammar_empty_file)
 
 FOSSIL_TEST_GROUP(c_grammer_command_tests)
 {
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_check_valid_text);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_correct_text);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_detect_tone);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_sanitize_text);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_suggest_improvements);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_summarize_text);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_score_readability);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_detect_spam);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_reflow_text);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_capitalize_sentences);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_format_text);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_declutter_text);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_punctuate_text);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_combined_operations);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_null_file_path);
-    FOSSIL_SUITE_ADD(c_grammer_command_suite, c_test_grammar_empty_file);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_check_valid_text);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_correct_text);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_detect_tone);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_sanitize_text);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_suggest_improvements);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_summarize_text);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_score_readability);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_detect_spam);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_reflow_text);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_capitalize_sentences);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_format_text);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_declutter_text);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_punctuate_text);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_combined_operations);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_null_file_path);
+    FOSSIL_ADD_TEST(c_grammer_command_suite, c_test_grammar_empty_file);
 
-    FOSSIL_TEST_REGISTER(c_grammer_command_suite);
+    FOSSIL_ADD_SUITE(c_grammer_command_suite);
 }

@@ -291,17 +291,17 @@ FOSSIL_TEST(c_test_rename_file_to_existing_directory_name)
 
 FOSSIL_TEST_GROUP(c_rename_command_tests)
 {
-    FOSSIL_SUITE_ADD(c_rename_command_suite, c_test_rename_null_parameters);
-    FOSSIL_SUITE_ADD(c_rename_command_suite, c_test_rename_empty_strings);
-    FOSSIL_SUITE_ADD(c_rename_command_suite, c_test_rename_basic_file);
-    FOSSIL_SUITE_ADD(c_rename_command_suite, c_test_rename_nonexistent_file);
-    FOSSIL_SUITE_ADD(c_rename_command_suite, c_test_rename_overwrite_without_force);
-    FOSSIL_SUITE_ADD(c_rename_command_suite, c_test_rename_overwrite_with_force);
-    FOSSIL_SUITE_ADD(c_rename_command_suite, c_test_rename_with_path);
-    FOSSIL_SUITE_ADD(c_rename_command_suite, c_test_rename_special_characters);
-    FOSSIL_SUITE_ADD(c_rename_command_suite, c_test_rename_preserve_content);
-    FOSSIL_SUITE_ADD(c_rename_command_suite, c_test_rename_large_filename);
-    FOSSIL_SUITE_ADD(c_rename_command_suite, c_test_rename_file_to_existing_directory_name);
+    FOSSIL_ADD_TEST(c_rename_command_suite, c_test_rename_null_parameters);
+    FOSSIL_ADD_TEST(c_rename_command_suite, c_test_rename_empty_strings);
+    FOSSIL_ADD_TEST(c_rename_command_suite, c_test_rename_basic_file);
+    FOSSIL_ADD_TEST(c_rename_command_suite, c_test_rename_nonexistent_file);
+    FOSSIL_ADD_TEST(c_rename_command_suite, c_test_rename_overwrite_without_force);
+    FOSSIL_ADD_TEST(c_rename_command_suite, c_test_rename_overwrite_with_force);
+    FOSSIL_ADD_TEST(c_rename_command_suite, c_test_rename_with_path);
+    FOSSIL_ADD_TEST(c_rename_command_suite, c_test_rename_special_characters);
+    FOSSIL_ADD_TEST(c_rename_command_suite, c_test_rename_preserve_content);
+    FOSSIL_ADD_TEST(c_rename_command_suite, c_test_rename_large_filename);
+    FOSSIL_ADD_TEST(c_rename_command_suite, c_test_rename_file_to_existing_directory_name);
 
-    FOSSIL_TEST_REGISTER(c_rename_command_suite);
+    FOSSIL_ADD_SUITE(c_rename_command_suite);
 }
