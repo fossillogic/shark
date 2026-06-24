@@ -4,7 +4,9 @@
 
 ### A Command-Line Power Utility by **Fossil Logic**
 
-Shark Tool is the ultimate **all-in-one file and system administration utility** for admins, developers, and power users. It consolidates essential file management, automation, and analysis into a single command-line interface—eliminating tool fragmentation. Unique commands like `grammar` for text analysis, `introspect` for file inspection, and `cryptic` for encoding/decoding provide capabilities rarely found in traditional utilities, delivering the precision and flexibility professionals demand.
+Shark Tool is the ultimate all-in-one file, system administration, and monitoring utility for administrators, developers, engineers, and power users. It consolidates essential file management, automation, system diagnostics, resource monitoring, and analysis into a single command-line interface—eliminating tool fragmentation and reducing operational complexity.
+
+Beyond traditional file operations, Shark Tool provides real-time visibility into system health, performance metrics, processes, services, storage utilization, and resource consumption, making it equally valuable for maintenance, troubleshooting, and infrastructure oversight. Unique commands such as grammar for text analysis, introspect for deep file inspection, and cryptic for encoding and decoding deliver capabilities rarely found in conventional utilities. Combined with powerful monitoring and administration features, Shark Tool offers the precision, flexibility, and observability modern professionals demand from a unified command-line environment.
 
 ---
 
