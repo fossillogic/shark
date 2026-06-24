@@ -237,6 +237,25 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    -l, --list          Show current permissions\n");
     fossil_io_printf("{bright_black}    -r, --recursive     Apply recursively\n");
 
+    fossil_io_printf("{cyan}  process          {reset}Manage and monitor system processes\n");
+    fossil_io_printf("{bright_black}    -p, --pid <pid>     Target process ID\n");
+    fossil_io_printf("{bright_black}    -n, --name          Get process name\n");
+    fossil_io_printf("{bright_black}    -i, --info          Get process info\n");
+    fossil_io_printf("{bright_black}    -l, --list          List all processes\n");
+    fossil_io_printf("{bright_black}    -t, --terminate     Kill process\n");
+    fossil_io_printf("{bright_black}    -f, --force         Force kill\n");
+    fossil_io_printf("{bright_black}    -s, --suspend       Pause process\n");
+    fossil_io_printf("{bright_black}    -r, --resume        Resume process\n");
+    fossil_io_printf("{bright_black}    --priority <level>  Set/get priority\n");
+    fossil_io_printf("{bright_black}    -e, --exe-path      Get executable path\n");
+    fossil_io_printf("{bright_black}    --ppid              Get parent PID\n");
+    fossil_io_printf("{bright_black}    --exists            Check if exists\n");
+    fossil_io_printf("{bright_black}    --env               Get environment variables\n");
+    fossil_io_printf("{bright_black}    --spawn <path>      Start new process\n");
+    fossil_io_printf("{bright_black}    --signal <num>      Send signal number\n");
+    fossil_io_printf("{bright_black}    --wait <timeout>    Wait for exit\n");
+    fossil_io_printf("{bright_black}    --exit-code         Retrieve exit code\n");
+
     fossil_io_printf("\n{blue}Global Flags:{reset}\n");
     fossil_io_printf("{bright_black}  --help                Show command help\n");
     fossil_io_printf("{bright_black}  --version             Display Shark Tool version\n");
@@ -277,7 +296,7 @@ bool app_entry(int argc, char **argv)
         "rewrite", "introspect", "grammar", "cryptic",
 
         // Other operations
-        "perm", "dedupe", "link", "undo",
+        "perm", "dedupe", "link", "undo", "process",
 
         // Data ops
         "split",
@@ -363,6 +382,7 @@ bool app_entry(int argc, char **argv)
             fossil_io_cstring_compare(argv[i], "undo") == 0 ||
             fossil_io_cstring_compare(argv[i], "perm") == 0 ||
             fossil_io_cstring_compare(argv[i], "help") == 0 ||
+            fossil_io_cstring_compare(argv[i], "process") == 0 ||
             fossil_io_cstring_compare(argv[i], "cryptic") == 0)
         {
             // Look ahead for path-like arguments and suggest corrections
@@ -1448,6 +1468,82 @@ bool app_entry(int argc, char **argv)
             if (cnotnull(src) && cnotnull(dest))
                 fossil_shark_link(src, dest, symbolic, hard, relative, overwrite);
         }
+        else if (fossil_io_cstring_compare(argv[i], "process") == 0)
+        {
+            int pid = 0;
+            bool name = false, info = false, list = false;
+            bool terminate = false, force = false, suspend = false, resume = false;
+            int priority = 0;
+            bool exe_path = false, ppid = false, exists = false, env = false, exit_code = false;
+            ccstring spawn_path = cnull;
+            int signal = 0;
+            int wait_timeout = 0;
+
+            for (int j = i + 1; j < argc; j++)
+            {
+                if (fossil_io_cstring_compare(argv[j], "-p") == 0 || fossil_io_cstring_compare(argv[j], "--pid") == 0)
+                {
+                    if (j + 1 < argc)
+                        pid = atoi(argv[++j]);
+                }
+                else if (fossil_io_cstring_compare(argv[j], "-n") == 0 || fossil_io_cstring_compare(argv[j], "--name") == 0)
+                    name = true;
+                else if (fossil_io_cstring_compare(argv[j], "-i") == 0 || fossil_io_cstring_compare(argv[j], "--info") == 0)
+                    info = true;
+                else if (fossil_io_cstring_compare(argv[j], "-l") == 0 || fossil_io_cstring_compare(argv[j], "--list") == 0)
+                    list = true;
+                else if (fossil_io_cstring_compare(argv[j], "-t") == 0 || fossil_io_cstring_compare(argv[j], "--terminate") == 0)
+                    terminate = true;
+                else if (fossil_io_cstring_compare(argv[j], "-f") == 0 || fossil_io_cstring_compare(argv[j], "--force") == 0)
+                    force = true;
+                else if (fossil_io_cstring_compare(argv[j], "-s") == 0 || fossil_io_cstring_compare(argv[j], "--suspend") == 0)
+                    suspend = true;
+                else if (fossil_io_cstring_compare(argv[j], "-r") == 0 || fossil_io_cstring_compare(argv[j], "--resume") == 0)
+                    resume = true;
+                else if (fossil_io_cstring_compare(argv[j], "--priority") == 0 && j + 1 < argc)
+                    priority = atoi(argv[++j]);
+                else if (fossil_io_cstring_compare(argv[j], "-e") == 0 || fossil_io_cstring_compare(argv[j], "--exe-path") == 0)
+                    exe_path = true;
+                else if (fossil_io_cstring_compare(argv[j], "--ppid") == 0)
+                    ppid = true;
+                else if (fossil_io_cstring_compare(argv[j], "--exists") == 0)
+                    exists = true;
+                else if (fossil_io_cstring_compare(argv[j], "--env") == 0)
+                    env = true;
+                else if (fossil_io_cstring_compare(argv[j], "--spawn") == 0 && j + 1 < argc)
+                    spawn_path = argv[++j];
+                else if (fossil_io_cstring_compare(argv[j], "--signal") == 0 && j + 1 < argc)
+                    signal = atoi(argv[++j]);
+                else if (fossil_io_cstring_compare(argv[j], "--wait") == 0 && j + 1 < argc)
+                    wait_timeout = atoi(argv[++j]);
+                else if (fossil_io_cstring_compare(argv[j], "--exit-code") == 0)
+                    exit_code = true;
+
+                i = j;
+            }
+
+            int rc = fossil_shark_process(pid,
+                                         name,
+                                         info,
+                                         list,
+                                         terminate,
+                                         force,
+                                         suspend,
+                                         resume,
+                                         priority,
+                                         exe_path,
+                                         ppid,
+                                         exists,
+                                         env,
+                                         spawn_path,
+                                         signal,
+                                         wait_timeout,
+                                         exit_code);
+            if (rc != 0)
+            {
+                fossil_io_printf("{red}Process command failed{reset}\n");
+            }
+        }
         else if (fossil_io_cstring_compare(argv[i], "dedupe") == 0)
         {
             ccstring dir = cnull;
@@ -1475,6 +1571,7 @@ bool app_entry(int argc, char **argv)
             if (cnotnull(dir))
                 fossil_shark_dedupe(dir, use_hash, interactive, del, link, media);
         }
+        //
         else
         {
             fossil_io_printf("{red}Unknown command: %s{reset}\n", argv[i]);

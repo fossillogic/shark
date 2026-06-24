@@ -55,6 +55,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual)
         fossil_io_printf("  {cyan,bold}link{normal}        - Create hard or symbolic links\n");
         fossil_io_printf("  {cyan,bold}undo{normal}        - Revert previous file operations\n");
         fossil_io_printf("  {cyan,bold}perm{normal}        - Manage file/directory permissions\n");
+        fossil_io_printf("  {cyan,bold}process{normal}     - Manage and monitor system processes\n");
         fossil_io_printf("\n{blue,bold,underline}Global Flags & Special Commands:{normal}\n");
         fossil_io_printf("  {cyan,bold}--help{normal}      - Show command help\n");
         fossil_io_printf("  {cyan,bold}--version{normal}   - Display Shark Tool version\n");

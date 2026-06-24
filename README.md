@@ -112,6 +112,7 @@ Ensure you have the following installed before starting:
 | `undo` | Revert previous file operations (move, copy, rename, remove). | `--last <n>` (revert last n operations)<br>`--file <path>` (specific target)<br>`--interactive` (confirm each undo)<br>`--dry-run` (preview undo) |
 | `link` | Create hard or symbolic links between files or directories. | `--file <source>` (source file)<br>`--target <dest>` (destination path)<br>`--symbolic` (create symlink)<br>`--hard` (create hardlink)<br>`--relative` (use relative paths)<br>`--overwrite` (replace existing links) |
 | `dedupe` | Detect and optionally remove duplicate files. | `--dir <path>` (target directory)<br>`--hash` (compare via file hash)<br>`--interactive` (confirm deletions)<br>`--delete` (remove duplicates)<br>`--link` (replace duplicates with links)<br>`--media` (media format output text/fson/json) |
+| `process` | Manage and monitor system processes. | `--pid <n>` (process ID)<br>`--name` (get process name)<br>`--info` (get process info)<br>`--list` (list all processes)<br>`--terminate` (kill process)<br>`--force` (force kill)<br>`--suspend` (pause process)<br>`--resume` (resume process)<br>`--priority <n>` (set/get priority)<br>`--exe-path` (get executable path)<br>`--ppid` (get parent PID)<br>`--exists` (check if process exists)<br>`--env` (get environment variables)<br>`--spawn <path>` (start new process)<br>`--signal <n>` (send signal)<br>`--wait <timeout>` (wait for process exit)<br>`--exit-code` (retrieve exit code) |
 
 ---
 
@@ -154,6 +155,7 @@ Ensure you have the following installed before starting:
 | `shark undo --file important.txt --interactive` | Interactively undo changes to a specific file. |
 | `shark link --file data.bin --target data.hard --hard` | Create a hard link. |
 | `shark dedupe --dir ./storage --hash --delete` | Remove duplicate files based on hash comparison. |
+| `shark process --pid 1234 --info --terminate` | Show process info for PID 1234 and terminate it. |
 
 ## Command Comparison (Shark vs Traditional Tools)
 
@@ -185,6 +187,7 @@ Below is a comparison between **Shark commands** and their traditional equivalen
 | `shark undo` | *(no direct equivalent)* | Revert previous file operations safely with history tracking. |
 | `shark link` | `ln` | Create symbolic or hard links with overwrite and relative path options. |
 | `shark dedupe` | `fdupes`, `rdfind` | Detect and manage duplicate files with options to delete or link duplicates. |
+| `shark process` | `ps`, `top`, `pgrep`, `kill` | Manage and inspect system processes (list, info, terminate, spawn, signals). |
 
 ---
 
