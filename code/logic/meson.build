@@ -26,6 +26,7 @@ app_lib = static_library('app-code',
         'introspect.c',
         'split.c',
         'perm.c',
+        'process.c',
         'undo.c',
         'link.c',
         'dedupe.c'

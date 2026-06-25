@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include <fossil/pizza/framework.h>
+#include <fossil/maip/framework.h>
 
 #include "fossil/code/app.h"
 
@@ -351,20 +351,20 @@ FOSSIL_TEST(c_test_compare_large_files)
 
 FOSSIL_TEST_GROUP(c_compare_command_tests)
 {
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_null_parameters);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_identical_text_files);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_different_text_files);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_identical_binary_files);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_different_binary_files);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_case_sensitive);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_case_insensitive);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_with_context_lines);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_empty_files);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_different_length_files);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_nonexistent_files);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_one_nonexistent_file);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_neither_text_nor_binary);
-    FOSSIL_TEST_ADD(c_compare_command_suite, c_test_compare_large_files);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_null_parameters);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_identical_text_files);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_different_text_files);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_identical_binary_files);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_different_binary_files);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_case_sensitive);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_case_insensitive);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_with_context_lines);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_empty_files);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_different_length_files);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_nonexistent_files);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_one_nonexistent_file);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_neither_text_nor_binary);
+    FOSSIL_ADD_TEST(c_compare_command_suite, c_test_compare_large_files);
 
-    FOSSIL_TEST_REGISTER(c_compare_command_suite);
+    FOSSIL_ADD_SUITE(c_compare_command_suite);
 }

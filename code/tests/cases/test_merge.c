@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include <fossil/pizza/framework.h>
+#include <fossil/maip/framework.h>
 
 #include "fossil/code/app.h"
 
@@ -352,21 +352,21 @@ FOSSIL_TEST(c_test_merge_force_overwrite)
 
 FOSSIL_TEST_GROUP(c_merge_command_tests)
 {
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_null_parameters);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_single_file);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_multiple_files_overwrite);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_directories_overwrite);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_keep_both_strategy);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_skip_strategy);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_with_backup);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_dry_run);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_with_exclude_pattern);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_with_include_pattern);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_nonexistent_source);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_invalid_strategy);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_three_files);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_empty_files);
-    FOSSIL_TEST_ADD(c_merge_command_suite, c_test_merge_force_overwrite);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_null_parameters);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_single_file);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_multiple_files_overwrite);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_directories_overwrite);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_keep_both_strategy);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_skip_strategy);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_with_backup);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_dry_run);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_with_exclude_pattern);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_with_include_pattern);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_nonexistent_source);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_invalid_strategy);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_three_files);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_empty_files);
+    FOSSIL_ADD_TEST(c_merge_command_suite, c_test_merge_force_overwrite);
 
-    FOSSIL_TEST_REGISTER(c_merge_command_suite);
+    FOSSIL_ADD_SUITE(c_merge_command_suite);
 }

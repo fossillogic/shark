@@ -39,6 +39,7 @@
 #include "search.h"
 #include "archive.h"
 #include "compare.h"
+#include "process.h"
 #include "help.h"
 #include "sync.h"
 #include "watch.h"

@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include <fossil/pizza/framework.h>
+#include <fossil/maip/framework.h>
 
 #include "fossil/code/app.h"
 
@@ -272,22 +272,22 @@ FOSSIL_TEST(c_test_create_type_case_sensitivity)
 
 FOSSIL_TEST_GROUP(c_create_command_tests)
 {
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_null_parameters);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_simple_file);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_simple_directory);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_invalid_type);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_existing_file);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_existing_directory);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_with_parent_dirs);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_without_parent_dirs);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_nested_directory);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_file_with_special_characters);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_directory_with_special_characters);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_deep_nested_structure);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_empty_filename);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_file_in_current_dir);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_file_case_sensitivity);
-    FOSSIL_TEST_ADD(c_create_command_suite, c_test_create_type_case_sensitivity);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_null_parameters);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_simple_file);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_simple_directory);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_invalid_type);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_existing_file);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_existing_directory);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_with_parent_dirs);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_without_parent_dirs);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_nested_directory);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_file_with_special_characters);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_directory_with_special_characters);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_deep_nested_structure);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_empty_filename);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_file_in_current_dir);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_file_case_sensitivity);
+    FOSSIL_ADD_TEST(c_create_command_suite, c_test_create_type_case_sensitivity);
 
-    FOSSIL_TEST_REGISTER(c_create_command_suite);
+    FOSSIL_ADD_SUITE(c_create_command_suite);
 }

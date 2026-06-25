@@ -22,7 +22,7 @@
  * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include <fossil/pizza/framework.h>
+#include <fossil/maip/framework.h>
 
 #include "fossil/code/app.h"
 
@@ -216,17 +216,17 @@ FOSSIL_TEST(c_test_dedupe_mixed_files_and_duplicates)
 
 FOSSIL_TEST_GROUP(c_dedupe_command_tests)
 {
-    FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_null_parameters);
-    FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_empty_directory);
-    FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_no_duplicates);
-    FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_detect_duplicates_by_hash);
-    FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_detect_duplicates_by_size);
-    FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_delete_duplicates);
-    FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_link_duplicates);
-    FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_json_output);
-    FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_fson_output);
-    FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_invalid_directory);
-    FOSSIL_TEST_ADD(c_dedupe_command_suite, c_test_dedupe_mixed_files_and_duplicates);
+    FOSSIL_ADD_TEST(c_dedupe_command_suite, c_test_dedupe_null_parameters);
+    FOSSIL_ADD_TEST(c_dedupe_command_suite, c_test_dedupe_empty_directory);
+    FOSSIL_ADD_TEST(c_dedupe_command_suite, c_test_dedupe_no_duplicates);
+    FOSSIL_ADD_TEST(c_dedupe_command_suite, c_test_dedupe_detect_duplicates_by_hash);
+    FOSSIL_ADD_TEST(c_dedupe_command_suite, c_test_dedupe_detect_duplicates_by_size);
+    FOSSIL_ADD_TEST(c_dedupe_command_suite, c_test_dedupe_delete_duplicates);
+    FOSSIL_ADD_TEST(c_dedupe_command_suite, c_test_dedupe_link_duplicates);
+    FOSSIL_ADD_TEST(c_dedupe_command_suite, c_test_dedupe_json_output);
+    FOSSIL_ADD_TEST(c_dedupe_command_suite, c_test_dedupe_fson_output);
+    FOSSIL_ADD_TEST(c_dedupe_command_suite, c_test_dedupe_invalid_directory);
+    FOSSIL_ADD_TEST(c_dedupe_command_suite, c_test_dedupe_mixed_files_and_duplicates);
 
-    FOSSIL_TEST_REGISTER(c_dedupe_command_suite);
+    FOSSIL_ADD_SUITE(c_dedupe_command_suite);
 }
