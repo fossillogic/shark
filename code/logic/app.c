@@ -569,16 +569,14 @@ bool app_entry(int argc, char **argv)
                 }
                 else if (argv[j][0] != '-')
                 {
-                    if (!cnotnull(dest))
-                    {
-                        paths[num_paths++] = argv[j];
-                    }
-                    else
-                    {
-                        dest = argv[j];
-                    }
+                    paths[num_paths++] = argv[j];
                 }
                 i = j;
+            }
+            if (num_paths > 1)
+            {
+                dest = paths[num_paths - 1];
+                num_paths--;
             }
             if (num_paths > 0 && cnotnull(dest))
             {
@@ -643,7 +641,8 @@ bool app_entry(int argc, char **argv)
         }
         else if (fossil_io_cstring_compare(argv[i], "move") == 0)
         {
-            ccstring src = cnull, dest = cnull;
+            ccstring *src_paths = NULL;
+            size_t src_count = 0;
             bool force = false, interactive = false, backup = false;
             bool atomic = false, progress = false, dry_run = false;
             ccstring exclude_pattern = cnull, include_pattern = cnull;
@@ -682,22 +681,34 @@ bool app_entry(int argc, char **argv)
                 {
                     include_pattern = argv[++j];
                 }
-                else if (!cnotnull(src))
+                else
                 {
-                    src = argv[j];
-                }
-                else if (!cnotnull(dest))
-                {
-                    dest = argv[j];
+                    ccstring *new_paths = (ccstring *)realloc(src_paths, (src_count + 1) * sizeof(*new_paths));
+                    if (new_paths == NULL)
+                    {
+                        fossil_io_printf("{red}Failed to allocate memory for move paths.{reset}\n");
+                        free(src_paths);
+                        src_paths = NULL;
+                        src_count = 0;
+                        break;
+                    }
+                    src_paths = new_paths;
+                    src_paths[src_count++] = argv[j];
                 }
                 i = j;
             }
-            if (cnotnull(src) && cnotnull(dest))
-                fossil_shark_move(src, dest, force, interactive, backup, atomic, progress, dry_run, exclude_pattern, include_pattern);
+            if (src_count > 1)
+            {
+                ccstring dest = src_paths[src_count - 1];
+                for (size_t k = 0; k + 1 < src_count; ++k)
+                    fossil_shark_move(src_paths[k], dest, force, interactive, backup, atomic, progress, dry_run, exclude_pattern, include_pattern);
+            }
+            free(src_paths);
         }
         else if (fossil_io_cstring_compare(argv[i], "copy") == 0)
         {
-            ccstring src = cnull, dest = cnull;
+            ccstring *src_paths = NULL;
+            size_t src_count = 0;
             bool recursive = false, update = false, preserve = false;
             bool checksum = false, sparse = false, link = false, reflink = false;
             bool progress = false, dry_run = false;
@@ -749,23 +760,35 @@ bool app_entry(int argc, char **argv)
                 {
                     include_pattern = argv[++j];
                 }
-                else if (!cnotnull(src))
+                else
                 {
-                    src = argv[j];
-                }
-                else if (!cnotnull(dest))
-                {
-                    dest = argv[j];
+                    ccstring *new_paths = (ccstring *)realloc(src_paths, (src_count + 1) * sizeof(*new_paths));
+                    if (new_paths == NULL)
+                    {
+                        fossil_io_printf("{red}Failed to allocate memory for copy paths.{reset}\n");
+                        free(src_paths);
+                        src_paths = NULL;
+                        src_count = 0;
+                        break;
+                    }
+                    src_paths = new_paths;
+                    src_paths[src_count++] = argv[j];
                 }
                 i = j;
             }
-            if (cnotnull(src) && cnotnull(dest))
-                fossil_shark_copy(src, dest, recursive, update, preserve, checksum, sparse, link, reflink, progress, dry_run, exclude_pattern, include_pattern);
+            if (src_count > 1)
+            {
+                ccstring dest = src_paths[src_count - 1];
+                for (size_t k = 0; k + 1 < src_count; ++k)
+                    fossil_shark_copy(src_paths[k], dest, recursive, update, preserve, checksum, sparse, link, reflink, progress, dry_run, exclude_pattern, include_pattern);
+            }
+            free(src_paths);
         }
         else if (fossil_io_cstring_compare(argv[i], "remove") == 0 ||
                  fossil_io_cstring_compare(argv[i], "delete") == 0)
         {
-            ccstring path = cnull;
+            ccstring *paths = NULL;
+            size_t path_count = 0;
             bool recursive = false, force = false, interactive = false, use_trash = false;
             bool wipe = false, empty_only = false;
             int shred_passes = 0;
@@ -814,14 +837,28 @@ bool app_entry(int argc, char **argv)
                 {
                     log_file = argv[++j];
                 }
-                else if (!cnotnull(path))
+                else
                 {
-                    path = argv[j];
+                    ccstring *new_paths = (ccstring *)realloc(paths, (path_count + 1) * sizeof(*new_paths));
+                    if (new_paths == NULL)
+                    {
+                        fossil_io_printf("{red}Failed to allocate memory for remove paths.{reset}\n");
+                        free(paths);
+                        paths = NULL;
+                        path_count = 0;
+                        break;
+                    }
+                    paths = new_paths;
+                    paths[path_count++] = argv[j];
                 }
                 i = j;
             }
-            if (cnotnull(path))
-                fossil_shark_remove(path, recursive, force, interactive, use_trash, wipe, shred_passes, older_than, larger_than, empty_only, log_file);
+            if (path_count > 0)
+            {
+                for (size_t k = 0; k < path_count; ++k)
+                    fossil_shark_remove(paths[k], recursive, force, interactive, use_trash, wipe, shred_passes, older_than, larger_than, empty_only, log_file);
+                free(paths);
+            }
         }
         else if (fossil_io_cstring_compare(argv[i], "rename") == 0)
         {
@@ -1422,7 +1459,8 @@ bool app_entry(int argc, char **argv)
         }
         else if (fossil_io_cstring_compare(argv[i], "undo") == 0)
         {
-            ccstring path = cnull;
+            ccstring *paths = NULL;
+            size_t path_count = 0;
             int last_n = 1;
             bool interactive = false, dry_run = false;
 
@@ -1434,13 +1472,34 @@ bool app_entry(int argc, char **argv)
                     interactive = true;
                 else if (fossil_io_cstring_compare(argv[j], "--dry-run") == 0)
                     dry_run = true;
-                else if (!cnotnull(path))
-                    path = argv[j];
+                else
+                {
+                    ccstring *new_paths = (ccstring *)realloc(paths, (path_count + 1) * sizeof(*new_paths));
+                    if (new_paths == NULL)
+                    {
+                        fossil_io_printf("{red}Failed to allocate memory for undo paths.{reset}\n");
+                        free(paths);
+                        paths = NULL;
+                        path_count = 0;
+                        break;
+                    }
+                    paths = new_paths;
+                    paths[path_count++] = argv[j];
+                }
 
                 i = j;
             }
 
-            fossil_shark_undo(last_n, path, interactive, dry_run);
+            if (path_count > 0)
+            {
+                for (size_t k = 0; k < path_count; ++k)
+                    fossil_shark_undo(last_n, paths[k], interactive, dry_run);
+                free(paths);
+            }
+            else
+            {
+                fossil_shark_undo(last_n, cnull, interactive, dry_run);
+            }
         }
         else if (fossil_io_cstring_compare(argv[i], "link") == 0)
         {
