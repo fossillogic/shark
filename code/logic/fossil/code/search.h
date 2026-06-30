@@ -33,16 +33,24 @@ extern "C"
 #endif
 
 /**
- * Search for files by name patterns or content matching
+ * Search command for the Shark tool.
  *
- * @param path Root path to start searching from
- * @param recursive Search subdirectories recursively
+ * This function scans a directory tree starting at the specified path and
+ * prints matching files to standard output. It supports name-based filtering
+ * using a filename pattern and optional content-based filtering by searching
+ * inside text files. Hidden files may be excluded in the implementation, and
+ * binary files are skipped for content searches.
  *
- * @param name_pattern Pattern to match against file names
- * @param content_pattern Pattern to search within file contents
- * @param ignore_case Perform case-insensitive matching
+ * @param path Root path to start searching from. If NULL, the current working
+ *             directory is used.
+ * @param recursive If true, subdirectories are traversed recursively.
+ * @param name_pattern Pattern used to match file names. If NULL, all file names
+ *                     are accepted.
+ * @param content_pattern Pattern used to match file contents. If NULL, file
+ *                        contents are not searched.
+ * @param ignore_case If true, matching is performed without case sensitivity.
  *
- * @return 0 on success, non-zero on error
+ * @return 0 on success, non-zero on error.
  */
 int fossil_shark_search(ccstring path,
                         bool recursive,
