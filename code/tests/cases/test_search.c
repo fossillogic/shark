@@ -110,6 +110,29 @@ FOSSIL_TEST(c_test_search_by_content_pattern)
     FOSSIL_SANITY_SYS_DELETE_FILE("search_content.txt");
 }
 
+FOSSIL_TEST(c_test_search_multi_file)
+{
+    int res1 = fossil_shark_create("multi_file_1.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res1);
+
+    int res2 = fossil_shark_create("multi_file_2.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res2);
+
+    int res3 = fossil_shark_create("multi_file_other.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res3);
+
+    FOSSIL_SANITY_SYS_WRITE_FILE("multi_file_1.txt", "shared content\n");
+    FOSSIL_SANITY_SYS_WRITE_FILE("multi_file_2.txt", "shared content\n");
+    FOSSIL_SANITY_SYS_WRITE_FILE("multi_file_other.txt", "unique content\n");
+
+    int result = fossil_shark_search(".", false, ".txt", "shared content", false);
+    ASSUME_ITS_EQUAL_I32(0, result);
+
+    FOSSIL_SANITY_SYS_DELETE_FILE("multi_file_1.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("multi_file_2.txt");
+    FOSSIL_SANITY_SYS_DELETE_FILE("multi_file_other.txt");
+}
+
 FOSSIL_TEST(c_test_search_case_insensitive_name)
 {
     // Create test file
@@ -208,6 +231,51 @@ FOSSIL_TEST(c_test_search_no_patterns)
 
     // Clean up
     FOSSIL_SANITY_SYS_DELETE_FILE("any_file.txt");
+}
+
+FOSSIL_TEST(c_test_search_path_root)
+{
+    int res = fossil_shark_create("root_search_dir", true, "dir");
+    ASSUME_ITS_EQUAL_I32(0, res);
+
+    int res2 = fossil_shark_create("root_search_dir/path_file.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res2);
+
+    FOSSIL_SANITY_SYS_WRITE_FILE("root_search_dir/path_file.txt", "Root path search content\n");
+
+    int result = fossil_shark_search("root_search_dir", false, ".txt", cnull, false);
+    ASSUME_ITS_EQUAL_I32(0, result);
+
+    FOSSIL_SANITY_SYS_EXECUTE("rm -rf root_search_dir");
+}
+
+FOSSIL_TEST(c_test_search_hidden_file_exclusion)
+{
+    int res = fossil_shark_create(".hidden_search.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res);
+
+    FOSSIL_SANITY_SYS_WRITE_FILE(".hidden_search.txt", "hidden content\n");
+
+    int result = fossil_shark_search(".", false, cnull, "hidden content", false);
+    ASSUME_ITS_EQUAL_I32(0, result);
+
+    FOSSIL_SANITY_SYS_DELETE_FILE(".hidden_search.txt");
+}
+
+FOSSIL_TEST(c_test_search_recursive_content_search)
+{
+    int res = fossil_shark_create("recursive_dir", true, "dir");
+    ASSUME_ITS_EQUAL_I32(0, res);
+
+    int res2 = fossil_shark_create("recursive_dir/deep_file.txt", false, "file");
+    ASSUME_ITS_EQUAL_I32(0, res2);
+
+    FOSSIL_SANITY_SYS_WRITE_FILE("recursive_dir/deep_file.txt", "deep recursive content\n");
+
+    int result = fossil_shark_search(".", true, cnull, "deep recursive content", false);
+    ASSUME_ITS_EQUAL_I32(0, result);
+
+    FOSSIL_SANITY_SYS_EXECUTE("rm -rf recursive_dir");
 }
 
 FOSSIL_TEST(c_test_search_recursive_basic)
@@ -410,6 +478,8 @@ FOSSIL_TEST(c_test_search_plain_string_bug)
     FOSSIL_SANITY_SYS_DELETE_FILE("plain.txt");
 }
 
+//
+
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
@@ -420,12 +490,16 @@ FOSSIL_TEST_GROUP(c_search_command_tests)
     FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_invalid_path);
     FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_by_name_pattern);
     FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_by_content_pattern);
+    FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_multi_file);
     FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_case_insensitive_name);
     FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_case_insensitive_content);
     FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_combined_patterns);
     FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_no_matches);
     FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_empty_file);
     FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_no_patterns);
+    FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_path_root);
+    FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_hidden_file_exclusion);
+    FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_recursive_content_search);
     FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_recursive_basic);
     FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_non_recursive);
     FOSSIL_ADD_TEST(c_search_command_suite, c_test_search_unreadable_file);

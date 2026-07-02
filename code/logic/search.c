@@ -24,20 +24,6 @@
  */
 #include "fossil/code/search.h"
 
-// Helper: find character in string: soon to be added to Fossil Io
-static ccstring fossil_io_cstring_find_char(ccstring str, char ch)
-{
-    if (!str)
-        return NULL;
-    while (*str)
-    {
-        if (*str == ch)
-            return str;
-        str++;
-    }
-    return NULL;
-}
-
 // Helper: detect if file is binary using io_filesys_
 static bool is_binary_file(ccstring file_path)
 {
@@ -56,25 +42,27 @@ static bool is_binary_file(ccstring file_path)
     return false;
 }
 
-// Helper: check if pattern contains regex metacharacters
-static bool has_regex_chars(ccstring pattern)
+// Helper: compile a search pattern as regex, including plain text literals
+static fossil_io_regex_t *compile_search_regex(ccstring pattern, bool ignore_case, char **error)
 {
-    if (!pattern)
-        return false;
-    const char *metacharacters = ".*+?[](){}|^$\\";
-    for (size_t i = 0; pattern[i]; i++)
-    {
-        if (fossil_io_cstring_find_char(metacharacters, pattern[i]) != NULL)
-            return true;
-    }
-    return false;
+    if (!pattern || !*pattern)
+        return NULL;
+
+    const char *options[] = {
+        ignore_case ? "icase" : NULL,
+        NULL
+    };
+
+    return fossil_io_regex_compile(pattern, ignore_case ? options : NULL, error);
 }
 
 // Helper: regex-based string match
 static bool str_match(ccstring str, fossil_io_regex_t *regex)
 {
-    if (!str || !regex)
-        return !regex;
+    if (!str)
+        return false;
+    if (!regex)
+        return true;
     return fossil_io_regex_match(regex, str, NULL) > 0;
 }
 
@@ -210,26 +198,30 @@ int fossil_shark_search_advanced(ccstring path, bool recursive,
     if (!path)
         path = ".";
 
-    const char *options[] = {
-        ignore_case ? "icase" : NULL,
-        NULL};
-
     char *error = NULL;
     fossil_io_regex_t *name_regex = NULL;
     fossil_io_regex_t *content_regex = NULL;
 
-    if (name_pattern && has_regex_chars(name_pattern))
+    if (name_pattern)
     {
-        name_regex = fossil_io_regex_compile(name_pattern, ignore_case ? options : NULL, &error);
+        error = NULL;
+        name_regex = compile_search_regex(name_pattern, ignore_case, &error);
         if (!name_regex && error)
+        {
             fossil_sys_memory_free(error);
+            error = NULL;
+        }
     }
 
-    if (content_pattern && has_regex_chars(content_pattern))
+    if (content_pattern)
     {
-        content_regex = fossil_io_regex_compile(content_pattern, ignore_case ? options : NULL, &error);
+        error = NULL;
+        content_regex = compile_search_regex(content_pattern, ignore_case, &error);
         if (!content_regex && error)
+        {
             fossil_sys_memory_free(error);
+            error = NULL;
+        }
     }
 
     int result = search_recursive(path, recursive, name_regex, content_regex,
