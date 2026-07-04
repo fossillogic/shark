@@ -24,8 +24,286 @@
  */
 #include "fossil/code/help.h"
 
-int fossil_shark_help(ccstring command, bool show_examples, bool full_manual)
+typedef struct {
+    ccstring command;
+    ccstring description;
+    ccstring keywords;
+    ccstring example;
+} fossil_shark_help_entry;
+
+typedef struct {
+    ccstring alias;
+    ccstring command;
+} fossil_shark_help_alias;
+
+static const fossil_shark_help_entry HELP_DB[] = {
+    {
+        "show",
+        "Display files and directories.",
+        "list ls directory directories browse files folder tree view display",
+        "shark show -alh --as tree"
+    },
+    {
+        "search",
+        "Find files by name or contents.",
+        "find locate grep filename content regex pattern text search",
+        "shark search -r -c \"config\""
+    },
+    {
+        "copy",
+        "Copy files or directories.",
+        "duplicate clone backup duplicate-file copy cp",
+        "shark copy src/ backup/"
+    },
+    {
+        "move",
+        "Move or rename files.",
+        "mv relocate rename transfer move",
+        "shark move file.txt archive/"
+    },
+    {
+        "remove",
+        "Delete files or directories.",
+        "delete erase remove rm trash wipe shred",
+        "shark remove --trash old/"
+    },
+    {
+        "dedupe",
+        "Find duplicate files.",
+        "duplicates duplicate hash identical repeated copies",
+        "shark dedupe --hash ./"
+    },
+    {
+        "archive",
+        "Create and extract archives.",
+        "zip tar compress unpack extract archive gzip",
+        "shark archive -c project.tar src/"
+    },
+    {
+        "perm",
+        "Manage permissions.",
+        "chmod permissions owner group rwx acl security",
+        "shark perm --grant rwx ./scripts"
+    },
+    {
+        "grammar",
+        "Grammar analysis and correction.",
+        "spell spelling grammar writing proofread english",
+        "shark grammar --check notes.txt"
+    },
+    {
+        "cryptic",
+        "Encode and decode text.",
+        "encrypt decrypt encode decode cipher base64 rot13 morse",
+        "shark cryptic --encode --cipher base64"
+    },
+    {
+        "merge",
+        "Merge multiple files or directories.",
+        "merge combine consolidate union overwrite keep-both",
+        "shark merge -f -i -b file1.txt file2.txt"
+    },
+    {
+        "swap",
+        "Exchange locations of two files or directories.",
+        "swap exchange switch relocate atomic",
+        "shark swap -f -b file1.txt file2.txt"
+    },
+    {
+        "rename",
+        "Rename files or directories.",
+        "rename move rename-file mv rename",
+        "shark rename -i draft.md final.md"
+    },
+    {
+        "create",
+        "Create new directories or files.",
+        "create new mkdir touch directory file make",
+        "shark create -p -t dir logs/archive/2024/"
+    },
+    {
+        "compare",
+        "Compare files or directories.",
+        "compare diff differences binary text compare",
+        "shark compare -t main_v1.c main_v2.c --context 5"
+    },
+    {
+        "help",
+        "Show help and usage.",
+        "help usage manual assist ask examples man --help",
+        "shark help show --examples"
+    },
+    {
+        "sync",
+        "Synchronize files and directories.",
+        "sync synchronize mirror replicate rsync update",
+        "shark sync -ru src/ dest/"
+    },
+    {
+        "watch",
+        "Monitor files and directories.",
+        "watch monitor notify events changes filesystem",
+        "shark watch -r -e create,delete src/"
+    },
+    {
+        "rewrite",
+        "Modify or update file contents.",
+        "rewrite edit replace append modify update in-place",
+        "shark rewrite --in-place --append log.txt \"New entry\""
+    },
+    {
+        "introspect",
+        "Examine file contents, type, or metadata.",
+        "inspect introspect stat metadata type fileinfo analyze",
+        "shark introspect --type --media fson report.pdf"
+    },
+    {
+        "split",
+        "Split files into smaller chunks.",
+        "split chunk divide segment lines bytes prefix",
+        "shark split -l 1000 --prefix part_ bigfile.txt"
+    },
+    {
+        "link",
+        "Create hard or symbolic links.",
+        "link ln symlink hardlink symbolic",
+        "shark link -s source.txt link.txt"
+    },
+    {
+        "undo",
+        "Revert previous file operations.",
+        "undo revert rollback restore history changes",
+        "shark undo -n 3 --dry-run"
+    },
+    {
+        "process",
+        "Manage and monitor system processes.",
+        "process ps top monitor kill signal tree",
+        "shark process --list"
+    }
+};
+
+static const fossil_shark_help_alias HELP_ALIASES[] = {
+    { "zip", "archive" },
+    { "ls", "show" },
+    { "grep", "search" },
+    { "chmod", "perm" },
+    { "mv", "move" },
+    { "cp", "copy" },
+    { "rm", "remove" },
+    { "del", "remove" },
+    { "delete", "remove" },
+    { "duplicate", "dedupe" },
+    { "ln", "link" },
+    { "diff", "compare" },
+    { "mkdir", "create" }
+};
+
+static int fossil_shark_help_match_compare(const void *a, const void *b)
 {
+    const struct { int score; size_t index; } *lhs = a;
+    const struct { int score; size_t index; } *rhs = b;
+    if (lhs->score != rhs->score)
+        return rhs->score - lhs->score;
+    if (lhs->index < rhs->index)
+        return -1;
+    if (lhs->index > rhs->index)
+        return 1;
+    return 0;
+}
+
+static bool fossil_shark_help_token_in_question(ccstring question, ccstring token)
+{
+    return fossil_io_cstring_contains_icase(question, token);
+}
+
+static int fossil_shark_help_ask(ccstring question)
+{
+    if (!question || *question == '\0')
+        return 0;
+
+    fossil_io_printf("{blue,bold}Question:{normal} %s\n\n", question);
+
+    struct match_t { int score; size_t index; } matches[fossil_countof(HELP_DB)];
+    size_t match_count = 0;
+
+    for (size_t i = 0; i < fossil_countof(HELP_DB); ++i)
+    {
+        int score = 0;
+
+        if (fossil_shark_help_token_in_question(question, HELP_DB[i].command))
+            score += 10;
+
+        ccstring keyword = HELP_DB[i].keywords;
+        while (*keyword)
+        {
+            char token[64];
+            size_t token_len = 0;
+
+            while (*keyword && *keyword != ' ' && *keyword != '\t' && *keyword != '\n' && *keyword != '\r')
+            {
+                if (token_len + 1 < sizeof(token))
+                    token[token_len++] = *keyword;
+                keyword++;
+            }
+            token[token_len] = '\0';
+            while (*keyword == ' ' || *keyword == '\t' || *keyword == '\n' || *keyword == '\r')
+                keyword++;
+
+            if (token_len > 0 && fossil_shark_help_token_in_question(question, token))
+                score += 5;
+        }
+
+        for (size_t j = 0; j < fossil_countof(HELP_ALIASES); ++j)
+        {
+            if (fossil_io_cstring_equals(HELP_ALIASES[j].command, HELP_DB[i].command) &&
+                fossil_shark_help_token_in_question(question, HELP_ALIASES[j].alias))
+            {
+                score += 3;
+            }
+        }
+
+        if (score > 0)
+        {
+            matches[match_count].score = score;
+            matches[match_count].index = i;
+            ++match_count;
+        }
+    }
+
+    if (match_count == 0)
+    {
+        fossil_io_printf("{yellow}No exact match found.{normal}\n\n");
+        fossil_io_printf("{blue}Try asking things like:{normal}\n");
+        fossil_io_printf("  shark help --ask \"How do I search inside files?\"\n");
+        fossil_io_printf("  shark help --ask \"How do I delete duplicate files?\"\n");
+        fossil_io_printf("  shark help --ask \"How do I compress a folder?\"\n");
+        fossil_io_printf("  shark help --ask \"How do I change permissions?\"\n");
+        return 0;
+    }
+
+    qsort(matches, match_count, sizeof(matches[0]), fossil_shark_help_match_compare);
+
+    size_t suggestions = match_count > 3 ? 3 : match_count;
+    fossil_io_printf("{blue,bold}%s{normal}\n", suggestions == 1 ? "Suggested command:" : "Suggested commands:");
+    for (size_t i = 0; i < suggestions; ++i)
+    {
+        const fossil_shark_help_entry *entry = &HELP_DB[matches[i].index];
+        fossil_io_printf("%s    %s\nExample    %s\n", entry->command, entry->description, entry->example);
+        if (i + 1 < suggestions)
+            fossil_io_printf("\n");
+    }
+
+    return 0;
+}
+
+int fossil_shark_help(ccstring command, ccstring ask, bool show_examples, bool full_manual)
+{
+    if (clikely(cnotnull(ask)))
+    {
+        return fossil_shark_help_ask(ask);
+    }
+
     // Show overview if command is NULL or "all"
     if (!command || fossil_io_cstring_equals(command, "all"))
     {
@@ -208,6 +486,7 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual)
             fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}help [command]{normal}\n");
             fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
             fossil_io_printf("  {cyan,bold}--examples{normal}  Usage examples\n");
+            fossil_io_printf("  {cyan,bold}--ask <query>{normal}  Ask a question\n");
             fossil_io_printf("  {cyan,bold}--man{normal}       Full manual\n");
         }
         else if (fossil_io_cstring_equals(command, "sync"))
@@ -321,6 +600,27 @@ int fossil_shark_help(ccstring command, bool show_examples, bool full_manual)
             fossil_io_printf("  {cyan,bold}--revoke <perm>{normal}  Revoke permissions\n");
             fossil_io_printf("  {cyan,bold}-l, --list{normal}       Show permissions\n");
             fossil_io_printf("  {cyan,bold}-r, --recursive{normal}  Apply recursively\n");
+        }
+        else if (fossil_io_cstring_equals(command, "undo"))
+        {
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}undo [options] <operation>{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
+            fossil_io_printf("  {cyan,bold}-n, --number <n>{normal}   Number of actions to undo\n");
+            fossil_io_printf("  {cyan,bold}--dry-run{normal}          Preview undo actions\n");
+            fossil_io_printf("  {cyan,bold}-f, --force{normal}       Force undo without prompts\n");
+            fossil_io_printf("  {cyan,bold}--list{normal}            Show undoable actions\n");
+        }
+        else if (fossil_io_cstring_equals(command, "process"))
+        {
+            fossil_io_printf("{blue,bold,underline}Usage:{normal} {green}process [options] <target>{normal}\n");
+            fossil_io_printf("{blue,bold,underline}Options:{normal}\n");
+            fossil_io_printf("  {cyan,bold}-l, --list{normal}        List processes\n");
+            fossil_io_printf("  {cyan,bold}-p, --pid <pid>{normal}   Target process ID\n");
+            fossil_io_printf("  {cyan,bold}--kill{normal}            Terminate process\n");
+            fossil_io_printf("  {cyan,bold}--signal <sig>{normal}     Send a signal to process\n");
+            fossil_io_printf("  {cyan,bold}--tree{normal}            Show process tree\n");
+            fossil_io_printf("  {cyan,bold}--filter <expr>{normal}   Filter processes\n");
+            fossil_io_printf("  {cyan,bold}--verbose{normal}         Detailed output\n");
         }
         else if (fossil_io_cstring_equals(command, "--help"))
         {

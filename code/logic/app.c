@@ -1042,6 +1042,7 @@ bool app_entry(int argc, char **argv)
         else if (fossil_io_cstring_compare(argv[i], "help") == 0)
         {
             ccstring command = cnull;
+            ccstring ask = cnull;
             bool show_examples = false, full_manual = false;
 
             for (int j = i + 1; j < argc; j++)
@@ -1054,13 +1055,17 @@ bool app_entry(int argc, char **argv)
                 {
                     full_manual = true;
                 }
+                else if (fossil_io_cstring_compare(argv[j], "--ask") == 0 && j + 1 < argc)
+                {
+                    ask = argv[++j];
+                }
                 else if (!cnotnull(command) && argv[j][0] != '-')
                 {
                     command = argv[j];
                 }
                 i = j;
             }
-            fossil_shark_help(command, show_examples, full_manual);
+            fossil_shark_help(command, ask, show_examples, full_manual);
         }
         else if (fossil_io_cstring_compare(argv[i], "sync") == 0)
         {
@@ -1634,7 +1639,7 @@ bool app_entry(int argc, char **argv)
         else
         {
             fossil_io_printf("{red}Unknown command: %s{reset}\n", argv[i]);
-            fossil_shark_help(cnull, false, false);
+            fossil_shark_help(cnull, cnull, false, false);
             return 1;
         }
     }
