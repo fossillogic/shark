@@ -69,6 +69,12 @@ void show_commands(char *app_name)
     fossil_io_printf("{bright_black}    --exclude <pat>     Exclude files\n");
     fossil_io_printf("{bright_black}    --include <pat>     Include files\n");
 
+    fossil_io_printf("{cyan}  help             {reset}Display help information\n");
+    fossil_io_printf("{bright_black}    <command>           Show detailed help for a command\n");
+    fossil_io_printf("{bright_black}    --ask <question>    Ask a question about usage\n");
+    fossil_io_printf("{bright_black}    --examples          Show usage examples\n");
+    fossil_io_printf("{bright_black}    --manual            Show full manual\n");
+
     fossil_io_printf("{cyan}  swap             {reset}Exchange locations of two files/directories\n");
     fossil_io_printf("{bright_black}    -f, --force         Overwrite if needed\n");
     fossil_io_printf("{bright_black}    -i, --interactive   Confirm swap\n");
