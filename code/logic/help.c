@@ -214,7 +214,7 @@ static int fossil_shark_help_match_compare(const void *a, const void *b)
 
 static bool fossil_shark_help_token_in_question(ccstring question, ccstring token)
 {
-    return fossil_io_cstring_contains_icase(question, token);
+    return fossil_io_cstring_icontains(question, token);
 }
 
 static int fossil_shark_help_ask(ccstring question)
@@ -224,10 +224,10 @@ static int fossil_shark_help_ask(ccstring question)
 
     fossil_io_printf("{blue,bold}Question:{normal} %s\n\n", question);
 
-    struct match_t { int score; size_t index; } matches[fossil_countof(HELP_DB)];
+    struct match_t { int score; size_t index; } matches[sizeof(HELP_DB) / sizeof(HELP_DB[0])];
     size_t match_count = 0;
 
-    for (size_t i = 0; i < fossil_countof(HELP_DB); ++i)
+    for (size_t i = 0; i < sizeof(HELP_DB) / sizeof(HELP_DB[0]); ++i)
     {
         int score = 0;
 
@@ -254,7 +254,7 @@ static int fossil_shark_help_ask(ccstring question)
                 score += 5;
         }
 
-        for (size_t j = 0; j < fossil_countof(HELP_ALIASES); ++j)
+        for (size_t j = 0; j < sizeof(HELP_ALIASES) / sizeof(HELP_ALIASES[0]); ++j)
         {
             if (fossil_io_cstring_equals(HELP_ALIASES[j].command, HELP_DB[i].command) &&
                 fossil_shark_help_token_in_question(question, HELP_ALIASES[j].alias))
