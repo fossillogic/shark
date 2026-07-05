@@ -35,11 +35,12 @@ extern "C"
 /**
  * Display help information and usage examples
  * @param command Command name to show help for
+ * @param ask User's question or query
  * @param show_examples Include usage examples in help output
  * @param full_manual Show complete manual instead of brief help
  * @return 0 on success, non-zero on error
  */
-int fossil_shark_help(ccstring command, bool show_examples, bool full_manual);
+int fossil_shark_help(ccstring command, ccstring ask, bool show_examples, bool full_manual);
 
 #ifdef __cplusplus
 }
