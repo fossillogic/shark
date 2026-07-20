@@ -17,9 +17,9 @@
  * under the License.
  *
  * Author: Michael Gene Brockus (Dreamer)
- * Date: 04/05/2014
+ * Date: 04/05/2013
  *
- * Copyright (C) 2014-2025 Fossil Logic. All rights reserved.
+ * Copyright (C) 2013-Current Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
 #ifndef FOSSIL_APP_CODE_H
@@ -30,7 +30,7 @@
 #include "magic.h"
 
 #define FOSSIL_APP_NAME "Shark Tool"
-#define FOSSIL_APP_VERSION "0.2.0"
+#define FOSSIL_APP_VERSION "1.0.0"
 
 #ifdef __cplusplus
 extern "C"
