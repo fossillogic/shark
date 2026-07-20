@@ -23,6 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/code/remove.h"
+#include <time.h>
 
 // Helper: ask user for confirmation
 static bool confirm_removal(ccstring path)
