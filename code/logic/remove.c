@@ -57,21 +57,30 @@ static void log_deletion(ccstring log_file, ccstring path, bool success)
 #ifdef _WIN32
     localtime_s(&tm_info, &now);
 #else
-    localtime_r(&now, &tm_info);
+    struct tm *tmp = localtime(&now);
+    if (tmp == cnull)
+    {
+        fossil_io_filesys_file_close(&f);
+        return;
+    }
+    tm_info = *tmp;
 #endif
 
-    strftime(time_str, sizeof(time_str),
+    strftime(time_str,
+             sizeof(time_str),
              "%Y-%m-%d %H:%M:%S",
              &tm_info);
 
     char buf[1024];
-    int n = snprintf(buf, sizeof(buf),
+    int n = snprintf(buf,
+                     sizeof(buf),
                      "[%s] %s: %s\n",
                      time_str,
                      success ? "OK" : "FAIL",
                      path);
 
-    fossil_io_filesys_file_write(&f, buf, 1, (size_t)n);
+    if (n > 0)
+        fossil_io_filesys_file_write(&f, buf, 1, (size_t)n);
 
     fossil_io_filesys_file_close(&f);
 }
