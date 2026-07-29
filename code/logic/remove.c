@@ -51,17 +51,36 @@ static void log_deletion(ccstring log_file, ccstring path, bool success)
         return;
 
     time_t now = time(cnull);
-    char time_str[26];
+    char time_str[32];
+    struct tm tm_info;
+
 #ifdef _WIN32
-    ctime_s(time_str, sizeof(time_str), &now);
+    localtime_s(&tm_info, &now);
 #else
-    ctime_r(&now, time_str);
+    struct tm *tmp = localtime(&now);
+    if (tmp == cnull)
+    {
+        fossil_io_filesys_file_close(&f);
+        return;
+    }
+    tm_info = *tmp;
 #endif
-    time_str[24] = '\0'; // Remove newline
+
+    strftime(time_str,
+             sizeof(time_str),
+             "%Y-%m-%d %H:%M:%S",
+             &tm_info);
 
     char buf[1024];
-    int n = snprintf(buf, sizeof(buf), "[%s] %s: %s\n", time_str, success ? "OK" : "FAIL", path);
-    fossil_io_filesys_file_write(&f, buf, 1, n);
+    int n = snprintf(buf,
+                     sizeof(buf),
+                     "[%s] %s: %s\n",
+                     time_str,
+                     success ? "OK" : "FAIL",
+                     path);
+
+    if (n > 0)
+        fossil_io_filesys_file_write(&f, buf, 1, (size_t)n);
 
     fossil_io_filesys_file_close(&f);
 }
